@@ -1,0 +1,1282 @@
+openapi: 3.0.3
+info:
+  title: Team-Formation - OpenAPI 3.0
+  description: |-
+    This is a sample Team-Formation Server based on the OpenAPI 3.0. This API is for managing themes, groups, student participation, voting, and feedback in a team formation process.
+  contact: 
+    email: apiteam@swagger.io
+  version: 1.0.1
+servers:
+  - url: https://petstore3.swagger.io/api/v3
+  
+tags:
+  - name: authentication
+    description: Everything towards login, creating accounts, and logout.
+  - name: users
+    description: Operations related to user details.
+  - name: theme
+    description: Operations related to managing themes.
+  - name: idea
+    description: Operations related to managing ideas.
+  - name: groups
+    description: Operations related to group management.
+  - name: group member
+    description: Operations related to group member management.
+  - name: voting
+    description: Operations related to voting on submitted ideas.
+  - name: review
+    description: Operations for managing peer reviews and ratings between students.
+  - name: notifications
+    description: Operations related to sending notifications to users.
+  - name: analytics
+    description: Operations related to viewing analytics.
+    
+paths:
+  /auth/login:
+    get:
+      tags:
+        - authentication
+        - users
+      summary: Logs user into the system
+      description: ""
+      operationId: loginUser
+      parameters:
+        - name: username
+          in: query
+          description: The user name for login
+          required: false
+          schema:
+            type: string
+        - name: password
+          in: query
+          description: The password for login in clear text
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: successful operation
+          headers:
+            X-Rate-Limit:
+              description: calls per hour allowed by the user
+              schema:
+                type: integer
+                format: int32
+            X-Expires-After:
+              description: date in UTC when token expires
+              schema:
+                type: string
+                format: date-time
+          content:
+            application/xml:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: string
+        "400":
+          description: Invalid username/password supplied
+  /auth/logout:
+    get:
+      tags:
+        - authentication
+        - users
+      summary: Logs out current logged in user session
+      description: ''
+      operationId: logoutUser
+      parameters: []
+      responses:
+        default:
+          description: successful operation
+          
+  /users:
+    get:
+      tags:
+        - users
+      summary: Get a list of all users
+      description: This operation is only accessible by admins to retrieve all user details.
+      operationId: getUsers
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+            application/x-www-form-urlencoded:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        "401":
+          description: Unauthorized, user needs to be an admin
+        "403":
+          description: Forbidden, the user does not have permission to access this resource
+
+  /users/{id}:
+    get:
+      tags:
+        - users
+      summary: Get details of a specific user
+      description: Fetch details of a user by their unique user ID. Admins can access this, and users can view their own data.
+      operationId: getUserById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier for the user
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/User'
+        "400":
+          description: Invalid user ID
+        "401":
+          description: Unauthorized, user needs to be an admin or the user themself
+        "403":
+          description: Forbidden, user does not have permission to access the data
+        "404":
+          description: User not found
+
+    put:
+      tags:
+        - users
+      summary: Update user details
+      description: Admins can update a user's details using this endpoint.
+      operationId: updateUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier for the user
+          schema:
+            type: integer
+      requestBody:
+        description: The user object containing the fields to update
+        content: 
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        "200":
+          description: successful operation
+        "400":
+          description: Invalid user ID or request body
+        "401":
+          description: Unauthorized, user must be an admin
+        "403":
+          description: Forbidden, the user does not have permission to perform this action
+        "404":
+          description: User not found
+          
+  /themes:
+    get:
+      tags:
+        - theme
+      summary: Get all themes
+      description: This endpoint retrieves a list of all available themes.
+      operationId: getThemes
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Theme'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Theme'
+            application/x-www-form-urlencoded:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Theme'
+        "401":
+          description: Unauthorized, user needs to be authenticated
+
+    post:
+      tags:
+        - theme
+      summary: Create a new theme
+      description: This operation creates a new theme and is only accessible by admins.
+      operationId: createTheme
+      requestBody:
+        description: Created new theme
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Theme'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/Theme'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Theme'
+      responses:
+        "201":
+          description: Theme created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Theme'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Theme'
+        "400":
+          description: Invalid input, theme data is not correct
+        "401":
+          description: Unauthorized, user must be an admin
+        "403":
+          description: Forbidden, the user does not have permission to create a theme
+
+  /themes/{id}:
+    get:
+      tags:
+        - theme
+      summary: Get details of a specific theme
+      description: Fetch details of a theme by its unique ID.
+      operationId: getThemeById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier for the theme
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Theme'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Theme'
+        "400":
+          description: Invalid theme ID
+        "404":
+          description: Theme not found
+
+    put:
+      tags:
+        - theme
+      summary: Update theme details
+      description: Admins can update the details of a specific theme.
+      operationId: updateTheme
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier for the theme
+          schema:
+            type: integer
+      requestBody:
+        description: The theme object containing the fields to update
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Theme'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/Theme'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Theme'
+      responses:
+        "200":
+          description: The updated theme details
+        "400":
+          description: Invalid theme ID or request body
+        "401":
+          description: Unauthorized, user must be an admin
+        "403":
+          description: Forbidden, user does not have permission to perform this action
+        "404":
+          description: Theme not found
+
+    delete:
+      tags:
+        - theme
+      summary: Delete a theme
+      description: Admins can delete a theme by its ID.
+      operationId: deleteTheme
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier for the theme to be deleted
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Theme deleted successfully
+        "400":
+          description: Invalid theme ID
+        "401":
+          description: Unauthorized, user must be an admin
+        "403":
+          description: Forbidden, user does not have permission to delete this theme
+        "404":
+          description: Theme not found
+          
+  /ideas:
+    post:
+      tags:
+        - idea
+      summary: Submit an idea
+      description: Allows students to submit an idea to a theme.
+      operationId: submitIdea
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Idea'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/Idea'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Idea'
+      responses:
+        "201":
+          description: Idea successfully submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Idea'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Idea'
+        "400":
+          description: Invalid input, idea data is not correct
+        "401":
+          description: Unauthorized, user must be a student
+        "403":
+          description: Forbidden, the user does not have permission to submit ideas
+
+    get:
+      tags:
+        - idea
+      summary: Get all ideas for a specific theme
+      description: Retrieve all ideas submitted under a specific theme.
+      operationId: getIdeasForTheme
+      parameters:
+        - name: theme_id
+          in: query
+          required: true
+          description: The ID of the theme to retrieve ideas for
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: A list of ideas for the theme
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Idea'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Idea'
+        "400":
+          description: Invalid theme ID
+        "404":
+          description: No ideas found for the given theme
+
+  /ideas/{id}:
+    get:
+      tags:
+        - idea
+      summary: Get details of a specific idea
+      description: Fetch the details of a specific idea by its unique ID.
+      operationId: getIdeaById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier for the idea
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Idea details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Idea'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Idea'
+        "400":
+          description: Invalid idea ID
+        "404":
+          description: Idea not found
+
+    put:
+      tags:
+        - idea
+      summary: Update idea details
+      description: Only the owner of the idea or an admin can update an idea's details.
+      operationId: updateIdea
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier for the idea to update
+          schema:
+            type: integer
+      requestBody:
+        description: Update idea object containing the updated details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Idea'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/Idea'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Idea'
+      responses:
+        "200":
+          description: The updated idea details
+        "400":
+          description: Invalid idea ID or request body
+        "401":
+          description: Unauthorized, user must be the owner or an admin
+        "403":
+          description: Forbidden, user does not have permission to update this idea
+        "404":
+          description: Idea not found
+
+    delete:
+      tags:
+        - idea
+      summary: Delete an idea
+      description: Only the owner of the idea or an admin can delete idea.
+      operationId: deleteIdea
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier for the idea to delete
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Idea deleted successfully
+        "400":
+          description: Invalid idea ID
+        "401":
+          description: Unauthorized, user must be the owner or an admin
+        "403":
+          description: Forbidden, user does not have permission to delete this idea
+        "404":
+          description: Idea not found
+      
+  /groups:
+    get:
+      tags:
+        - groups
+      summary: Get all groups for a specific theme
+      description: Retrieve all groups for a given theme.
+      operationId: getGroupsForTheme
+      parameters:
+        - name: theme_id
+          in: query
+          required: true
+          description: The ID of the theme to retrieve groups for
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: A list of groups for the theme
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+        "400":
+          description: Invalid theme ID
+        "404":
+          description: No groups found for the given theme
+
+    post:
+      tags:
+        - groups
+      summary: Create groups manually
+      description: Admins can create groups manually for a theme.
+      operationId: createGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Group'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/Group'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Group'
+      responses:
+        "201":
+          description: Group successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Group'
+        "400":
+          description: Invalid input, group data is incorrect
+        "401":
+          description: Unauthorized, user must be an admin
+        "403":
+          description: Forbidden, the user does not have permission to create groups
+
+  /groups/{id}:
+    put:
+      tags:
+        - groups
+      summary: Update group details
+      description: Admins can update details of a specific group.
+      operationId: updateGroup
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier for the group to update
+          schema:
+            type: integer
+      requestBody:
+        description: The group object containing updated details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Group'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/Group'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Group'
+      responses:
+        "200":
+          description: The updated group details
+        "400":
+          description: Invalid group ID or request body
+        "401":
+          description: Unauthorized, user must be an admin
+        "403":
+          description: Forbidden, user does not have permission to update this group
+        "404":
+          description: Group not found
+
+    delete:
+      tags:
+        - groups
+      summary: Delete a group
+      description: Admins can delete a specific group.
+      operationId: deleteGroup
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier for the group to delete
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Group deleted successfully
+        "400":
+          description: Invalid group ID
+        "401":
+          description: Unauthorized, user must be an admin
+        "403":
+          description: Forbidden, user does not have permission to delete this group
+        "404":
+          description: Group not found
+
+  /groups/{id}/members:
+    post:
+      tags:
+        - group member
+      summary: Add a student to a group
+      description: Admins can add a student to a specific group.
+      operationId: addGroupMember
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier for the group to add a member
+          schema:
+            type: integer
+        - name: user_id
+          in: query
+          required: true
+          description: The ID of the student to add to the group
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: Student successfully added to the group
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupMember'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/GroupMember'
+        "400":
+          description: Invalid group ID or student ID
+        "401":
+          description: Unauthorized, user must be an admin
+        "403":
+          description: Forbidden, user does not have permission to add a member to the group
+        "404":
+          description: Group or student not found
+
+  /groups/{id}/members/{userId}:
+    delete:
+      tags:
+        - group member
+      summary: Remove a student from a group
+      description: Admins can remove a student from a specific group.
+      operationId: removeGroupMember
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The identifier for the group from which to remove the member
+          schema:
+            type: integer
+        - name: userId
+          in: path
+          required: true
+          description: The identifier for the student to remove from the group
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Student successfully removed from the group
+        "400":
+          description: Invalid group ID or student ID
+        "401":
+          description: Unauthorized, user must be an admin
+        "403":
+          description: Forbidden, user does not have permission to remove a member from the group
+        "404":
+          description: Group or student not found
+  
+  /votes:
+    post:
+      tags:
+        - voting
+      summary: Cast a vote on an idea
+      description: Students cast a vote on an idea they wish to support.
+      operationId: castVote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Vote'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/Vote'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Vote'
+      responses:
+        "201":
+          description: Vote successfully cast
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vote'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Vote'
+        "400":
+          description: Invalid input or idea ID
+        "401":
+          description: Unauthorized, user must be a student
+        "403":
+          description: Forbidden, user cannot vote on this idea
+        "404":
+          description: Idea not found
+
+    get:
+      tags:
+        - voting
+      summary: View all votes for a specific theme
+      description: Admins can view all votes for a given theme.
+      operationId: getVotesForTheme
+      parameters:
+        - name: theme_id
+          in: query
+          required: true
+          description: The ID of the theme to retrieve votes for
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: A list of votes for the theme
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Vote'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Vote'
+        "400":
+          description: Invalid theme ID
+        "401":
+          description: Unauthorized, user must be an admin
+        "403":
+          description: Forbidden, user does not have permission to view votes
+        "404":
+          description: No votes found for the given theme
+          
+  /reviews:
+    post:
+      tags:
+        - review
+      summary: Submit a review and rating
+      description: Students can submit a review and rating for a group they are part of.
+      operationId: submitReview
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/Review'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Review'
+      responses:
+        "201":
+          description: Review and rating successfully submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Review'
+        "400":
+          description: Invalid input, missing required fields, or invalid rating
+        "401":
+          description: Unauthorized, user must be a student
+        "403":
+          description: Forbidden, user cannot review this group
+        "404":
+          description: Group not found
+
+    get:
+      tags:
+        - review
+      summary: Get reviews for a specific group
+      description: Admins can retrieve all reviews and ratings for a specific group.
+      operationId: getReviewsForGroup
+      parameters:
+        - name: group_id
+          in: query
+          required: true
+          description: The ID of the group to retrieve reviews for
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: A list of reviews and ratings for the group
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Review'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Review'
+        "400":
+          description: Invalid group ID
+        "401":
+          description: Unauthorized, user must be an admin
+        "403":
+          description: Forbidden, user does not have permission to view reviews
+        "404":
+          description: No reviews found for the given group
+          
+  /notifications:
+    post:
+      tags:
+        - notifications
+      summary: Send a notification
+      description: Admins can send notifications to users (e.g., admin, students).
+      operationId: sendNotification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Notification'
+      responses:
+        "201":
+          description: Notification successfully sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        "400":
+          description: Invalid input, missing required fields, or invalid recipient role
+        "401":
+          description: Unauthorized, user must be an admin
+        "403":
+          description: Forbidden, user cannot send notifications
+
+    get:
+      tags:
+        - notifications
+      summary: Retrieve notifications for the logged-in user
+      description: Users can retrieve their own notifications (e.g., for a student or admin).
+      operationId: getNotificationsForUser
+      responses:
+        "200":
+          description: A list of notifications for the user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+        "400":
+          description: Invalid request
+        "401":
+          description: Unauthorized, user must be logged in
+        "404":
+          description: No notifications found for the user
+          
+  /analytics/themes/{themeId}:
+    get:
+      tags:
+        - analytics
+      summary: View analytics for a specific theme
+      description: Admins can view analytics related to a specific theme, such as participation, voting, and reviews.
+      operationId: getAnalyticsForTheme
+      parameters:
+        - name: themeId
+          in: path
+          required: true
+          description: The ID of the theme for which analytics are being requested
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Analytics data for the specified theme
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsReport'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/AnalyticsReport'
+        "400":
+          description: Invalid theme ID
+        "401":
+          description: Unauthorized, user must be an admin
+        "403":
+          description: Forbidden, user does not have permission to view analytics
+        "404":
+          description: Theme not found
+
+  /analytics/groups/{groupId}:
+    get:
+      tags:
+        - analytics
+      summary: View analytics for a specific group
+      description: Admins can view analytics related to a specific group, such as participation, voting, and reviews.
+      operationId: getAnalyticsForGroup
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          description: The ID of the group for which analytics are being requested
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Analytics data for the specified group
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsReport'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/AnalyticsReport'
+        "400":
+          description: Invalid group ID
+        "401":
+          description: Unauthorized, user must be an admin
+        "403":
+          description: Forbidden, user does not have permission to view analytics
+        "404":
+          description: Group not found
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          description: The unique identifier for the user
+        name:
+          type: string
+          description: The user's name
+        email:
+          type: string
+          description: The user's email address
+        role:
+          type: string
+          description: The role of the user (e.g., admin, member)
+        auth_provider:
+          type: string
+          description: The authentication provider for the user (e.g., Google, GitHub)
+        created_at:
+          type: string
+          format: date-time
+          description: The timestamp when the user was created
+        updated_at:
+          type: string
+          format: date-time
+          description: The timestamp when the user was last updated
+      required:
+        - user_id
+        - name
+        - email
+        - role
+        - created_at
+
+    Theme:
+      type: object
+      properties:
+        theme_id:
+          type: integer
+          description: The unique identifier for the theme
+        title:
+          type: string
+          description: The title of the theme
+        description:
+          type: string
+          description: The detailed description of the theme
+        submission_deadline:
+          type: string
+          format: date-time
+          description: The deadline for theme submissions
+        voting_deadline:
+          type: string
+          format: date-time
+          description: The deadline for voting on the theme
+        review_deadline:
+          type: object
+          description: JSON object containing review deadlines
+        auto_assign_group:
+          type: boolean
+          description: Whether groups are auto-assigned
+        team_lead_acceptance:
+          type: boolean
+          description: Whether team leads must accept the group
+        number_of_groups:
+          type: integer
+          description: The number of groups for the theme
+        created_by:
+          type: integer
+          description: The user ID of the creator
+        created_at:
+          type: string
+          format: date-time
+          description: The timestamp when the theme was created
+        updated_at:
+          type: string
+          format: date-time
+          description: The timestamp when the theme was last updated
+      required:
+        - theme_id
+        - title
+        - submission_deadline
+        - voting_deadline
+        - review_deadline
+        - auto_assign_group
+        - number_of_groups
+        - created_by
+        - created_at
+
+    Idea:
+      type: object
+      properties:
+        idea_id:
+          type: integer
+          description: The unique identifier for the idea
+        theme_id:
+          type: integer
+          description: The theme ID to which the idea belongs
+        submitted_by:
+          type: integer
+          description: The user ID of the person who submitted the idea
+        idea_name:
+          type: string
+          description: The name of the idea
+        description:
+          type: string
+          description: A detailed description of the idea
+        status:
+          type: string
+          enum:
+            - Pending
+            - Approved
+            - Rejected
+          description: The status of the idea
+        created_at:
+          type: string
+          format: date-time
+          description: The timestamp when the idea was created
+      required:
+        - idea_id
+        - theme_id
+        - submitted_by
+        - idea_name
+        - description
+        - status
+        - created_at
+
+    Vote:
+      type: object
+      properties:
+        vote_id:
+          type: integer
+          description: The unique identifier for the vote
+        idea_id:
+          type: integer
+          description: The ID of the idea being voted on
+        voted_by:
+          type: integer
+          description: The user ID of the person who voted
+        created_at:
+          type: string
+          format: date-time
+          description: The timestamp when the vote was created
+      required:
+        - vote_id
+        - idea_id
+        - voted_by
+        - created_at
+
+    Group:
+      type: object
+      properties:
+        group_id:
+          type: integer
+          description: The unique identifier for the group
+        theme_id:
+          type: integer
+          description: The ID of the theme to which the group is related
+        group_name:
+          type: string
+          description: The name of the group
+        team_lead:
+          type: integer
+          description: The user ID of the group team lead
+        created_at:
+          type: string
+          format: date-time
+          description: The timestamp when the group was created
+        updated_at:
+          type: string
+          format: date-time
+          description: The timestamp when the group was last updated
+      required:
+        - group_id
+        - theme_id
+        - group_name
+        - team_lead
+        - created_at
+
+    GroupMember:
+      type: object
+      properties:
+        group_member_id:
+          type: integer
+          description: The unique identifier for the group member
+        group_id:
+          type: integer
+          description: The ID of the group
+        user_id:
+          type: integer
+          description: The user ID of the group member
+        created_at:
+          type: string
+          format: date-time
+          description: The timestamp when the member was added to the group
+      required:
+        - group_member_id
+        - group_id
+        - user_id
+        - created_at
+
+    Review:
+      type: object
+      properties:
+        review_id:
+          type: integer
+          description: The unique identifier for the review
+        reviewer_id:
+          type: integer
+          description: The user ID of the reviewer
+        reviewee_id:
+          type: integer
+          description: The user ID of the person being reviewed
+        group_id:
+          type: integer
+          description: The group ID being reviewed
+        rating:
+          type: integer
+          enum:
+            - 1
+            - 2
+            - 3
+            - 4
+            - 5
+          description: The rating given to the group
+        feedback:
+          type: string
+          description: The feedback provided by the reviewer
+        created_at:
+          type: string
+          format: date-time
+          description: The timestamp when the review was created
+      required:
+        - review_id
+        - reviewer_id
+        - reviewee_id
+        - group_id
+        - rating
+        - feedback
+        - created_at
+
+    Notification:
+      type: object
+      properties:
+        notification_id:
+          type: integer
+          description: The unique identifier for the notification
+        recipient_role:
+          type: string
+          description: The role of the notification recipient (e.g., admin, user)
+        message:
+          type: string
+          description: The content of the notification
+        created_by:
+          type: integer
+          description: The user ID of the creator of the notification
+        created_at:
+          type: string
+          format: date-time
+          description: The timestamp when the notification was created
+      required:
+        - notification_id
+        - recipient_role
+        - message
+        - created_by
+        - created_at
+
+    AnalyticsReport:
+      type: object
+      properties:
+        report_id:
+          type: integer
+          description: The unique identifier for the report
+        theme_id:
+          type: integer
+          description: The theme ID for the report
+        total_students:
+          type: integer
+          description: The total number of students involved in the theme
+        total_reports:
+          type: integer
+          description: The total number of reports generated
+        average_rating:
+          type: number
+          format: float
+          description: The average rating for the theme
+        participation_stats:
+          type: object
+          description: JSON object containing participation statistics
+      required:
+        - report_id
+        - theme_id
+        - total_students
+        - total_reports
+        - average_rating
