@@ -1,0 +1,12 @@
+name: samples
+
+services:
+  database:
+    container_name: postgres-sample_database
+    image: postgres
+    restart: unless-stopped
+    shm_size: 128mb
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - 15432:5432

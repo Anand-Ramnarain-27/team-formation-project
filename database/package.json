@@ -1,0 +1,12 @@
+{
+  "name": "team-formation-project-database",
+  "version": "2024.11.1",
+  "description": "Team formation project repo",
+  "private":"true",
+  "scripts": {
+    "flyway":"flyway -environment=local"
+  },
+  "devDependencies": {
+    "@aldenquimby/flywaydb-cli": "^0.13.0"
+  }
+}
