@@ -1,6 +1,4 @@
-import styles from './app.module.css';
-
-import { Route, Routes, Link } from 'react-router-dom';
+import { Route, Routes, Link, Navigate } from 'react-router-dom';
 
 export function App() {
   return (
