@@ -14,6 +14,12 @@ module.exports = {
       htmlAcceptHeaders: ['text/html', 'application/xhtml+xml'],
     },
   },
+  resolve: {
+    alias: {
+      '@': join(__dirname, './src'),
+    },
+    extensions: ['.ts', '.tsx', '.js', '.jsx'],
+  },
   plugins: [
     new NxAppWebpackPlugin({
       tsConfig: './tsconfig.app.json',
