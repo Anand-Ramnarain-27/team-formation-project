@@ -1,0 +1,39 @@
+.loginContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; 
+}
+
+.loginImage {
+  width: 350px;
+  height: auto;
+  margin-bottom: 20px;
+}
+
+.loginButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--primary-color);
+    color: var(--text-color-light);  
+    border: none;
+    padding: 12px 24px;  
+    border-radius: 9999px;  
+    font-size: var(--font-size-base);     
+    font-weight: var(--font-weight-bold);
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.loginButton:hover {
+    background-color: #1a1a5e;  
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
+}
+
+.githubIcon {
+    width: 30px;
+    height: 30px;
+    padding-right: 10px;
+  }
