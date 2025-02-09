@@ -1,0 +1,18 @@
+/* styles/_grid.css */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin: calc(-1 * var(--spacing-sm));
+}
+
+.col {
+  flex: 1;
+  padding: var(--spacing-sm);
+}

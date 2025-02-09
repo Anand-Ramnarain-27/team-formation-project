@@ -1,0 +1,10 @@
+/* styles/_responsive.css */
+@media (max-width: var(--breakpoint-md)) {
+  .container {
+    padding: 0 var(--spacing-sm);
+  }
+
+  .col {
+    flex: 100%;
+  }
+}
