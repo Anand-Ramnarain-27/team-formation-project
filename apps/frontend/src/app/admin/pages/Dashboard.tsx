@@ -2,7 +2,7 @@ import React from 'react'
 
 function Dashboard() {
   return (
-    <h1>Hello Admin</h1>
+    <h1>Admin Dashboard</h1>
   )
 }
 

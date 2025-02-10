@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import styles from './Navbar.module.css';
 
 const adminMenuItems = [
@@ -31,6 +31,13 @@ const Navbar: React.FC<NavbarProps> = ({ userType, userName }) => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
+  const navigate = useNavigate();
+
+  const handleSignOut = () => {
+    navigate('/login');
+    window.location.reload();
+  };
+
   return (
     <>
       <button className={styles.hamburgerButton} onClick={toggleMobileMenu}>
@@ -49,6 +56,7 @@ const Navbar: React.FC<NavbarProps> = ({ userType, userName }) => {
               className={({ isActive }) =>
                 `${styles.menuItem} ${isActive ? styles.active : ''}`
               }
+              end={item.path === '/admin' || item.path === '/student'}
             >
               <span className={styles.menuIcon}></span>
               {item.name}
@@ -56,11 +64,7 @@ const Navbar: React.FC<NavbarProps> = ({ userType, userName }) => {
           ))}
         </nav>
         <div className={styles.userSection}>
-          <button
-            className={styles.signOutButton}
-            onClick={() => {
-            }}
-          >
+          <button className={styles.signOutButton} onClick={handleSignOut}>
             Sign Out
           </button>
         </div>
@@ -79,6 +83,7 @@ const Navbar: React.FC<NavbarProps> = ({ userType, userName }) => {
                 className={({ isActive }) =>
                   `${styles.menuItem} ${isActive ? styles.active : ''}`
                 }
+                end={item.path === '/admin' || item.path === '/student'}
                 onClick={toggleMobileMenu}
               >
                 <span className={styles.menuIcon}></span>
@@ -87,12 +92,7 @@ const Navbar: React.FC<NavbarProps> = ({ userType, userName }) => {
             ))}
           </nav>
           <div className={styles.userSection}>
-            <button
-              className={styles.signOutButton}
-              onClick={() => {
-                toggleMobileMenu();
-              }}
-            >
+            <button className={styles.signOutButton} onClick={handleSignOut}>
               Sign Out
             </button>
           </div>
