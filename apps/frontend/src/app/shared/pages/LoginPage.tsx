@@ -6,7 +6,6 @@ import GithubIcon from '@/assets/icons/Github-icon.svg'
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-
   const isAdmin = true; 
 
   const handleLogin = () => {

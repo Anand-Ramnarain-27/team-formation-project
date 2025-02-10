@@ -1,0 +1,104 @@
+.navbar {
+  background-color: #0e1b34;
+  color: white;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.desktopNavbar {
+  min-height: 100vh;
+  width: 16rem;
+}
+
+.mobileNavbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 50;
+  overflow-y: auto;
+}
+
+.hamburgerButton {
+  display: none;
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 60;
+  background: #0e1b34;
+  color: white;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+@media screen and (max-width: 900px) {
+  .desktopNavbar {
+    display: none;
+  }
+
+  .hamburgerButton {
+    display: block;
+  }
+}
+
+.header {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.header h2 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  text-transform: capitalize;
+}
+
+.menu {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  border-radius: 0.25rem;
+  color: #d1d5db;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.menuItem:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.menuItem.active {
+  background-color: #2563eb;
+  color: white;
+}
+
+.menuIcon {
+  margin-right: 0.75rem;
+}
+
+.signOutButton {
+  width: 100%;
+  background-color: #dc2626;
+  color: white;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.signOutButton:hover {
+  background-color: #b91c1c;
+}
