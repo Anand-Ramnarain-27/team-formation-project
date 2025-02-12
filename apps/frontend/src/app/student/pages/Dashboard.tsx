@@ -72,19 +72,20 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.mainContent}>
-        {/* Header Section */}
-        <div className={styles.header}>
-          <h1 className={styles.title}>Themes</h1>
-          <div className={styles.dateNav}>
-            <span>June 26th, 2020</span>
-            <div className={styles.arrows}>
-              <button className={styles.arrowButton}>←</button>
-              <button className={styles.arrowButton}>→</button>
-            </div>
+      {/* Header Section */}
+      <div className={styles.header}>
+        <h1 className={styles.title}>Themes</h1>
+        <div className={styles.dateNav}>
+          <span>June 26th, 2020</span>
+          <div className={styles.arrows}>
+            <button className={styles.arrowButton}>←</button>
+            <button className={styles.arrowButton}>→</button>
           </div>
         </div>
+      </div>
 
+      {/* Top Section: Themes Grid and Notifications */}
+      <div className={styles.topSection}>
         {/* Themes Grid */}
         <div className={styles.themesGrid}>
           {themes.map((theme) => (
@@ -99,43 +100,8 @@ const Dashboard: React.FC = () => {
           ))}
         </div>
 
-        {/* Bottom Section */}
-        <div className={styles.bottomSection}>
-          {/* Theme Status Card */}
-          <div className={styles.card}>
-            <div className={styles.cardHeader}>
-              <h2 className={styles.cardTitle}>Theme Name</h2>
-            </div>
-            <div className={styles.cardContent}>
-              <p className={styles.cardDescription}>
-                Status of project (voting, submitting ideas, review ideas, waiting for reviews)
-              </p>
-              <div className={styles.scrollArea}>
-                {/* Add project status items here */}
-              </div>
-            </div>
-          </div>
-
-          {/* Group Information Card */}
-          <div className={styles.card}>
-            <div className={styles.cardHeader}>
-              <h2 className={styles.cardTitle}>Group Name</h2>
-            </div>
-            <div className={styles.cardContent}>
-              <p className={styles.cardDescription}>
-                List of people in your group
-              </p>
-              <div className={styles.scrollArea}>
-                {/* Add group members list here */}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Notifications Section */}
-      <div className={styles.notificationsSection}>
-        <div className={styles.card}>
+        {/* Notifications Card */}
+        <div className={styles.notificationsCard}>
           <div className={styles.cardHeader}>
             <h2 className={styles.cardTitle}>Notifications</h2>
           </div>
@@ -149,6 +115,39 @@ const Dashboard: React.FC = () => {
                 <button className={styles.closeButton}>×</button>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Section: Theme Status and Group Cards */}
+      <div className={styles.bottomSection}>
+        {/* Theme Status Card */}
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>Theme Name</h2>
+          </div>
+          <div className={styles.cardContent}>
+            <p className={styles.cardDescription}>
+              Status of project (voting, submitting ideas, review ideas, waiting for reviews)
+            </p>
+            <div className={styles.scrollArea}>
+              {/* Add project status items here */}
+            </div>
+          </div>
+        </div>
+
+        {/* Group Information Card */}
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>Group Name</h2>
+          </div>
+          <div className={styles.cardContent}>
+            <p className={styles.cardDescription}>
+              List of people in your group
+            </p>
+            <div className={styles.scrollArea}>
+              {/* Add group members list here */}
+            </div>
           </div>
         </div>
       </div>

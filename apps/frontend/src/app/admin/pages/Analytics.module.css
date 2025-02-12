@@ -1,0 +1,199 @@
+.dashboard {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+}
+
+.cardHeader {
+  margin-bottom: 16px;
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.metricCard {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.metricIcon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.metricBlue {
+  background: #e6f3ff;
+  color: #2196f3;
+}
+.metricYellow {
+  background: #fff3e0;
+  color: #ffa726;
+}
+.metricPurple {
+  background: #f3e5f5;
+  color: #9c27b0;
+}
+
+.metricContent {
+  flex: 1;
+}
+
+.metricLabel {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.metricValue {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.chartsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 1024px) {
+  .chartsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.studentSection {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 1024px) {
+  .studentSection {
+    grid-template-columns: 350px 1fr;
+  }
+}
+
+.searchInput {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+}
+
+.studentList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.studentCard {
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.studentCard:hover {
+  background-color: #f9fafb;
+}
+
+.studentCard.selected {
+  background-color: #e6f3ff;
+  border-color: #2196f3;
+}
+
+.studentHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.studentInfo {
+  flex: 1;
+}
+
+.studentName {
+  font-weight: 600;
+  color: #111827;
+}
+
+.studentEmail {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.studentMetrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.metricBox {
+  padding: 16px;
+  border-radius: 6px;
+  background: #f9fafb;
+}
+
+.metricTitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.metricNumber {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.chart {
+  width: 100%;
+  height: 300px;
+  padding: 16px;
+}

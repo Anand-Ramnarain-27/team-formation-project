@@ -7,14 +7,15 @@ const adminMenuItems = [
   { name: 'Student Management', path: '/admin/students' },
   { name: 'Group Management', path: '/admin/groups' },
   { name: 'Review', path: '/admin/review' },
+  { name: 'Notifications', path: '/admin/notifications' },
   { name: 'Analytics', path: '/admin/analytics' },
 ];
 
 const studentMenuItems = [
   { name: 'Dashboard', path: '/student' },
   { name: 'Vote', path: '/student/vote' },
-  { name: 'Group Assignment', path: '/student/groups' },
   { name: 'Review & Rating', path: '/student/review' },
+  { name: 'Notifications', path: '/student/notifications' },
   { name: 'Profile & History', path: '/student/profile' },
 ];
 

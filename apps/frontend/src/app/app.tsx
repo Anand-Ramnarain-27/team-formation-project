@@ -8,10 +8,10 @@ import AdminReviewPage from '@/app/admin/pages/Review';
 import AdminAnalyticsPage from '@/app/admin/pages/Analytics';
 import StudentDashboard from '@/app/student/pages/Dashboard';
 import StudentVotePage from '@/app/student/pages/Vote';
-import StudentGroupsPage from '@/app/student/pages/GroupAssignment';
 import StudentReviewPage from '@/app/student/pages/Review';
 import StudentProfilePage from '@/app/student/pages/Profile';
 import Layout from '@/app/shared/components/Layout';
+import Notifications from '@/app/shared/pages/Notifications';
 
 export function App() {
   return (
@@ -20,15 +20,16 @@ export function App() {
       <Route element={<Layout userType="admin" />}>
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/students" element={<AdminStudentsPage />} />
-        <Route path="/admin/groups" element={<AdminGroupsPage />} />
         <Route path="/admin/review" element={<AdminReviewPage />} />
+        <Route path="/admin/groups" element={<AdminGroupsPage />} />
+        <Route path="/admin/notifications" element={<Notifications />} />
         <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
       </Route>
       <Route element={<Layout userType="student" />}>
         <Route path="/student" element={<StudentDashboard />} />
         <Route path="/student/vote" element={<StudentVotePage />} />
-        <Route path="/student/groups" element={<StudentGroupsPage />} />
         <Route path="/student/review" element={<StudentReviewPage />} />
+        <Route path="/student/notifications" element={<Notifications />} />
         <Route path="/student/profile" element={<StudentProfilePage />} />
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />
