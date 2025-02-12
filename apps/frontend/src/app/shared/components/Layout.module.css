@@ -7,10 +7,12 @@
   padding: 1rem;
   background-color: #f3f4f6;
   min-height: 100vh;
+  margin-left: 16rem;
 }
 
 @media screen and (max-width: 900px) {
   .mainContent {
     width: 100%;
+    margin: auto;
   }
 }

@@ -9,6 +9,8 @@
 .desktopNavbar {
   min-height: 100vh;
   width: 16rem;
+  flex-shrink: 0;
+  position: fixed;
 }
 
 .mobileNavbar {
