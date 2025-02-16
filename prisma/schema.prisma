@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // Replace with your database connection string
+}
+
+model users {
+  user_id        Int       @id @default(autoincrement())
+  name           String
+  email          String?   @unique
+  role           String
+  auth_provider  String?
+  created_at     DateTime  @default(now())
+  updated_at     DateTime?
+
+  // Relations
+  themes_created theme[]   @relation("created_by")
+  ideas_submitted ideas[]  @relation("submitted_by")
+  votes          votes[]
+  groups_led     groups[]  @relation("team_lead")
+  group_members  group_members[]
+  reviews_given  review[]  @relation("reviewer_id")
+  reviews_received review[] @relation("reviewee_id")
+  notifications  notifications[]
+}
+
+model theme {
+  theme_id               Int       @id @default(autoincrement())
+  title                  String
+  description            String?
+  submission_deadline    DateTime
+  voting_deadline        DateTime
+  review_deadline        Json
+  auto_assign_group      Boolean
+  team_lead_acceptance   Boolean?
+  number_of_groups       Int
+  created_by             Int
+  created_at             DateTime  @default(now())
+  updated_at             DateTime?
+
+  // Relations
+  creator               users     @relation("created_by", fields: [created_by], references: [user_id])
+  ideas                 ideas[]
+  groups                groups[]
+  analytics_reports     analytics_reports[]
+}
+
+model ideas {
+  idea_id      Int       @id @default(autoincrement())
+  theme_id     Int
+  submitted_by Int
+  idea_name    String    @unique // Added @unique
+  description  String
+  status       status_enum
+  created_at   DateTime  @default(now())
+
+  // Relations
+  theme        theme     @relation(fields: [theme_id], references: [theme_id])
+  submitter    users     @relation("submitted_by", fields: [submitted_by], references: [user_id])
+  votes        votes[]
+  groups       groups[]  @relation("group_name")
+}
+
+model votes {
+  vote_id      Int       @id @default(autoincrement())
+  idea_id      Int
+  voted_by     Int
+  created_at   DateTime  @default(now())
+
+  // Relations
+  idea         ideas     @relation(fields: [idea_id], references: [idea_id])
+  voter        users     @relation(fields: [voted_by], references: [user_id])
+
+  @@unique([idea_id, voted_by], name: "votes_idea_id_voted_by_unique")
+}
+
+model groups {
+  group_id     Int       @id @default(autoincrement())
+  theme_id     Int
+  group_name   String?
+  team_lead    Int?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime?
+
+  // Relations
+  theme        theme     @relation(fields: [theme_id], references: [theme_id])
+  leader       users?    @relation("team_lead", fields: [team_lead], references: [user_id])
+  group_members group_members[]
+  reviews      review[]
+  idea         ideas?    @relation("group_name", fields: [group_name], references: [idea_name])
+}
+
+model group_members {
+  group_member_id Int    @id @default(autoincrement())
+  group_id        Int
+  user_id         Int
+  created_at      DateTime @default(now())
+
+  // Relations
+  group           groups  @relation(fields: [group_id], references: [group_id])
+  member          users   @relation(fields: [user_id], references: [user_id])
+
+  @@unique([group_id, user_id], name: "group_members_group_id_user_id_unique")
+}
+
+model review {
+  review_id    Int       @id @default(autoincrement())
+  reviewer_id  Int
+  reviewee_id  Int
+  group_id     Int
+  rating       rating_enum
+  feedback     String
+  created_at   DateTime  @default(now())
+
+  // Relations
+  reviewer     users     @relation("reviewer_id", fields: [reviewer_id], references: [user_id])
+  reviewee     users     @relation("reviewee_id", fields: [reviewee_id], references: [user_id])
+  group        groups    @relation(fields: [group_id], references: [group_id])
+}
+
+model notifications {
+  notification_id Int    @id @default(autoincrement())
+  recipient_role  String?
+  message         String
+  created_by      Int
+  created_at      DateTime @default(now())
+
+  // Relations
+  creator         users   @relation(fields: [created_by], references: [user_id])
+}
+
+model analytics_reports {
+  report_id            Int    @id @default(autoincrement())
+  theme_id             Int
+  total_students       Int
+  total_reports        Int
+  average_rating       Float
+  participation_stats  Json
+
+  // Relations
+  theme                theme  @relation(fields: [theme_id], references: [theme_id])
+}
+
+enum status_enum {
+  Pending
+  Approved
+  Rejected
+}
+
+enum rating_enum {
+  ONE
+  TWO
+  THREE
+  FOUR
+  FIVE
+}
