@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styles from './Dashboard.module.css';
 
 interface Theme {
@@ -39,6 +40,8 @@ interface Notification {
 }
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
+
   // Theme colors array
   const themeColors = [
     styles.blueTheme,
@@ -70,9 +73,9 @@ const Dashboard: React.FC = () => {
       title: 'Innovation in EdTech',
       description: 'Exploring new technologies in education',
       submission_deadline: '2025-02-01T00:00:00Z',
-      voting_deadline: '2025-02-15T00:00:00Z',
+      voting_deadline: '2025-02-20T00:00:00Z',
       review_deadline: {
-        start: '2025-02-16T00:00:00Z',
+        start: '2025-03-16T00:00:00Z',
         end: '2025-03-30T00:00:00Z',
       },
       number_of_groups: 4,
@@ -159,12 +162,10 @@ const Dashboard: React.FC = () => {
         console.log('Submit idea for theme:', themeId);
         break;
       case 'Vote Now':
-        // Handle voting
-        console.log('Vote for theme:', themeId);
+        navigate('/student/vote');
         break;
       case 'Review':
-        // Handle review
-        console.log('Review for theme:', themeId);
+        navigate('/student/review');
         break;
       default:
         break;

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styles from './Dashboard.module.css';
+import ThemeModals from '../components/ThemeModals';
 
 // Types based on database schema
 interface User {
@@ -49,24 +50,24 @@ const Dashboard: React.FC = () => {
   const [activeThemes] = useState<Theme[]>([
     {
       theme_id: 1,
-      title: "Innovation in Education",
-      description: "Exploring new teaching methodologies",
-      submission_deadline: "2025-03-01",
-      voting_deadline: "2025-03-15",
-      review_deadline: { start: "2025-03-16", end: "2025-03-30" },
+      title: 'Innovation in Education',
+      description: 'Exploring new teaching methodologies',
+      submission_deadline: '2025-03-01',
+      voting_deadline: '2025-03-15',
+      review_deadline: { start: '2025-03-16', end: '2025-03-30' },
       number_of_groups: 10,
-      auto_assign_group: true
+      auto_assign_group: true,
     },
     {
       theme_id: 2,
-      title: "Sustainable Development",
-      description: "Projects focusing on environmental sustainability",
-      submission_deadline: "2025-04-01",
-      voting_deadline: "2025-04-15",
-      review_deadline: { start: "2025-04-16", end: "2025-04-30" },
+      title: 'Sustainable Development',
+      description: 'Projects focusing on environmental sustainability',
+      submission_deadline: '2025-04-01',
+      voting_deadline: '2025-04-15',
+      review_deadline: { start: '2025-04-16', end: '2025-04-30' },
       number_of_groups: 8,
-      auto_assign_group: false
-    }
+      auto_assign_group: false,
+    },
   ]);
 
   const [analyticsData] = useState<AnalyticsReport>({
@@ -78,30 +79,40 @@ const Dashboard: React.FC = () => {
     participation_stats: {
       ideas_submitted: 45,
       votes_cast: 1200,
-      reviews_submitted: 450
-    }
+      reviews_submitted: 450,
+    },
   });
 
   const [notifications] = useState<Notification[]>([
     {
       notification_id: 1,
-      recipient_role: "admin",
-      message: "New theme ideas require review",
-      created_at: "2025-02-17T10:00:00Z"
+      recipient_role: 'admin',
+      message: 'New theme ideas require review',
+      created_at: '2025-02-17T10:00:00Z',
     },
     {
       notification_id: 2,
-      recipient_role: "admin",
-      message: "Voting period ending soon for Theme #1",
-      created_at: "2025-02-17T09:30:00Z"
+      recipient_role: 'admin',
+      message: 'Voting period ending soon for Theme #1',
+      created_at: '2025-02-17T09:30:00Z',
     },
     {
       notification_id: 3,
-      recipient_role: "admin",
-      message: "New peer reviews submitted for Group #5",
-      created_at: "2025-02-17T09:00:00Z"
-    }
+      recipient_role: 'admin',
+      message: 'New peer reviews submitted for Group #5',
+      created_at: '2025-02-17T09:00:00Z',
+    },
   ]);
+
+  const handleThemeCreate = (newTheme: Omit<Theme, 'theme_id'>) => {
+    // Add API call to create theme
+    console.log('Creating theme:', newTheme);
+  };
+
+  const handleThemeUpdate = (updatedTheme: Theme) => {
+    // Add API call to update theme
+    console.log('Updating theme:', updatedTheme);
+  };
 
   return (
     <div className={styles.container}>
@@ -110,7 +121,14 @@ const Dashboard: React.FC = () => {
         <h1>Theme Management Dashboard</h1>
         <div className={styles.headerActions}>
           <button className={styles.iconButton}>
-            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none">
+            <svg
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+              stroke="currentColor"
+              strokeWidth="2"
+              fill="none"
+            >
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
               <path d="M13.73 21a2 2 0 0 1-3.46 0" />
             </svg>
@@ -129,21 +147,27 @@ const Dashboard: React.FC = () => {
         </div>
         <div className={styles.statCard}>
           <div className={styles.statTitle}>Average Rating</div>
-          <div className={styles.statValue}>{analyticsData.average_rating}/5.0</div>
+          <div className={styles.statValue}>
+            {analyticsData.average_rating}/5.0
+          </div>
           <div className={`${styles.statTrend} ${styles.neutral}`}>
             Based on {analyticsData.total_reports} reviews
           </div>
         </div>
         <div className={styles.statCard}>
           <div className={styles.statTitle}>Ideas Submitted</div>
-          <div className={styles.statValue}>{analyticsData.participation_stats.ideas_submitted}</div>
+          <div className={styles.statValue}>
+            {analyticsData.participation_stats.ideas_submitted}
+          </div>
           <div className={`${styles.statTrend} ${styles.neutral}`}>
             Across all themes
           </div>
         </div>
         <div className={styles.statCard}>
           <div className={styles.statTitle}>Pending Reviews</div>
-          <div className={styles.statValue}>{analyticsData.participation_stats.reviews_submitted}</div>
+          <div className={styles.statValue}>
+            {analyticsData.participation_stats.reviews_submitted}
+          </div>
           <div className={`${styles.statTrend} ${styles.warning}`}>
             Reviews submitted
           </div>
@@ -154,6 +178,10 @@ const Dashboard: React.FC = () => {
       <section className={styles.themesSection}>
         <div className={styles.sectionHeader}>
           <h2>Active Themes</h2>
+          <ThemeModals
+            onThemeCreate={handleThemeCreate}
+            onThemeUpdate={handleThemeUpdate}
+          />
           <button className={styles.addButton}>+ Create New Theme</button>
         </div>
         <div className={styles.themesGrid}>
@@ -166,7 +194,9 @@ const Dashboard: React.FC = () => {
                 <p>{theme.description}</p>
                 <div className={styles.themeFooter}>
                   <span className={styles.themeStatus}>
-                    {new Date(theme.voting_deadline) > new Date() ? 'Voting' : 'Review Phase'}
+                    {new Date(theme.voting_deadline) > new Date()
+                      ? 'Voting'
+                      : 'Review Phase'}
                   </span>
                   <button className={styles.viewButton}>Manage →</button>
                 </div>
@@ -184,17 +214,26 @@ const Dashboard: React.FC = () => {
             <div className={styles.activityBox}>
               <h4>Participation Stats</h4>
               <ul>
-                <li>{analyticsData.participation_stats.votes_cast} votes cast</li>
-                <li>{analyticsData.participation_stats.ideas_submitted} ideas submitted</li>
-                <li>{analyticsData.participation_stats.reviews_submitted} reviews completed</li>
+                <li>
+                  {analyticsData.participation_stats.votes_cast} votes cast
+                </li>
+                <li>
+                  {analyticsData.participation_stats.ideas_submitted} ideas
+                  submitted
+                </li>
+                <li>
+                  {analyticsData.participation_stats.reviews_submitted} reviews
+                  completed
+                </li>
               </ul>
             </div>
             <div className={styles.activityBox}>
               <h4>Upcoming Deadlines</h4>
               <ul>
-                {activeThemes.map(theme => (
+                {activeThemes.map((theme) => (
                   <li key={theme.theme_id}>
-                    {theme.title}: Voting ends {new Date(theme.voting_deadline).toLocaleDateString()}
+                    {theme.title}: Voting ends{' '}
+                    {new Date(theme.voting_deadline).toLocaleDateString()}
                   </li>
                 ))}
               </ul>
@@ -215,9 +254,7 @@ const Dashboard: React.FC = () => {
                   <h4>{notification.message}</h4>
                   <button className={styles.closeButton}>×</button>
                 </div>
-                <p>
-                  {new Date(notification.created_at).toLocaleString()}
-                </p>
+                <p>{new Date(notification.created_at).toLocaleString()}</p>
               </div>
             ))}
           </div>

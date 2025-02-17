@@ -1,26 +1,32 @@
 import React, { useState } from 'react';
 import styles from './Analytics.module.css';
 
-interface StudentMetrics {
-  participationRate: string;
-  ideasSubmitted: number;
-  averageRating: number;
-  votesGiven: number;
-  reviewsGiven: number;
+interface AnalyticsReport {
+  report_id: number;
+  theme_id: number;
+  total_students: number;
+  total_reports: number;
+  average_rating: number;
+  participation_stats: {
+    ideas_submitted: number;
+    votes_cast: number;
+    reviews_completed: number;
+  };
 }
 
 interface Student {
-  id: number;
+  user_id: number;
   name: string;
   email: string;
-  groupName: string;
-  metrics: StudentMetrics;
-}
-
-interface ThemeStats {
-  totalStudents: number;
-  activeGroups: number;
-  averageRating: number;
+  group_id?: number;
+  group_name?: string;
+  metrics: {
+    ideas_submitted: number;
+    votes_given: number;
+    reviews_given: number;
+    average_rating_received: number;
+    participation_rate: string;
+  };
 }
 
 interface MetricCardProps {
@@ -30,43 +36,39 @@ interface MetricCardProps {
   colorClass: string;
 }
 
-interface StudentDetailsProps {
-  student: Student;
-}
-
 const Analytics: React.FC = () => {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Mock data - replace with actual API calls
-  const themeStats: ThemeStats = {
-    totalStudents: 150,
-    activeGroups: 15,
-    averageRating: 4.2,
+  // Mock data based on your database schema - replace with actual API calls
+  const analyticsData: AnalyticsReport = {
+    report_id: 1,
+    theme_id: 1,
+    total_students: 150,
+    total_reports: 450,
+    average_rating: 4.2,
+    participation_stats: {
+      ideas_submitted: 125,
+      votes_cast: 1200,
+      reviews_completed: 300
+    }
   };
 
   const mockStudents: Student[] = [
     {
-      id: 1,
+      user_id: 1,
       name: 'Alice Johnson',
       email: 'alice@university.edu',
-      groupName: 'Innovation Team',
+      group_name: 'Innovation Team',
       metrics: {
-        participationRate: '95%',
-        ideasSubmitted: 3,
-        averageRating: 4.5,
-        votesGiven: 12,
-        reviewsGiven: 8,
-      },
-    },
-    // Add more mock students
+        ideas_submitted: 2,
+        votes_given: 15,
+        reviews_given: 8,
+        average_rating_received: 4.5,
+        participation_rate: '95%'
+      }
+    }
   ];
-
-  const filteredStudents = mockStudents.filter(
-    (student) =>
-      student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   const MetricCard: React.FC<MetricCardProps> = ({
     icon,
@@ -97,16 +99,14 @@ const Analytics: React.FC = () => {
         className={styles.searchInput}
         placeholder="Search students..."
         value={searchQuery}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-          setSearchQuery(e.target.value)
-        }
+        onChange={(e) => setSearchQuery(e.target.value)}
       />
       <div className={styles.studentList}>
         {filteredStudents.map((student) => (
           <div
-            key={student.id}
+            key={student.user_id}
             className={`${styles.studentCard} ${
-              selectedStudent?.id === student.id ? styles.selected : ''
+              selectedStudent?.user_id === student.user_id ? styles.selected : ''
             }`}
             onClick={() => setSelectedStudent(student)}
           >
@@ -128,7 +128,7 @@ const Analytics: React.FC = () => {
     </div>
   );
 
-  const StudentDetails: React.FC<StudentDetailsProps> = ({ student }) => {
+  const StudentDetails: React.FC<{ student: Student }> = ({ student }) => {
     if (!student) return null;
 
     return (
@@ -137,18 +137,36 @@ const Analytics: React.FC = () => {
           <h2 className={styles.cardTitle}>Student Details</h2>
         </div>
         <div className={styles.studentMetrics}>
-          {Object.entries(student.metrics).map(([key, value]) => (
-            <div key={key} className={styles.metricBox}>
-              <div className={styles.metricTitle}>
-                {key.replace(/([A-Z])/g, ' $1').trim()}
-              </div>
-              <div className={styles.metricNumber}>{String(value)}</div>
-            </div>
-          ))}
+          <div className={styles.metricBox}>
+            <div className={styles.metricTitle}>Ideas Submitted</div>
+            <div className={styles.metricNumber}>{student.metrics.ideas_submitted}</div>
+          </div>
+          <div className={styles.metricBox}>
+            <div className={styles.metricTitle}>Votes Given</div>
+            <div className={styles.metricNumber}>{student.metrics.votes_given}</div>
+          </div>
+          <div className={styles.metricBox}>
+            <div className={styles.metricTitle}>Reviews Given</div>
+            <div className={styles.metricNumber}>{student.metrics.reviews_given}</div>
+          </div>
+          <div className={styles.metricBox}>
+            <div className={styles.metricTitle}>Average Rating</div>
+            <div className={styles.metricNumber}>{student.metrics.average_rating_received}</div>
+          </div>
+          <div className={styles.metricBox}>
+            <div className={styles.metricTitle}>Participation Rate</div>
+            <div className={styles.metricNumber}>{student.metrics.participation_rate}</div>
+          </div>
         </div>
       </div>
     );
   };
+
+  const filteredStudents = mockStudents.filter(
+    (student) =>
+      student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className={styles.dashboard}>
@@ -156,19 +174,19 @@ const Analytics: React.FC = () => {
         <MetricCard
           icon="👥"
           label="Total Students"
-          value={themeStats.totalStudents}
+          value={analyticsData.total_students}
           colorClass="metricBlue"
         />
         <MetricCard
-          icon="🏆"
-          label="Active Groups"
-          value={themeStats.activeGroups}
+          icon="💡"
+          label="Ideas Submitted"
+          value={analyticsData.participation_stats.ideas_submitted}
           colorClass="metricYellow"
         />
         <MetricCard
           icon="⭐"
           label="Average Rating"
-          value={themeStats.averageRating}
+          value={analyticsData.average_rating}
           colorClass="metricPurple"
         />
       </div>
@@ -176,10 +194,10 @@ const Analytics: React.FC = () => {
       <div className={styles.chartsGrid}>
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>Participation Progress</h2>
+            <h2 className={styles.cardTitle}>Ideas Distribution</h2>
           </div>
           <div className={styles.chart}>
-            {/* Replace with your preferred charting solution */}
+            {/* Replace with your own chart implementation */}
             <div>Chart Placeholder</div>
           </div>
         </div>
@@ -189,17 +207,17 @@ const Analytics: React.FC = () => {
             <h2 className={styles.cardTitle}>Rating Distribution</h2>
           </div>
           <div className={styles.chart}>
-            {/* Replace with your preferred charting solution */}
+            {/* Replace with your own chart implementation */}
             <div>Chart Placeholder</div>
           </div>
         </div>
 
         <div className={`${styles.card} ${styles.fullWidth}`}>
           <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>Weekly Activity</h2>
+            <h2 className={styles.cardTitle}>Activity Overview</h2>
           </div>
           <div className={styles.chart}>
-            {/* Replace with your preferred charting solution */}
+            {/* Replace with your own chart implementation */}
             <div>Chart Placeholder</div>
           </div>
         </div>

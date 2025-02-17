@@ -1,13 +1,23 @@
-// VotingScreen.tsx
 import React, { useState, useEffect } from 'react';
 import styles from './Voting.module.css';
 
 interface Idea {
   idea_id: number;
+  theme_id: number;
+  submitted_by: number;
   idea_name: string;
   description: string;
-  submitted_by: string;
-  votes_count: number;
+  status: 'Pending' | 'Approved' | 'Rejected';
+  created_at: string;
+  submitter_name?: string; // Joined from users table
+  vote_count?: number; // Aggregated from votes table
+}
+
+interface Vote {
+  vote_id: number;
+  idea_id: number;
+  voted_by: number;
+  created_at: string;
 }
 
 const Voting: React.FC = () => {
@@ -17,37 +27,63 @@ const Voting: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // Simulated data - replace with actual API call
+  // Mock data based on your database schema
   const mockIdeas: Idea[] = [
     {
       idea_id: 1,
+      theme_id: 1,
+      submitted_by: 101,
       idea_name: "Project Management Tool",
       description: "A collaborative tool for student teams to manage projects effectively",
-      submitted_by: "John Doe",
-      votes_count: 12
+      status: "Approved",
+      created_at: new Date().toISOString(),
+      submitter_name: "John Doe",
+      vote_count: 12
     },
     {
       idea_id: 2,
+      theme_id: 1,
+      submitted_by: 102,
       idea_name: "Study Group Matcher",
       description: "AI-powered platform to match students with compatible study partners",
-      submitted_by: "Jane Smith",
-      votes_count: 8
-    },
-    {
-      idea_id: 3,
-      idea_name: "Campus Event Hub",
-      description: "Centralized platform for managing and discovering campus events",
-      submitted_by: "Mike Johnson",
-      votes_count: 15
+      status: "Approved",
+      created_at: new Date().toISOString(),
+      submitter_name: "Jane Smith",
+      vote_count: 8
     }
   ];
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setIdeas(mockIdeas);
-      setLoading(false);
-    }, 1000);
+    const fetchIdeasAndVotes = async () => {
+      try {
+        // Replace with actual API calls
+        // Example SQL query:
+        // SELECT i.*, u.name as submitter_name, COUNT(v.vote_id) as vote_count
+        // FROM ideas i
+        // JOIN users u ON i.submitted_by = u.user_id
+        // LEFT JOIN votes v ON i.idea_id = v.idea_id
+        // WHERE i.theme_id = [current_theme_id] AND i.status = 'Approved'
+        // GROUP BY i.idea_id, u.name
+        
+        setIdeas(mockIdeas);
+        
+        // Fetch user's existing votes
+        // Example SQL query:
+        // SELECT idea_id FROM votes
+        // WHERE voted_by = [current_user_id] AND idea_id IN (SELECT idea_id FROM ideas WHERE theme_id = [current_theme_id])
+        
+        const userVotes = new Set([/* existing votes */]);
+        setVotedIdeas(userVotes);
+        setRemainingVotes(3 - userVotes.size);
+        
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to load ideas. Please try again.');
+        setLoading(false);
+      }
+    };
+
+    fetchIdeasAndVotes();
   }, []);
 
   const handleVote = async (ideaId: number) => {
@@ -62,16 +98,13 @@ const Voting: React.FC = () => {
         return;
       }
 
-      // Simulate API call to submit vote
-      // await fetch('/api/v1/votes', {
-      //   method: 'POST',
-      //   body: JSON.stringify({ idea_id: ideaId }),
-      //   headers: { 'Content-Type': 'application/json' }
-      // });
-
+      // Example SQL insert:
+      // INSERT INTO votes (idea_id, voted_by, created_at)
+      // VALUES ([ideaId], [current_user_id], CURRENT_TIMESTAMP)
+      
       setIdeas(ideas.map(idea => 
         idea.idea_id === ideaId 
-          ? { ...idea, votes_count: idea.votes_count + 1 }
+          ? { ...idea, vote_count: (idea.vote_count || 0) + 1 }
           : idea
       ));
 
@@ -109,7 +142,7 @@ const Voting: React.FC = () => {
             >
               <div className={styles.cardHeader}>
                 <h2>{idea.idea_name}</h2>
-                <p className={styles.submitter}>Submitted by: {idea.submitted_by}</p>
+                <p className={styles.submitter}>Submitted by: {idea.submitter_name}</p>
               </div>
               <div className={styles.cardContent}>
                 <p>{idea.description}</p>
@@ -126,7 +159,7 @@ const Voting: React.FC = () => {
                         d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3m7-2V4a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14"
                       />
                     </svg>
-                    <span>{idea.votes_count} votes</span>
+                    <span>{idea.vote_count || 0} votes</span>
                   </div>
                   <button 
                     onClick={() => handleVote(idea.idea_id)}

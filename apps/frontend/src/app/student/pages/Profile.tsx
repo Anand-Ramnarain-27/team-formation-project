@@ -1,116 +1,136 @@
-// StudentProfile.tsx
 import React, { useState } from 'react';
 import styles from './Profile.module.css';
 
-// TypeScript interfaces
-interface StudentProfile {
+// TypeScript interfaces matching the database schema
+interface User {
   user_id: number;
   name: string;
   email: string;
+  role: string;
   created_at: string;
-  participationStats: {
-    totalIdeas: number;
-    totalVotes: number;
-    totalReviews: number;
-    averageRating: number;
-  };
+  updated_at?: string;
 }
 
-interface IdeaHistory {
+interface Idea {
   idea_id: number;
+  theme_id: number;
   idea_name: string;
-  theme_title: string;
+  description: string;
   status: 'Pending' | 'Approved' | 'Rejected';
   created_at: string;
-  votes_received: number;
+  theme_title?: string; // Joined from theme table
+  votes_count?: number; // Aggregated from votes table
 }
 
-interface ReviewHistory {
-  review_id: number;
+interface Group {
+  group_id: number;
+  theme_id: number;
   group_name: string;
-  rating: number;
+  team_lead: number;
+  created_at: string;
+  updated_at?: string;
+  theme_title?: string; // Joined from theme table
+  average_rating?: number; // Calculated from reviews
+}
+
+interface Review {
+  review_id: number;
+  reviewer_id: number;
+  reviewee_id: number;
+  group_id: number;
+  rating: '1' | '2' | '3' | '4' | '5';
   feedback: string;
   created_at: string;
+  group_name?: string; // Joined from groups table
 }
 
-interface GroupHistory {
-  group_id: number;
-  theme_title: string;
-  group_name: string;
-  is_team_lead: boolean;
-  average_rating: number;
+interface ParticipationStats {
+  totalIdeas: number;
+  totalVotes: number;
+  totalReviews: number;
+  averageRating: number;
 }
 
 const Profile: React.FC = () => {
-  // Active tab state
   const [activeTab, setActiveTab] = useState<'participation' | 'ideas' | 'groups' | 'reviews'>('participation');
 
-  // Sample data - replace with actual API calls
-  const [profile] = useState<StudentProfile>({
+  // Sample data structured according to the database schema
+  const [profile] = useState<User>({
     user_id: 1,
     name: "John Doe",
     email: "john.doe@university.edu",
-    created_at: "2024-01-15",
-    participationStats: {
-      totalIdeas: 5,
-      totalVotes: 15,
-      totalReviews: 12,
-      averageRating: 4.2
-    }
+    role: "student",
+    created_at: "2024-01-15T00:00:00Z"
   });
 
-  const [ideaHistory] = useState<IdeaHistory[]>([
+  const [participationStats] = useState<ParticipationStats>({
+    totalIdeas: 5,
+    totalVotes: 15,
+    totalReviews: 12,
+    averageRating: 4.2
+  });
+
+  const [ideas] = useState<Idea[]>([
     {
       idea_id: 1,
+      theme_id: 1,
       idea_name: "AI-Powered Study Assistant",
-      theme_title: "Educational Technology",
+      description: "An AI assistant to help with studying",
       status: "Approved",
-      created_at: "2024-02-01",
-      votes_received: 25
+      created_at: "2024-02-01T00:00:00Z",
+      theme_title: "Educational Technology",
+      votes_count: 25
     },
     {
       idea_id: 2,
+      theme_id: 2,
       idea_name: "Sustainable Campus Initiative",
-      theme_title: "Green Technology",
+      description: "Making our campus more sustainable",
       status: "Pending",
-      created_at: "2024-02-15",
-      votes_received: 18
+      created_at: "2024-02-15T00:00:00Z",
+      theme_title: "Green Technology",
+      votes_count: 18
     }
   ]);
 
-  const [groupHistory] = useState<GroupHistory[]>([
+  const [groups] = useState<Group[]>([
     {
       group_id: 1,
-      theme_title: "Educational Technology",
+      theme_id: 1,
       group_name: "AI-Powered Study Assistant",
-      is_team_lead: true,
+      team_lead: 1,
+      created_at: "2024-02-01T00:00:00Z",
+      theme_title: "Educational Technology",
       average_rating: 4.5
     },
     {
       group_id: 2,
-      theme_title: "Green Technology",
+      theme_id: 2,
       group_name: "Sustainable Campus Initiative",
-      is_team_lead: false,
+      team_lead: 2,
+      created_at: "2024-02-15T00:00:00Z",
+      theme_title: "Green Technology",
       average_rating: 4.2
     }
   ]);
 
-  const [reviewHistory] = useState<ReviewHistory[]>([
+  const [reviews] = useState<Review[]>([
     {
       review_id: 1,
-      group_name: "AI-Powered Study Assistant",
-      rating: 4,
+      reviewer_id: 2,
+      reviewee_id: 1,
+      group_id: 1,
+      rating: "4",
       feedback: "Great team player, always contributes meaningful ideas",
-      created_at: "2024-03-01"
+      created_at: "2024-03-01T00:00:00Z",
+      group_name: "AI-Powered Study Assistant"
     }
   ]);
 
-  // Helper function to format dates
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
 
-  // Render participation stats with custom bars
   const renderParticipationStats = () => (
     <div className={styles.participationStats}>
       <div className={styles.statBar}>
@@ -118,9 +138,9 @@ const Profile: React.FC = () => {
         <div className={styles.statBarContainer}>
           <div 
             className={styles.statBarFill} 
-            style={{ width: `${(profile.participationStats.totalIdeas / 20) * 100}%` }}
+            style={{ width: `${(participationStats.totalIdeas / 20) * 100}%` }}
           />
-          <span>{profile.participationStats.totalIdeas}</span>
+          <span>{participationStats.totalIdeas}</span>
         </div>
       </div>
       <div className={styles.statBar}>
@@ -128,9 +148,9 @@ const Profile: React.FC = () => {
         <div className={styles.statBarContainer}>
           <div 
             className={styles.statBarFill} 
-            style={{ width: `${(profile.participationStats.totalVotes / 20) * 100}%` }}
+            style={{ width: `${(participationStats.totalVotes / 20) * 100}%` }}
           />
-          <span>{profile.participationStats.totalVotes}</span>
+          <span>{participationStats.totalVotes}</span>
         </div>
       </div>
       <div className={styles.statBar}>
@@ -138,9 +158,9 @@ const Profile: React.FC = () => {
         <div className={styles.statBarContainer}>
           <div 
             className={styles.statBarFill} 
-            style={{ width: `${(profile.participationStats.totalReviews / 20) * 100}%` }}
+            style={{ width: `${(participationStats.totalReviews / 20) * 100}%` }}
           />
-          <span>{profile.participationStats.totalReviews}</span>
+          <span>{participationStats.totalReviews}</span>
         </div>
       </div>
     </div>
@@ -161,7 +181,7 @@ const Profile: React.FC = () => {
           <p className={styles.profileDate}>Member since {formatDate(profile.created_at)}</p>
         </div>
         <div className={styles.profileRating}>
-          <div className={styles.ratingValue}>{profile.participationStats.averageRating}/5</div>
+          <div className={styles.ratingValue}>{participationStats.averageRating}/5</div>
           <div className={styles.ratingLabel}>Average Rating</div>
         </div>
       </div>
@@ -207,7 +227,7 @@ const Profile: React.FC = () => {
           <div className={styles.card}>
             <h2 className={styles.cardTitle}>Submitted Ideas</h2>
             <div className={styles.ideaList}>
-              {ideaHistory.map(idea => (
+              {ideas.map(idea => (
                 <div key={idea.idea_id} className={styles.ideaItem}>
                   <div className={styles.ideaHeader}>
                     <div>
@@ -219,7 +239,7 @@ const Profile: React.FC = () => {
                     </span>
                   </div>
                   <div className={styles.ideaMeta}>
-                    <span>Votes received: {idea.votes_received}</span>
+                    <span>Votes received: {idea.votes_count}</span>
                     <span>Submitted: {formatDate(idea.created_at)}</span>
                   </div>
                 </div>
@@ -232,14 +252,14 @@ const Profile: React.FC = () => {
           <div className={styles.card}>
             <h2 className={styles.cardTitle}>Group History</h2>
             <div className={styles.groupList}>
-              {groupHistory.map(group => (
+              {groups.map(group => (
                 <div key={group.group_id} className={styles.groupItem}>
                   <div className={styles.groupHeader}>
                     <div>
                       <h3 className={styles.groupTitle}>{group.group_name}</h3>
                       <p className={styles.groupTheme}>{group.theme_title}</p>
                     </div>
-                    {group.is_team_lead && (
+                    {group.team_lead === profile.user_id && (
                       <span className={styles.teamLeadBadge}>Team Lead</span>
                     )}
                   </div>
@@ -256,7 +276,7 @@ const Profile: React.FC = () => {
           <div className={styles.card}>
             <h2 className={styles.cardTitle}>Reviews Received</h2>
             <div className={styles.reviewList}>
-              {reviewHistory.map(review => (
+              {reviews.map(review => (
                 <div key={review.review_id} className={styles.reviewItem}>
                   <div className={styles.reviewHeader}>
                     <div>
