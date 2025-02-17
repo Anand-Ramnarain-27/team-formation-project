@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import styles from './Dashboard.module.css';
-import ThemeModals from '../components/ThemeModals';
 
 // Types based on database schema
 interface User {
@@ -104,16 +103,6 @@ const Dashboard: React.FC = () => {
     },
   ]);
 
-  const handleThemeCreate = (newTheme: Omit<Theme, 'theme_id'>) => {
-    // Add API call to create theme
-    console.log('Creating theme:', newTheme);
-  };
-
-  const handleThemeUpdate = (updatedTheme: Theme) => {
-    // Add API call to update theme
-    console.log('Updating theme:', updatedTheme);
-  };
-
   return (
     <div className={styles.container}>
       {/* Header */}
@@ -178,10 +167,6 @@ const Dashboard: React.FC = () => {
       <section className={styles.themesSection}>
         <div className={styles.sectionHeader}>
           <h2>Active Themes</h2>
-          <ThemeModals
-            onThemeCreate={handleThemeCreate}
-            onThemeUpdate={handleThemeUpdate}
-          />
           <button className={styles.addButton}>+ Create New Theme</button>
         </div>
         <div className={styles.themesGrid}>
@@ -198,7 +183,15 @@ const Dashboard: React.FC = () => {
                       ? 'Voting'
                       : 'Review Phase'}
                   </span>
-                  <button className={styles.viewButton}>Manage →</button>
+                  <button
+                    className={styles.viewButton}
+                    // onClick={() => {
+                    //   setSelectedTheme(theme);
+                    //   setIsManageOpen(true);
+                    // }}
+                  >
+                    Manage →
+                  </button>
                 </div>
               </div>
             </div>

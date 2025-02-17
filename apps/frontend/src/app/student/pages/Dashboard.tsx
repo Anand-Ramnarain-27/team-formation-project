@@ -1,20 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Dashboard.module.css';
-
-interface Theme {
-  theme_id: number;
-  title: string;
-  description: string;
-  submission_deadline: string;
-  voting_deadline: string;
-  review_deadline: {
-    start: string;
-    end: string;
-  };
-  number_of_groups: number;
-  color_index: number; 
-}
+import { Theme } from '../components/ThemeModals'; 
+import ThemeModals from '../components/ThemeModals';
 
 interface Idea {
   idea_id: number;
@@ -156,10 +144,13 @@ const Dashboard: React.FC = () => {
   };
 
   const handleThemeAction = (themeId: number, action: string) => {
+    const theme = themes.find((t) => t.theme_id === themeId);
+    if (!theme) return;
+
     switch (action) {
       case 'Submit Idea':
-        // Handle idea submission
-        console.log('Submit idea for theme:', themeId);
+        setSelectedTheme(theme);
+        setModalType('submit');
         break;
       case 'Vote Now':
         navigate('/student/vote');
@@ -171,6 +162,18 @@ const Dashboard: React.FC = () => {
         break;
     }
   };
+
+  // Add a new function to handle the View Theme button
+  const handleViewTheme = (themeId: number) => {
+    const theme = themes.find((t) => t.theme_id === themeId);
+    if (theme) {
+      setSelectedTheme(theme);
+      setModalType('view');
+    }
+  };
+
+  const [selectedTheme, setSelectedTheme] = useState<Theme | null>(null);
+  const [modalType, setModalType] = useState<'view' | 'submit' | null>(null);
 
   return (
     <div className={styles.container}>
@@ -186,31 +189,36 @@ const Dashboard: React.FC = () => {
           {themes.map((theme) => {
             const status = getThemeStatus(theme);
             return (
-              <div 
-                key={theme.theme_id} 
-                className={`${styles.themeCard} ${themeColors[theme.color_index % themeColors.length]}`}
+              <div
+                key={theme.theme_id}
+                className={`${styles.themeCard} ${
+                  themeColors[theme.color_index % themeColors.length]
+                }`}
               >
                 <h3 className={styles.themeTitle}>{theme.title}</h3>
                 <p className={styles.themeInfo}>{theme.description}</p>
                 <div className={styles.themeFooter}>
                   <div className={styles.themeButtons}>
-                    <button 
+                    <button
                       className={styles.viewButton}
-                      onClick={() => console.log('View theme:', theme.theme_id)}
+                      onClick={() => handleViewTheme(theme.theme_id)}
                     >
                       View Theme
                     </button>
-                    <button 
-                      className={`${styles.viewButton} ${!status.isActive ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      onClick={() => status.isActive && handleThemeAction(theme.theme_id, status.actionButton)}
+                    <button
+                      className={`${styles.viewButton} ${
+                        !status.isActive ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                      onClick={() =>
+                        status.isActive &&
+                        handleThemeAction(theme.theme_id, status.actionButton)
+                      }
                       disabled={!status.isActive}
                     >
                       {status.actionButton}
                     </button>
                   </div>
-                  <span className={styles.status}>
-                    Phase: {status.phase}
-                  </span>
+                  <span className={styles.status}>Phase: {status.phase}</span>
                 </div>
               </div>
             );
@@ -297,6 +305,17 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+      {selectedTheme && modalType && (
+        <ThemeModals
+          theme={selectedTheme}
+          isOpen={!!modalType}
+          onClose={() => {
+            setSelectedTheme(null);
+            setModalType(null);
+          }}
+          modalType={modalType}
+        />
+      )}
     </div>
   );
 };
