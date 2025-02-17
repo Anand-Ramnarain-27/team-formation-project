@@ -1,8 +1,27 @@
-// AdminIdeaReview.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './Review.module.css';
 
-// Types
+// Types based on your database schema
+type User = {
+  user_id: number;
+  name: string;
+  email: string;
+  role: string;
+};
+
+type Theme = {
+  theme_id: number;
+  title: string;
+  description: string;
+  submission_deadline: string;
+  voting_deadline: string;
+  review_deadline: any; // JSON type in DB
+  auto_assign_group: boolean;
+  team_lead_acceptance: boolean;
+  number_of_groups: number;
+  created_by: number;
+};
+
 type Idea = {
   idea_id: number;
   theme_id: number;
@@ -11,147 +30,75 @@ type Idea = {
   description: string;
   status: 'Pending' | 'Approved' | 'Rejected';
   created_at: string;
-  votes_count: number;
-  submitted_by_name: string;
-};
-
-type Theme = {
-  theme_id: number;
-  title: string;
-  submission_deadline: string;
-  voting_deadline: string;
-};
-
-// Dummy Data
-const dummyThemes: Theme[] = [
-  {
-    theme_id: 1,
-    title: "Mobile App Innovation",
-    submission_deadline: "2025-03-01T00:00:00Z",
-    voting_deadline: "2025-03-15T00:00:00Z"
-  },
-  {
-    theme_id: 2,
-    title: "Sustainable Technology",
-    submission_deadline: "2025-03-10T00:00:00Z",
-    voting_deadline: "2025-03-25T00:00:00Z"
-  },
-  {
-    theme_id: 3,
-    title: "AI for Education",
-    submission_deadline: "2025-03-20T00:00:00Z",
-    voting_deadline: "2025-04-05T00:00:00Z"
-  }
-];
-
-const dummyIdeas: Record<number, Idea[]> = {
-  1: [
-    {
-      idea_id: 1,
-      theme_id: 1,
-      submitted_by: 101,
-      idea_name: "AR Navigation Assistant",
-      description: "A mobile app that uses augmented reality to provide real-time navigation assistance, highlighting points of interest and providing contextual information about surroundings.",
-      status: "Pending",
-      created_at: "2025-02-15T10:30:00Z",
-      votes_count: 15,
-      submitted_by_name: "Alice Johnson"
-    },
-    {
-      idea_id: 2,
-      theme_id: 1,
-      submitted_by: 102,
-      idea_name: "Community Food Share",
-      description: "Mobile platform connecting local restaurants with food surplus to nearby shelters and food banks, reducing waste and helping those in need.",
-      status: "Approved",
-      created_at: "2025-02-14T15:45:00Z",
-      votes_count: 23,
-      submitted_by_name: "Bob Smith"
-    },
-    {
-      idea_id: 3,
-      theme_id: 1,
-      submitted_by: 103,
-      idea_name: "Smart Health Tracker",
-      description: "AI-powered health monitoring app that provides personalized wellness recommendations based on user activity and vital signs.",
-      status: "Rejected",
-      created_at: "2025-02-13T09:15:00Z",
-      votes_count: 8,
-      submitted_by_name: "Carol White"
-    }
-  ],
-  2: [
-    {
-      idea_id: 4,
-      theme_id: 2,
-      submitted_by: 104,
-      idea_name: "Solar Power Optimizer",
-      description: "Smart system that optimizes solar panel positioning and power distribution based on weather patterns and usage habits.",
-      status: "Pending",
-      created_at: "2025-02-16T11:20:00Z",
-      votes_count: 19,
-      submitted_by_name: "David Brown"
-    },
-    {
-      idea_id: 5,
-      theme_id: 2,
-      submitted_by: 105,
-      idea_name: "Waste Management AI",
-      description: "AI-powered waste sorting system that automatically categorizes and processes recyclable materials.",
-      status: "Approved",
-      created_at: "2025-02-15T14:30:00Z",
-      votes_count: 27,
-      submitted_by_name: "Emma Davis"
-    }
-  ],
-  3: [
-    {
-      idea_id: 6,
-      theme_id: 3,
-      submitted_by: 106,
-      idea_name: "Adaptive Learning Platform",
-      description: "AI-driven platform that adjusts difficulty and content based on student performance and learning style.",
-      status: "Pending",
-      created_at: "2025-02-17T13:45:00Z",
-      votes_count: 31,
-      submitted_by_name: "Frank Wilson"
-    },
-    {
-      idea_id: 7,
-      theme_id: 3,
-      submitted_by: 107,
-      idea_name: "Virtual Study Groups",
-      description: "AI-powered system that matches students with similar learning goals and schedules for optimal group study sessions.",
-      status: "Pending",
-      created_at: "2025-02-16T16:20:00Z",
-      votes_count: 24,
-      submitted_by_name: "Grace Lee"
-    }
-  ]
+  // Adding joined fields
+  submitter_name?: string;
+  votes_count?: number;
 };
 
 const Review: React.FC = () => {
+  const [themes, setThemes] = useState<Theme[]>([]);
+  const [ideas, setIdeas] = useState<Idea[]>([]);
   const [selectedTheme, setSelectedTheme] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [ideas, setIdeas] = useState<Idea[]>([]);
 
-  const handleThemeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const themeId = event.target.value;
-    setSelectedTheme(themeId);
-    
-    if (themeId === "all") {
-      // Flatten all ideas into a single array
-      setIdeas(Object.values(dummyIdeas).flat());
-    } else {
-      setIdeas(dummyIdeas[parseInt(themeId)] || []);
+  // Fetch themes and ideas from your API
+  useEffect(() => {
+    // Example API calls - replace with your actual API endpoints
+    const fetchThemes = async () => {
+      try {
+        const response = await fetch('/api/themes');
+        const data = await response.json();
+        setThemes(data);
+      } catch (error) {
+        console.error('Error fetching themes:', error);
+      }
+    };
+
+    fetchThemes();
+  }, []);
+
+  useEffect(() => {
+    const fetchIdeas = async () => {
+      if (!selectedTheme && selectedTheme !== 'all') return;
+
+      try {
+        const url = selectedTheme === 'all' 
+          ? '/api/ideas'
+          : `/api/ideas?theme_id=${selectedTheme}`;
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        setIdeas(data);
+      } catch (error) {
+        console.error('Error fetching ideas:', error);
+      }
+    };
+
+    fetchIdeas();
+  }, [selectedTheme]);
+
+  const updateIdeaStatus = async (ideaId: number, status: 'Approved' | 'Rejected') => {
+    try {
+      // Update in database
+      const response = await fetch(`/api/ideas/${ideaId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update status');
+
+      // Update local state
+      setIdeas(ideas.map(idea => 
+        idea.idea_id === ideaId ? { ...idea, status } : idea
+      ));
+    } catch (error) {
+      console.error('Error updating idea status:', error);
+      // Add error handling UI feedback here
     }
-  };
-
-  const updateIdeaStatus = (ideaId: number, status: 'Approved' | 'Rejected') => {
-    setIdeas(ideas.map(idea => 
-      idea.idea_id === ideaId ? { ...idea, status } : idea
-    ));
   };
 
   const filteredIdeas = ideas.filter(idea => {
@@ -164,16 +111,17 @@ const Review: React.FC = () => {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        <h1 className={styles.title}>Idea Review & Voting Dashboard</h1>
+        <h1 className={styles.title}>Idea Review Dashboard</h1>
         
         <div className={styles.filters}>
           <select 
             className={styles.select}
             value={selectedTheme}
-            onChange={handleThemeChange}
+            onChange={(e) => setSelectedTheme(e.target.value)}
           >
-            <option value="all">All Theme</option>
-            {dummyThemes.map(theme => (
+            <option value="">Select Theme</option>
+            <option value="all">All Themes</option>
+            {themes.map(theme => (
               <option key={theme.theme_id} value={theme.theme_id}>
                 {theme.title}
               </option>
@@ -214,8 +162,10 @@ const Review: React.FC = () => {
                 <p className={styles.ideaDescription}>{idea.description}</p>
                 
                 <div className={styles.ideaMeta}>
-                  <span>By: {idea.submitted_by_name}</span>
-                  <span>👍 {idea.votes_count} votes</span>
+                  <span>By: {idea.submitter_name}</span>
+                  {idea.votes_count !== undefined && (
+                    <span>👍 {idea.votes_count} votes</span>
+                  )}
                   <span>Submitted: {new Date(idea.created_at).toLocaleDateString()}</span>
                 </div>
               </div>

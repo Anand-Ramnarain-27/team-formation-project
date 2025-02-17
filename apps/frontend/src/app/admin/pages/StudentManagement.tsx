@@ -1,13 +1,44 @@
 import React, { useState, ReactNode, ChangeEvent, FormEvent } from 'react';
 import styles from './StudentManagement.module.css';
 
-interface Student {
-  id: number;
+// Types based on database schema
+interface User {
+  user_id: number;
   name: string;
   email: string;
-  currentGroup: string;
-  rating: number;
-  status: 'Active' | 'Inactive';
+  role: string;
+  created_at: string;
+  updated_at: string | null;
+}
+
+interface GroupMember {
+  group_member_id: number;
+  group_id: number;
+  user_id: number;
+}
+
+interface Group {
+  group_id: number;
+  theme_id: number;
+  group_name: string;
+  team_lead: number;
+}
+
+interface Review {
+  review_id: number;
+  reviewer_id: number;
+  reviewee_id: number;
+  group_id: number;
+  rating: '1' | '2' | '3' | '4' | '5';
+  feedback: string;
+}
+
+interface StudentWithDetails extends User {
+  currentGroup?: {
+    group_name: string;
+    theme_id: number;
+  };
+  averageRating?: number;
 }
 
 interface ModalProps {
@@ -18,44 +49,55 @@ interface ModalProps {
 }
 
 interface StudentFormProps {
-  student?: Student;
-  onSubmit: (data: Omit<Student, 'id' | 'rating'>) => void;
+  student?: StudentWithDetails;
+  onSubmit: (data: Partial<User>) => void;
 }
 
 const StudentManagement: React.FC = () => {
-  const [students, setStudents] = useState<Student[]>([
+  // Mock data based on database schema
+  const [students, setStudents] = useState<StudentWithDetails[]>([
     {
-      id: 1,
+      user_id: 1,
       name: 'John Doe',
       email: 'john@example.com',
-      currentGroup: 'Team Alpha',
-      rating: 4.5,
-      status: 'Active',
+      role: 'student',
+      created_at: '2025-01-15T10:00:00Z',
+      updated_at: null,
+      currentGroup: {
+        group_name: 'Innovation Team A',
+        theme_id: 1
+      },
+      averageRating: 4.5
     },
     {
-      id: 2,
+      user_id: 2,
       name: 'Jane Smith',
       email: 'jane@example.com',
-      currentGroup: 'Team Beta',
-      rating: 4.8,
-      status: 'Active',
-    },
+      role: 'student',
+      created_at: '2025-01-16T11:00:00Z',
+      updated_at: null,
+      currentGroup: {
+        group_name: 'Sustainability Group B',
+        theme_id: 2
+      },
+      averageRating: 4.8
+    }
   ]);
 
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterRole, setFilterRole] = useState<string>('all');
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
-  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  const [editingStudent, setEditingStudent] = useState<StudentWithDetails | null>(null);
 
   const handleSearch = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
   };
 
   const handleFilterChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    setFilterStatus(event.target.value);
+    setFilterRole(event.target.value);
   };
 
-  const handleEdit = (student: Student) => {
+  const handleEdit = (student: StudentWithDetails) => {
     setEditingStudent(student);
   };
 
@@ -69,30 +111,19 @@ const StudentManagement: React.FC = () => {
       student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter =
-      filterStatus === 'all' ||
-      student.status.toLowerCase() === filterStatus.toLowerCase();
+      filterRole === 'all' || student.role === filterRole;
     return matchesSearch && matchesFilter;
   });
 
-  const Modal: React.FC<ModalProps> = ({
-    isOpen,
-    onClose,
-    title,
-    children,
-  }) => {
+  const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
     if (!isOpen) return null;
 
     return (
       <div className={styles.modalOverlay} onClick={onClose}>
-        <div
-          className={styles.modalContent}
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
           <div className={styles.modalHeader}>
             <h2>{title}</h2>
-            <button className={styles.closeButton} onClick={onClose}>
-              &times;
-            </button>
+            <button className={styles.closeButton} onClick={onClose}>×</button>
           </div>
           {children}
         </div>
@@ -104,8 +135,7 @@ const StudentManagement: React.FC = () => {
     const [formData, setFormData] = useState({
       name: student?.name || '',
       email: student?.email || '',
-      currentGroup: student?.currentGroup || '',
-      status: student?.status || ('Active' as const),
+      role: student?.role || 'student'
     });
 
     const handleSubmit = (e: FormEvent) => {
@@ -130,36 +160,21 @@ const StudentManagement: React.FC = () => {
           <input
             type="email"
             value={formData.email}
-            onChange={(e) =>
-              setFormData({ ...formData, email: e.target.value })
-            }
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             required
           />
         </div>
         <div className={styles.formGroup}>
-          <label>Current Group:</label>
-          <input
-            type="text"
-            value={formData.currentGroup}
-            onChange={(e) =>
-              setFormData({ ...formData, currentGroup: e.target.value })
-            }
-          />
+          <label>Role:</label>
+          <select
+            value={formData.role}
+            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+          >
+            <option value="student">Student</option>
+            <option value="admin">Admin</option>
+          </select>
         </div>
         <div className={styles.formGroup}>
-          <label>Status:</label>
-          <select
-            value={formData.status}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                status: e.target.value as 'Active' | 'Inactive',
-              })
-            }
-          >
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-          </select>
         </div>
         <button type="submit" className={styles.submitButton}>
           {student ? 'Update Student' : 'Add Student'}
@@ -184,23 +199,23 @@ const StudentManagement: React.FC = () => {
         <div className={styles.searchContainer}>
           <input
             type="text"
-            placeholder="Search students..."
+            placeholder="Search by name or email..."
             value={searchTerm}
             onChange={handleSearch}
             className={styles.searchInput}
           />
         </div>
         <select
-          value={filterStatus}
+          value={filterRole}
           onChange={handleFilterChange}
           className={styles.filterSelect}
         >
-          <option value="all">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
+          <option value="all">All Roles</option>
+          <option value="student">Students</option>
+          <option value="admin">Admins</option>
         </select>
         <div className={styles.totalStudents}>
-          Total Students: {students.length}
+          Total Users: {students.length}
         </div>
       </div>
 
@@ -210,28 +225,24 @@ const StudentManagement: React.FC = () => {
             <tr>
               <th>Name</th>
               <th>Email</th>
+              <th>Role</th>
               <th>Current Group</th>
-              <th>Rating</th>
-              <th>Status</th>
+              <th>Average Rating</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredStudents.map((student) => (
-              <tr key={student.id}>
+              <tr key={student.user_id}>
                 <td>{student.name}</td>
                 <td>{student.email}</td>
-                <td>{student.currentGroup}</td>
-                <td>{student.rating}/5.0</td>
                 <td>
-                  <span
-                    className={`${styles.status} ${
-                      styles[student.status.toLowerCase()]
-                    }`}
-                  >
-                    {student.status}
+                  <span className={`${styles.status} ${styles.active}`}>
+                    {student.role}
                   </span>
                 </td>
+                <td>{student.currentGroup?.group_name || 'Not Assigned'}</td>
+                <td>{student.averageRating ? `${student.averageRating}/5.0` : 'N/A'}</td>
                 <td className={styles.actions}>
                   <button
                     onClick={() => handleEdit(student)}
@@ -253,10 +264,15 @@ const StudentManagement: React.FC = () => {
       >
         <StudentForm
           onSubmit={(data) => {
-            setStudents([
-              ...students,
-              { ...data, id: students.length + 1, rating: 0 },
-            ]);
+            const newStudent: StudentWithDetails = {
+              user_id: students.length + 1,
+              name: data.name!,
+              email: data.email!,
+              role: data.role!,
+              created_at: new Date().toISOString(),
+              updated_at: null
+            };
+            setStudents([...students, newStudent]);
             closeModal();
           }}
         />
@@ -273,8 +289,12 @@ const StudentManagement: React.FC = () => {
             onSubmit={(data) => {
               setStudents(
                 students.map((s) =>
-                  s.id === editingStudent.id
-                    ? { ...data, id: s.id, rating: s.rating }
+                  s.user_id === editingStudent.user_id
+                    ? {
+                        ...s,
+                        ...data,
+                        updated_at: new Date().toISOString()
+                      }
                     : s
                 )
               );

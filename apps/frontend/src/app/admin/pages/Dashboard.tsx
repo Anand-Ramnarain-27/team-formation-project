@@ -1,94 +1,116 @@
-// Dashboard.tsx
 import React, { useState } from 'react';
 import styles from './Dashboard.module.css';
 
-interface Theme {
-  id: number;
+// Types based on database schema
+interface User {
+  user_id: number;
   name: string;
-  info: string;
-  status: string;
-  colorClass: string;
+  email: string;
+  role: string;
+}
+
+interface Theme {
+  theme_id: number;
+  title: string;
+  description: string;
+  submission_deadline: string;
+  voting_deadline: string;
+  review_deadline: any; // JSON type in DB
+  number_of_groups: number;
+  auto_assign_group: boolean;
+}
+
+interface Idea {
+  idea_id: number;
+  theme_id: number;
+  idea_name: string;
+  description: string;
+  status: 'Pending' | 'Approved' | 'Rejected';
+}
+
+interface AnalyticsReport {
+  report_id: number;
+  theme_id: number;
+  total_students: number;
+  total_reports: number;
+  average_rating: number;
+  participation_stats: any; // JSON type in DB
 }
 
 interface Notification {
-  id: number;
-  title: string;
-  description: string;
-  type: string;
-  colorClass: string;
+  notification_id: number;
+  recipient_role: string;
+  message: string;
+  created_at: string;
 }
 
 const Dashboard: React.FC = () => {
+  // Mock data based on database schema
   const [activeThemes] = useState<Theme[]>([
     {
-      id: 1,
-      name: 'Theme Name',
-      info: 'Theme Info',
-      status: 'active',
-      colorClass: 'blue',
+      theme_id: 1,
+      title: "Innovation in Education",
+      description: "Exploring new teaching methodologies",
+      submission_deadline: "2025-03-01",
+      voting_deadline: "2025-03-15",
+      review_deadline: { start: "2025-03-16", end: "2025-03-30" },
+      number_of_groups: 10,
+      auto_assign_group: true
     },
     {
-      id: 2,
-      name: 'Theme Name',
-      info: 'Theme Info',
-      status: 'voting',
-      colorClass: 'pink',
-    },
-    {
-      id: 3,
-      name: 'Theme Name',
-      info: 'Theme Info',
-      status: 'review',
-      colorClass: 'green',
-    },
-    {
-      id: 4,
-      name: 'Theme Name',
-      info: 'Theme Info',
-      status: 'completed',
-      colorClass: 'yellow',
-    },
+      theme_id: 2,
+      title: "Sustainable Development",
+      description: "Projects focusing on environmental sustainability",
+      submission_deadline: "2025-04-01",
+      voting_deadline: "2025-04-15",
+      review_deadline: { start: "2025-04-16", end: "2025-04-30" },
+      number_of_groups: 8,
+      auto_assign_group: false
+    }
   ]);
+
+  const [analyticsData] = useState<AnalyticsReport>({
+    report_id: 1,
+    theme_id: 1,
+    total_students: 2543,
+    total_reports: 156,
+    average_rating: 4.2,
+    participation_stats: {
+      ideas_submitted: 45,
+      votes_cast: 1200,
+      reviews_submitted: 450
+    }
+  });
 
   const [notifications] = useState<Notification[]>([
     {
-      id: 1,
-      title: 'New Theme Submission',
-      description: 'A new theme has been submitted for review',
-      type: 'info',
-      colorClass: 'info',
+      notification_id: 1,
+      recipient_role: "admin",
+      message: "New theme ideas require review",
+      created_at: "2025-02-17T10:00:00Z"
     },
     {
-      id: 2,
-      title: 'Voting Period Ended',
-      description: 'The voting period for Theme #123 has ended',
-      type: 'warning',
-      colorClass: 'warning',
+      notification_id: 2,
+      recipient_role: "admin",
+      message: "Voting period ending soon for Theme #1",
+      created_at: "2025-02-17T09:30:00Z"
     },
     {
-      id: 3,
-      title: 'New Review Submitted',
-      description: 'A new review has been submitted for Group #456',
-      type: 'success',
-      colorClass: 'success',
-    },
+      notification_id: 3,
+      recipient_role: "admin",
+      message: "New peer reviews submitted for Group #5",
+      created_at: "2025-02-17T09:00:00Z"
+    }
   ]);
 
   return (
     <div className={styles.container}>
       {/* Header */}
       <div className={styles.header}>
-        <h1>Dashboard</h1>
+        <h1>Theme Management Dashboard</h1>
         <div className={styles.headerActions}>
           <button className={styles.iconButton}>
-            <svg
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-              stroke="currentColor"
-              strokeWidth="2"
-              fill="none"
-            >
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
               <path d="M13.73 21a2 2 0 0 1-3.46 0" />
             </svg>
@@ -96,25 +118,57 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Themes Section */}
+      {/* Quick Stats */}
+      <div className={styles.statsGrid}>
+        <div className={styles.statCard}>
+          <div className={styles.statTitle}>Total Students</div>
+          <div className={styles.statValue}>{analyticsData.total_students}</div>
+          <div className={`${styles.statTrend} ${styles.positive}`}>
+            Active in current themes
+          </div>
+        </div>
+        <div className={styles.statCard}>
+          <div className={styles.statTitle}>Average Rating</div>
+          <div className={styles.statValue}>{analyticsData.average_rating}/5.0</div>
+          <div className={`${styles.statTrend} ${styles.neutral}`}>
+            Based on {analyticsData.total_reports} reviews
+          </div>
+        </div>
+        <div className={styles.statCard}>
+          <div className={styles.statTitle}>Ideas Submitted</div>
+          <div className={styles.statValue}>{analyticsData.participation_stats.ideas_submitted}</div>
+          <div className={`${styles.statTrend} ${styles.neutral}`}>
+            Across all themes
+          </div>
+        </div>
+        <div className={styles.statCard}>
+          <div className={styles.statTitle}>Pending Reviews</div>
+          <div className={styles.statValue}>{analyticsData.participation_stats.reviews_submitted}</div>
+          <div className={`${styles.statTrend} ${styles.warning}`}>
+            Reviews submitted
+          </div>
+        </div>
+      </div>
+
+      {/* Active Themes Section */}
       <section className={styles.themesSection}>
         <div className={styles.sectionHeader}>
           <h2>Active Themes</h2>
-          <button className={styles.addButton}>+ Add Theme</button>
+          <button className={styles.addButton}>+ Create New Theme</button>
         </div>
         <div className={styles.themesGrid}>
           {activeThemes.map((theme) => (
-            <div key={theme.id} className={styles.themeCard}>
-              <div
-                className={`${styles.themeHeader} ${styles[theme.colorClass]}`}
-              >
-                <h3>{theme.name}</h3>
+            <div key={theme.theme_id} className={styles.themeCard}>
+              <div className={`${styles.themeHeader} ${styles.blue}`}>
+                <h3>{theme.title}</h3>
               </div>
               <div className={styles.themeContent}>
-                <p>{theme.info}</p>
+                <p>{theme.description}</p>
                 <div className={styles.themeFooter}>
-                  <span className={styles.themeStatus}>{theme.status}</span>
-                  <button className={styles.viewButton}>View →</button>
+                  <span className={styles.themeStatus}>
+                    {new Date(theme.voting_deadline) > new Date() ? 'Voting' : 'Review Phase'}
+                  </span>
+                  <button className={styles.viewButton}>Manage →</button>
                 </div>
               </div>
             </div>
@@ -122,88 +176,48 @@ const Dashboard: React.FC = () => {
         </div>
       </section>
 
-      {/* Quick Stats */}
-      <div className={styles.statsGrid}>
-        {[
-          {
-            title: 'Total Students',
-            value: '2,543',
-            trend: '↑ 12% from last month',
-            trendClass: 'positive',
-          },
-          {
-            title: 'Active Themes',
-            value: '8',
-            trend: '3 in voting phase',
-            trendClass: 'neutral',
-          },
-          {
-            title: 'Total Groups',
-            value: '156',
-            trend: 'Across all themes',
-            trendClass: 'neutral',
-          },
-          {
-            title: 'Pending Reviews',
-            value: '27',
-            trend: 'Needs attention',
-            trendClass: 'warning',
-          },
-        ].map((stat, index) => (
-          <div key={index} className={styles.statCard}>
-            <div className={styles.statTitle}>{stat.title}</div>
-            <div className={styles.statValue}>{stat.value}</div>
-            <div className={`${styles.statTrend} ${styles[stat.trendClass]}`}>
-              {stat.trend}
-            </div>
-          </div>
-        ))}
-      </div>
-
       {/* Analytics and Notifications Grid */}
       <div className={styles.gridContainer}>
-        {/* Analytics */}
         <div className={styles.analyticsCard}>
           <h3>Activity Overview</h3>
           <div className={styles.activityGrid}>
             <div className={styles.activityBox}>
-              <h4>Recent Activity</h4>
+              <h4>Participation Stats</h4>
               <ul>
-                <li>New group formed in Theme #123</li>
-                <li>15 new votes received</li>
-                <li>3 reviews submitted</li>
+                <li>{analyticsData.participation_stats.votes_cast} votes cast</li>
+                <li>{analyticsData.participation_stats.ideas_submitted} ideas submitted</li>
+                <li>{analyticsData.participation_stats.reviews_submitted} reviews completed</li>
               </ul>
             </div>
             <div className={styles.activityBox}>
               <h4>Upcoming Deadlines</h4>
               <ul>
-                <li>Theme #456 voting ends in 2 days</li>
-                <li>Group formation deadline tomorrow</li>
-                <li>Review period starts in 3 days</li>
+                {activeThemes.map(theme => (
+                  <li key={theme.theme_id}>
+                    {theme.title}: Voting ends {new Date(theme.voting_deadline).toLocaleDateString()}
+                  </li>
+                ))}
               </ul>
             </div>
-          </div>
-          <div className={styles.graphPlaceholder}>
-            Activity Graph Placeholder
           </div>
         </div>
 
         {/* Notifications */}
         <div className={styles.notificationsCard}>
-          <h3>Notifications</h3>
+          <h3>Recent Notifications</h3>
           <div className={styles.notificationsList}>
             {notifications.map((notification) => (
               <div
-                key={notification.id}
-                className={`${styles.notification} ${
-                  styles[notification.colorClass]
-                }`}
+                key={notification.notification_id}
+                className={`${styles.notification} ${styles.info}`}
               >
                 <div className={styles.notificationHeader}>
-                  <h4>{notification.title}</h4>
+                  <h4>{notification.message}</h4>
                   <button className={styles.closeButton}>×</button>
                 </div>
-                <p>{notification.description}</p>
+                <p>
+                  {new Date(notification.created_at).toLocaleString()}
+                </p>
               </div>
             ))}
           </div>

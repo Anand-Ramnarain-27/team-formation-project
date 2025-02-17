@@ -1,116 +1,238 @@
-// DashboardContent.tsx
 import React, { useState } from 'react';
 import styles from './Dashboard.module.css';
 
 interface Theme {
-  id: number;
-  name: string;
-  info: string;
-  status: string;
-  colorClass: string;
+  theme_id: number;
+  title: string;
+  description: string;
+  submission_deadline: string;
+  voting_deadline: string;
+  review_deadline: {
+    start: string;
+    end: string;
+  };
+  number_of_groups: number;
+  color_index: number; 
+}
+
+interface Idea {
+  idea_id: number;
+  theme_id: number;
+  idea_name: string;
+  description: string;
+  status: 'Pending' | 'Approved' | 'Rejected';
+  created_at: string;
+}
+
+interface Group {
+  group_id: number;
+  theme_id: number;
+  group_name: string;
+  team_lead: number;
 }
 
 interface Notification {
-  id: number;
-  title: string;
-  description: string;
-  type: string;
+  notification_id: number;
+  recipient_role: string;
+  message: string;
+  created_at: string;
 }
 
 const Dashboard: React.FC = () => {
+  // Theme colors array
+  const themeColors = [
+    styles.blueTheme,
+    styles.pinkTheme,
+    styles.greenTheme,
+    styles.yellowTheme,
+    'bg-purple-500',
+    'bg-orange-500',
+    'bg-teal-500',
+    'bg-indigo-500',
+  ];
+
   const [themes] = useState<Theme[]>([
     {
-      id: 1,
-      name: 'Theme Name',
-      info: 'Theme info',
-      status: 'active',
-      colorClass: styles.blueTheme
+      theme_id: 1,
+      title: 'Innovation in EdTech',
+      description: 'Exploring new technologies in education',
+      submission_deadline: '2025-03-01T00:00:00Z',
+      voting_deadline: '2025-03-15T00:00:00Z',
+      review_deadline: {
+        start: '2025-03-16T00:00:00Z',
+        end: '2025-03-30T00:00:00Z',
+      },
+      number_of_groups: 4,
+      color_index: 0,
     },
     {
-      id: 2,
-      name: 'Theme Name',
-      info: 'Theme info',
-      status: 'pending',
-      colorClass: styles.pinkTheme
+      theme_id: 2,
+      title: 'Innovation in EdTech',
+      description: 'Exploring new technologies in education',
+      submission_deadline: '2025-02-01T00:00:00Z',
+      voting_deadline: '2025-02-15T00:00:00Z',
+      review_deadline: {
+        start: '2025-02-16T00:00:00Z',
+        end: '2025-03-30T00:00:00Z',
+      },
+      number_of_groups: 4,
+      color_index: 1,
     },
-    {
-      id: 3,
-      name: 'Theme Name',
-      info: 'Theme info',
-      status: 'completed',
-      colorClass: styles.greenTheme
-    },
-    {
-      id: 4,
-      name: 'Theme Name',
-      info: 'Theme info',
-      status: 'upcoming',
-      colorClass: styles.yellowTheme
-    }
   ]);
 
   const [notifications] = useState<Notification[]>([
     {
-      id: 1,
-      title: 'Notification Title',
-      description: 'Part of the Notification',
-      type: 'info'
+      notification_id: 1,
+      recipient_role: 'student',
+      message: 'New theme available for idea submission',
+      created_at: '2025-02-17T10:00:00Z',
     },
-    {
-      id: 2,
-      title: 'Notification Title',
-      description: 'Part of the Notification',
-      type: 'warning'
-    },
-    {
-      id: 3,
-      title: 'Notification Title',
-      description: 'Part of the Notification',
-      type: 'success'
-    }
+    // ... more notifications
   ]);
+
+  const getThemeStatus = (theme: Theme) => {
+    const now = new Date();
+    const submissionDeadline = new Date(theme.submission_deadline);
+    const votingDeadline = new Date(theme.voting_deadline);
+    const reviewStart = new Date(theme.review_deadline.start);
+    const reviewEnd = new Date(theme.review_deadline.end);
+
+    if (now < submissionDeadline) {
+      return {
+        phase: 'submission',
+        actionButton: 'Submit Idea',
+        isActive: true,
+      };
+    } else if (now < votingDeadline) {
+      return {
+        phase: 'voting',
+        actionButton: 'Vote Now',
+        isActive: true,
+      };
+    } else if (now >= reviewStart && now <= reviewEnd) {
+      return {
+        phase: 'review',
+        actionButton: 'Review',
+        isActive: true,
+      };
+    } else {
+      return {
+        phase: 'completed',
+        actionButton: 'Completed',
+        isActive: false,
+      };
+    }
+  };
+
+  const [myIdeas] = useState<Idea[]>([
+    {
+      idea_id: 1,
+      theme_id: 1,
+      idea_name: 'AI-Powered Study Assistant',
+      description: 'An AI tool to help students organize their study materials',
+      status: 'Pending',
+      created_at: '2025-02-16T15:30:00Z',
+    },
+    // ... more ideas
+  ]);
+
+  const [myGroup] = useState<Group | null>({
+    group_id: 1,
+    theme_id: 1,
+    group_name: 'Innovation Team Alpha',
+    team_lead: 123,
+  });
+
+  const getStatusColor = (deadline: string): string => {
+    const now = new Date();
+    const deadlineDate = new Date(deadline);
+    if (deadlineDate < now) return styles.greenTheme;
+    if (deadlineDate.getTime() - now.getTime() < 7 * 24 * 60 * 60 * 1000)
+      return styles.yellowTheme;
+    return styles.blueTheme;
+  };
+
+  const handleThemeAction = (themeId: number, action: string) => {
+    switch (action) {
+      case 'Submit Idea':
+        // Handle idea submission
+        console.log('Submit idea for theme:', themeId);
+        break;
+      case 'Vote Now':
+        // Handle voting
+        console.log('Vote for theme:', themeId);
+        break;
+      case 'Review':
+        // Handle review
+        console.log('Review for theme:', themeId);
+        break;
+      default:
+        break;
+    }
+  };
 
   return (
     <div className={styles.container}>
-      {/* Header Section */}
       <div className={styles.header}>
-        <h1 className={styles.title}>Themes</h1>
+        <h1 className={styles.title}>Active Themes</h1>
         <div className={styles.dateNav}>
-          <span>June 26th, 2020</span>
-          <div className={styles.arrows}>
-            <button className={styles.arrowButton}>←</button>
-            <button className={styles.arrowButton}>→</button>
-          </div>
+          <span>{new Date().toLocaleDateString()}</span>
         </div>
       </div>
 
-      {/* Top Section: Themes Grid and Notifications */}
       <div className={styles.topSection}>
-        {/* Themes Grid */}
         <div className={styles.themesGrid}>
-          {themes.map((theme) => (
-            <div key={theme.id} className={`${styles.themeCard} ${theme.colorClass}`}>
-              <h3 className={styles.themeTitle}>{theme.name}</h3>
-              <p className={styles.themeInfo}>{theme.info}</p>
-              <div className={styles.themeFooter}>
-                <button className={styles.viewButton}>View</button>
-                <span className={styles.status}>{theme.status}</span>
+          {themes.map((theme) => {
+            const status = getThemeStatus(theme);
+            return (
+              <div 
+                key={theme.theme_id} 
+                className={`${styles.themeCard} ${themeColors[theme.color_index % themeColors.length]}`}
+              >
+                <h3 className={styles.themeTitle}>{theme.title}</h3>
+                <p className={styles.themeInfo}>{theme.description}</p>
+                <div className={styles.themeFooter}>
+                  <div className={styles.themeButtons}>
+                    <button 
+                      className={styles.viewButton}
+                      onClick={() => console.log('View theme:', theme.theme_id)}
+                    >
+                      View Theme
+                    </button>
+                    <button 
+                      className={`${styles.viewButton} ${!status.isActive ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      onClick={() => status.isActive && handleThemeAction(theme.theme_id, status.actionButton)}
+                      disabled={!status.isActive}
+                    >
+                      {status.actionButton}
+                    </button>
+                  </div>
+                  <span className={styles.status}>
+                    Phase: {status.phase}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
-        {/* Notifications Card */}
         <div className={styles.notificationsCard}>
           <div className={styles.cardHeader}>
             <h2 className={styles.cardTitle}>Notifications</h2>
           </div>
           <div className={styles.notificationsContent}>
             {notifications.map((notification) => (
-              <div key={notification.id} className={styles.notification}>
+              <div
+                key={notification.notification_id}
+                className={styles.notification}
+              >
                 <div className={styles.notificationContent}>
-                  <h4 className={styles.notificationTitle}>{notification.title}</h4>
-                  <p className={styles.notificationDescription}>{notification.description}</p>
+                  <p className={styles.notificationDescription}>
+                    {notification.message}
+                  </p>
+                  <small>
+                    {new Date(notification.created_at).toLocaleString()}
+                  </small>
                 </div>
                 <button className={styles.closeButton}>×</button>
               </div>
@@ -119,35 +241,58 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Bottom Section: Theme Status and Group Cards */}
       <div className={styles.bottomSection}>
-        {/* Theme Status Card */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>Theme Name</h2>
+            <h2 className={styles.cardTitle}>My Ideas</h2>
           </div>
           <div className={styles.cardContent}>
-            <p className={styles.cardDescription}>
-              Status of project (voting, submitting ideas, review ideas, waiting for reviews)
-            </p>
             <div className={styles.scrollArea}>
-              {/* Add project status items here */}
+              {myIdeas.map((idea) => (
+                <div key={idea.idea_id} className={styles.notification}>
+                  <div className={styles.notificationContent}>
+                    <h4 className={styles.notificationTitle}>
+                      {idea.idea_name}
+                    </h4>
+                    <p className={styles.notificationDescription}>
+                      {idea.description}
+                    </p>
+                    <span
+                      className={`${styles.status} ${
+                        idea.status === 'Approved'
+                          ? styles.greenTheme
+                          : idea.status === 'Rejected'
+                          ? 'text-red-500'
+                          : styles.yellowTheme
+                      }`}
+                    >
+                      {idea.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Group Information Card */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>Group Name</h2>
+            <h2 className={styles.cardTitle}>My Group</h2>
           </div>
           <div className={styles.cardContent}>
-            <p className={styles.cardDescription}>
-              List of people in your group
-            </p>
-            <div className={styles.scrollArea}>
-              {/* Add group members list here */}
-            </div>
+            {myGroup ? (
+              <>
+                <h3 className={styles.themeTitle}>{myGroup.group_name}</h3>
+                <p className={styles.cardDescription}>
+                  Theme ID: {myGroup.theme_id}
+                </p>
+                <div className={styles.scrollArea}>
+                  {/* Group members would be fetched and displayed here */}
+                </div>
+              </>
+            ) : (
+              <p>You haven't been assigned to a group yet.</p>
+            )}
           </div>
         </div>
       </div>
