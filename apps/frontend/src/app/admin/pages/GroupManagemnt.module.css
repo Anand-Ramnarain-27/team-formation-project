@@ -1,27 +1,22 @@
+/* GroupManagement.module.css */
 .container {
-  padding: 1.5rem;
+  padding: var(--spacing-md);
 }
 
 .card {
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  background: var(--light-color);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .header {
-  padding: 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.headerContent {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--grey-color);
 }
 
 .title {
-  font-size: 1.5rem;
-  font-weight: bold;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
 }
 
 .content {

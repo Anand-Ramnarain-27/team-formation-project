@@ -1,23 +1,22 @@
-/* Dashboard.module.css */
 .container {
-  padding: 2rem;
+  padding: var(--spacing-lg);
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: var(--spacing-lg);
 }
 
 .header h1 {
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
 }
 
 .headerActions {
   display: flex;
-  gap: 1rem;
+  gap: var(--spacing-sm);
 }
 
 .iconButton {

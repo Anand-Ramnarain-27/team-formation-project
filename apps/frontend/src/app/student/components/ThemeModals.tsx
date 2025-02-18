@@ -1,22 +1,13 @@
 import React, { useState } from 'react';
 import { SharedModal } from '@/app/shared/components/Modal';
+import { Theme } from '@/app/shared/utils/types'; 
 import styles from './ThemeModals.module.css';
 
-export interface Theme {
-  theme_id: number;
-  title: string;
+interface IdeaSubmissionForm {
+  idea_name: string;
   description: string;
-  submission_deadline: string;
-  voting_deadline: string;
-  review_deadline: {
-    start: string;
-    end: string;
-  };
-  number_of_groups: number;
-  color_index: number;
 }
 
-// Define and export the props interface
 export interface ThemeModalsProps {
   theme: Theme;
   isOpen: boolean;
@@ -30,7 +21,7 @@ const ThemeModals: React.FC<ThemeModalsProps> = ({
   onClose,
   modalType,
 }) => {
-  const [ideaSubmission, setIdeaSubmission] = useState({
+  const [ideaSubmission, setIdeaSubmission] = useState<IdeaSubmissionForm>({
     idea_name: '',
     description: '',
   });
@@ -50,7 +41,7 @@ const ThemeModals: React.FC<ThemeModalsProps> = ({
       theme_id: theme.theme_id,
       idea_name: ideaSubmission.idea_name,
       description: ideaSubmission.description,
-      status: 'Pending',
+      status: 'Pending' as const,
     };
     console.log('Submitting idea:', newIdea);
     onClose();
@@ -77,8 +68,8 @@ const ThemeModals: React.FC<ThemeModalsProps> = ({
         <div className={styles.infoRow}>
           <span className={styles.infoLabel}>Review Period:</span>
           <span className={styles.infoValue}>
-            {formatDate(theme.review_deadline.start)} -{' '}
-            {formatDate(theme.review_deadline.end)}
+            {formatDate(theme.review_deadline[0].start)} -{' '}
+            {formatDate(theme.review_deadline[0].end)}
           </span>
         </div>
         <div className={styles.infoRow}>
@@ -89,6 +80,7 @@ const ThemeModals: React.FC<ThemeModalsProps> = ({
     </>
   );
 
+  // Rest of the component remains the same
   const renderIdeaSubmission = () => (
     <form id="modalForm" onSubmit={(e) => e.preventDefault()}>
       <p className={styles.modalDescription}>

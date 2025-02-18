@@ -9,13 +9,6 @@ import {
 } from '@/app/shared/utils/types';
 import { SharedModal } from '@/app/shared/components/Modal';
 
-interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
-  children: ReactNode;
-}
-
 interface StudentFormProps {
   student?: StudentWithDetails;
   onSubmit: (data: Partial<User>) => void;

@@ -1,11 +1,10 @@
-/* ReviewForm.module.css */
+/* Review.module.css */
 .container {
   max-width: 800px;
-  margin: 2rem auto;
-  padding: 1.5rem;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: var(--spacing-md) auto;
+  padding: var(--spacing-lg);
+  background: var(--light-color);
+  border-radius: 4px;
 }
 
 .header {
@@ -13,9 +12,9 @@
 }
 
 .title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #333;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--dark-color);
 }
 
 .tabList {
@@ -138,9 +137,9 @@
 }
 
 .button {
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  font-weight: 500;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 4px;
+  font-weight: var(--font-weight-bold);
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -151,8 +150,8 @@
 }
 
 .buttonPrimary {
-  background: #2563eb;
-  color: white;
+  background: var(--primary-color);
+  color: var(--text-color-light);
   border: none;
 }
 

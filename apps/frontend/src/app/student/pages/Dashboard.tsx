@@ -1,24 +1,27 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Dashboard.module.css';
-import { Theme } from '../components/ThemeModals'; 
 import ThemeModals from '../components/ThemeModals';
-import { Idea, Group, Notification } from '@/app/shared/utils/types';
+import { Theme, Idea, Group, Notification } from '@/app/shared/utils/types';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
 
-  // Theme colors array
   const themeColors = [
     styles.blueTheme,
     styles.pinkTheme,
     styles.greenTheme,
     styles.yellowTheme,
-    'bg-purple-500',
-    'bg-orange-500',
-    'bg-teal-500',
-    'bg-indigo-500',
+    styles.purpleTheme,
+    styles.orangeTheme,
+    styles.tealTheme,
+    styles.indigoTheme,
   ];
+
+  const getRandomThemeColor = () => {
+    const randomIndex = Math.floor(Math.random() * themeColors.length);
+    return themeColors[randomIndex];
+  };
 
   const [themes] = useState<Theme[]>([
     {
@@ -27,12 +30,14 @@ const Dashboard: React.FC = () => {
       description: 'Exploring new technologies in education',
       submission_deadline: '2025-03-01T00:00:00Z',
       voting_deadline: '2025-03-15T00:00:00Z',
-      review_deadline: {
-        start: '2025-03-16T00:00:00Z',
-        end: '2025-03-30T00:00:00Z',
-      },
+      review_deadline: [
+        {
+          start: '2025-03-16T00:00:00Z',
+          end: '2025-03-30T00:00:00Z',
+        },
+      ],
       number_of_groups: 4,
-      color_index: 0,
+      auto_assign_group: true,
     },
     {
       theme_id: 2,
@@ -40,12 +45,14 @@ const Dashboard: React.FC = () => {
       description: 'Exploring new technologies in education',
       submission_deadline: '2025-02-01T00:00:00Z',
       voting_deadline: '2025-02-20T00:00:00Z',
-      review_deadline: {
-        start: '2025-03-16T00:00:00Z',
-        end: '2025-03-30T00:00:00Z',
-      },
+      review_deadline: [
+        {
+          start: '2025-03-16T00:00:00Z',
+          end: '2025-03-30T00:00:00Z',
+        },
+      ],
       number_of_groups: 4,
-      color_index: 1,
+      auto_assign_group: true,
     },
   ]);
 
@@ -56,15 +63,15 @@ const Dashboard: React.FC = () => {
       message: 'New theme available for idea submission',
       created_at: '2025-02-17T10:00:00Z',
     },
-    // ... more notifications
   ]);
 
   const getThemeStatus = (theme: Theme) => {
     const now = new Date();
     const submissionDeadline = new Date(theme.submission_deadline);
     const votingDeadline = new Date(theme.voting_deadline);
-    const reviewStart = new Date(theme.review_deadline.start);
-    const reviewEnd = new Date(theme.review_deadline.end);
+    const reviewDeadline = theme.review_deadline[0];
+    const reviewStart = reviewDeadline ? new Date(reviewDeadline.start) : null;
+    const reviewEnd = reviewDeadline ? new Date(reviewDeadline.end) : null;
 
     if (now < submissionDeadline) {
       return {
@@ -78,7 +85,12 @@ const Dashboard: React.FC = () => {
         actionButton: 'Vote Now',
         isActive: true,
       };
-    } else if (now >= reviewStart && now <= reviewEnd) {
+    } else if (
+      reviewStart &&
+      reviewEnd &&
+      now >= reviewStart &&
+      now <= reviewEnd
+    ) {
       return {
         phase: 'review',
         actionButton: 'Review',
@@ -169,12 +181,11 @@ const Dashboard: React.FC = () => {
         <div className={styles.themesGrid}>
           {themes.map((theme) => {
             const status = getThemeStatus(theme);
+            const themeColor = getRandomThemeColor();
             return (
               <div
                 key={theme.theme_id}
-                className={`${styles.themeCard} ${
-                  themeColors[theme.color_index % themeColors.length]
-                }`}
+                className={`${styles.themeCard} ${themeColor}`}
               >
                 <h3 className={styles.themeTitle}>{theme.title}</h3>
                 <p className={styles.themeInfo}>{theme.description}</p>

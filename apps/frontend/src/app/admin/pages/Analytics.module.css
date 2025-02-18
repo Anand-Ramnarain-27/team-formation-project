@@ -1,32 +1,33 @@
+/* Analytics.module.css */
 .dashboard {
-  padding: 24px;
+  padding: var(--spacing-lg);
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--spacing-lg);
 }
 
 .metricsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 16px;
+  gap: var(--spacing-md);
 }
 
 .card {
-  background: white;
+  background: var(--light-color);
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 16px;
-  border: 1px solid #e5e7eb;
+  padding: var(--spacing-md);
+  border: 1px solid var(--grey-color);
 }
 
 .cardHeader {
-  margin-bottom: 16px;
+  margin-bottom: var(--spacing-md);
 }
 
 .cardTitle {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #111827;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--dark-color);
 }
 
 .metricCard {

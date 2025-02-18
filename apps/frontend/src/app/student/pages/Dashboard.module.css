@@ -1,28 +1,28 @@
-/* DashboardContent.module.css */
+/* Dashboard.module.css */
 .container {
-  padding: 1.5rem;
-  background-color: #f1f5f9;
+  padding: var(--spacing-lg);
+  background-color: var(--light-color);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--spacing-lg);
 }
 
 .header {
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--spacing-sm);
 }
 
 .title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-sm);
 }
 
 .dateNav {
   display: flex;
   align-items: center;
-  font-size: 0.875rem;
-  color: #64748b;
+  font-size: var(--font-size-sm);
+  color: var(--grey-color);
 }
 
 .arrows {
@@ -43,11 +43,10 @@
   color: #334155;
 }
 
-/* Top Section Layout */
 .topSection {
   display: grid;
   grid-template-columns: 1fr 300px;
-  gap: 1.5rem;
+  gap: var(--spacing-lg);
 }
 
 .themesGrid {
@@ -56,9 +55,9 @@
 }
 
 .themeCard {
-  padding: 1rem;
-  border-radius: 0.5rem;
-  color: white;
+  padding: var(--spacing-md);
+  border-radius: 4px;
+  color: var(--text-color-light);
   transition: box-shadow 0.2s;
 }
 
@@ -66,18 +65,10 @@
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
-.blueTheme {
-  background-color: #3b82f6;
-}
-.pinkTheme {
-  background-color: #ec4899;
-}
-.greenTheme {
-  background-color: #22c55e;
-}
-.yellowTheme {
-  background-color: #eab308;
-}
+.blueTheme { background-color: var(--primary-color); }
+.pinkTheme { background-color: var(--secondary-color); }
+.greenTheme { background-color: var(--success-color); }
+.yellowTheme { background-color: var(--info-color); }
 
 .themeTitle {
   font-weight: 600;
