@@ -1,32 +1,7 @@
 import React, { useState } from 'react';
 import styles from './Dashboard.module.css';
-
-// Types based on database schema
-interface User {
-  user_id: number;
-  name: string;
-  email: string;
-  role: string;
-}
-
-interface Theme {
-  theme_id: number;
-  title: string;
-  description: string;
-  submission_deadline: string;
-  voting_deadline: string;
-  review_deadline: any; // JSON type in DB
-  number_of_groups: number;
-  auto_assign_group: boolean;
-}
-
-interface Idea {
-  idea_id: number;
-  theme_id: number;
-  idea_name: string;
-  description: string;
-  status: 'Pending' | 'Approved' | 'Rejected';
-}
+import { ThemeModal } from '@/app/admin/components/ThemeModals';
+import { Theme, BaseTheme } from '../types/types';
 
 interface AnalyticsReport {
   report_id: number;
@@ -34,7 +9,11 @@ interface AnalyticsReport {
   total_students: number;
   total_reports: number;
   average_rating: number;
-  participation_stats: any; // JSON type in DB
+  participation_stats: {
+    ideas_submitted: number;
+    votes_cast: number;
+    reviews_submitted: number;
+  };
 }
 
 interface Notification {
@@ -45,15 +24,22 @@ interface Notification {
 }
 
 const Dashboard: React.FC = () => {
-  // Mock data based on database schema
-  const [activeThemes] = useState<Theme[]>([
+  // Modal state
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedTheme, setSelectedTheme] = useState<Theme | undefined>(
+    undefined
+  );
+
+  // Data state
+  const [activeThemes, setActiveThemes] = useState<Theme[]>([
     {
       theme_id: 1,
       title: 'Innovation in Education',
       description: 'Exploring new teaching methodologies',
-      submission_deadline: '2025-03-01',
-      voting_deadline: '2025-03-15',
-      review_deadline: { start: '2025-03-16', end: '2025-03-30' },
+      submission_deadline: '2025-03-01T00:00',
+      voting_deadline: '2025-03-15T00:00',
+      review_deadline: [{ start: '2025-03-16T00:00', end: '2025-03-30T00:00' }],
       number_of_groups: 10,
       auto_assign_group: true,
     },
@@ -61,9 +47,9 @@ const Dashboard: React.FC = () => {
       theme_id: 2,
       title: 'Sustainable Development',
       description: 'Projects focusing on environmental sustainability',
-      submission_deadline: '2025-04-01',
-      voting_deadline: '2025-04-15',
-      review_deadline: { start: '2025-04-16', end: '2025-04-30' },
+      submission_deadline: '2025-04-01T00:00',
+      voting_deadline: '2025-04-15T00:00',
+      review_deadline: [{ start: '2025-04-16T00:00', end: '2025-04-30T00:00' }],
       number_of_groups: 8,
       auto_assign_group: false,
     },
@@ -102,6 +88,33 @@ const Dashboard: React.FC = () => {
       created_at: '2025-02-17T09:00:00Z',
     },
   ]);
+
+  // Event handlers
+  const handleCreateTheme = (newTheme: BaseTheme) => {
+    const theme: Theme = {
+      ...newTheme,
+      theme_id: Math.max(...activeThemes.map((t) => t.theme_id)) + 1,
+    };
+    setActiveThemes((prev) => [...prev, theme]);
+  };
+
+  const handleEditTheme = (updatedTheme: BaseTheme) => {
+    if (!selectedTheme) return;
+
+    const theme: Theme = {
+      ...updatedTheme,
+      theme_id: selectedTheme.theme_id,
+    };
+
+    setActiveThemes((prev) =>
+      prev.map((t) => (t.theme_id === selectedTheme.theme_id ? theme : t))
+    );
+  };
+
+  const handleManageTheme = (theme: Theme) => {
+    setSelectedTheme(theme);
+    setIsEditModalOpen(true);
+  };
 
   return (
     <div className={styles.container}>
@@ -167,7 +180,12 @@ const Dashboard: React.FC = () => {
       <section className={styles.themesSection}>
         <div className={styles.sectionHeader}>
           <h2>Active Themes</h2>
-          <button className={styles.addButton}>+ Create New Theme</button>
+          <button
+            className={styles.addButton}
+            onClick={() => setIsCreateModalOpen(true)}
+          >
+            + Create New Theme
+          </button>
         </div>
         <div className={styles.themesGrid}>
           {activeThemes.map((theme) => (
@@ -185,10 +203,7 @@ const Dashboard: React.FC = () => {
                   </span>
                   <button
                     className={styles.viewButton}
-                    // onClick={() => {
-                    //   setSelectedTheme(theme);
-                    //   setIsManageOpen(true);
-                    // }}
+                    onClick={() => handleManageTheme(theme)}
                   >
                     Manage →
                   </button>
@@ -253,6 +268,22 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <ThemeModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSubmit={handleCreateTheme}
+      />
+
+      <ThemeModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedTheme(undefined);
+        }}
+        theme={selectedTheme}
+        onSubmit={handleEditTheme}
+      />
     </div>
   );
 };
