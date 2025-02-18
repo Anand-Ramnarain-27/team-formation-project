@@ -1,45 +1,6 @@
 import React, { useState, ReactNode, ChangeEvent, FormEvent } from 'react';
 import styles from './StudentManagement.module.css';
-
-// Types based on database schema
-interface User {
-  user_id: number;
-  name: string;
-  email: string;
-  role: string;
-  created_at: string;
-  updated_at: string | null;
-}
-
-interface GroupMember {
-  group_member_id: number;
-  group_id: number;
-  user_id: number;
-}
-
-interface Group {
-  group_id: number;
-  theme_id: number;
-  group_name: string;
-  team_lead: number;
-}
-
-interface Review {
-  review_id: number;
-  reviewer_id: number;
-  reviewee_id: number;
-  group_id: number;
-  rating: '1' | '2' | '3' | '4' | '5';
-  feedback: string;
-}
-
-interface StudentWithDetails extends User {
-  currentGroup?: {
-    group_name: string;
-    theme_id: number;
-  };
-  averageRating?: number;
-}
+import { User, GroupMember, Group, Review, StudentWithDetails } from '@/app/shared/utils/types';
 
 interface ModalProps {
   isOpen: boolean;

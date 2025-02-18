@@ -1,27 +1,12 @@
 import React, { useState } from 'react';
 import styles from './Dashboard.module.css';
 import { ThemeModal } from '@/app/admin/components/ThemeModals';
-import { Theme, BaseTheme } from '../types/types';
-
-interface AnalyticsReport {
-  report_id: number;
-  theme_id: number;
-  total_students: number;
-  total_reports: number;
-  average_rating: number;
-  participation_stats: {
-    ideas_submitted: number;
-    votes_cast: number;
-    reviews_submitted: number;
-  };
-}
-
-interface Notification {
-  notification_id: number;
-  recipient_role: string;
-  message: string;
-  created_at: string;
-}
+import {
+  Theme,
+  BaseTheme,
+  AnalyticsReport,
+  Notification,
+} from '@/app/shared/utils/types';
 
 const Dashboard: React.FC = () => {
   // Modal state
@@ -64,7 +49,11 @@ const Dashboard: React.FC = () => {
     participation_stats: {
       ideas_submitted: 45,
       votes_cast: 1200,
-      reviews_submitted: 450,
+      reviews_completed: 450,
+      totalIdeas: 0,
+      totalVotes: 0,
+      totalReviews: 0,
+      averageRating: 0,
     },
   });
 
@@ -168,7 +157,7 @@ const Dashboard: React.FC = () => {
         <div className={styles.statCard}>
           <div className={styles.statTitle}>Pending Reviews</div>
           <div className={styles.statValue}>
-            {analyticsData.participation_stats.reviews_submitted}
+            {analyticsData.participation_stats.reviews_completed}
           </div>
           <div className={`${styles.statTrend} ${styles.warning}`}>
             Reviews submitted
@@ -230,7 +219,7 @@ const Dashboard: React.FC = () => {
                   submitted
                 </li>
                 <li>
-                  {analyticsData.participation_stats.reviews_submitted} reviews
+                  {analyticsData.participation_stats.reviews_completed} reviews
                   completed
                 </li>
               </ul>

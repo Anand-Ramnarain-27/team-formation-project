@@ -1,36 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styles from './Review.module.css';
+import { User, Group, GroupMember, Review} from '@/app/shared/utils/types';
 
-interface User {
-  user_id: number;
-  name: string;
-  role: string;
-}
-
-interface Group {
-  group_id: number;
-  theme_id: number;
-  group_name: string;
-  team_lead: number;
-}
-
-interface GroupMember {
-  group_member_id: number;
-  group_id: number;
-  user_id: number;
-  user: User; // Changed to required since we'll filter out undefined users
-}
-
-interface Review {
-  review_id?: number;
-  reviewer_id: number;
-  reviewee_id: number;
-  group_id: number;
-  rating: '1' | '2' | '3' | '4' | '5';
-  feedback: string;
-}
-
-const Review: React.FC = () => {
+const Reviews: React.FC = () => {
   const currentUserId = 1; // This should be dynamic
   const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
   const [currentGroup, setCurrentGroup] = useState<Group | null>(null);
@@ -44,7 +16,8 @@ const Review: React.FC = () => {
       group_id: 1,
       theme_id: 1,
       group_name: "Innovation Team Alpha",
-      team_lead: 1
+      team_lead: 1,
+      created_at: "12:00:00",
     });
 
     // Note: Now we only set members where we have complete user data
@@ -53,19 +26,19 @@ const Review: React.FC = () => {
         group_member_id: 1, 
         group_id: 1, 
         user_id: 2, 
-        user: { user_id: 2, name: "Jane Smith", role: "student" } 
+        user: { user_id: 2, name: "Jane Smith", email: "cake@gmail.com", role: "student", created_at: "12:00:00" } 
       },
       { 
         group_member_id: 2, 
         group_id: 1, 
         user_id: 3, 
-        user: { user_id: 3, name: "Alex Johnson", role: "student" } 
+        user: { user_id: 3, name: "Alex Johnson", email: "cake@gmail.com", role: "student", created_at: "12:00:00" } 
       },
       { 
         group_member_id: 3, 
         group_id: 1, 
         user_id: 4, 
-        user: { user_id: 4, name: "Sarah Wilson", role: "student" } 
+        user: { user_id: 4, name: "Sarah Wilson", email: "cake@gmail.com", role: "student", created_at: "12:00:00" } 
       }
     ];
     
@@ -253,4 +226,4 @@ const Review: React.FC = () => {
   );
 };
 
-export default Review;
+export default Reviews;

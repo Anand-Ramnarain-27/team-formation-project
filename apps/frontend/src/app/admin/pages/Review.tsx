@@ -1,39 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './Review.module.css';
-
-// Types based on your database schema
-type User = {
-  user_id: number;
-  name: string;
-  email: string;
-  role: string;
-};
-
-type Theme = {
-  theme_id: number;
-  title: string;
-  description: string;
-  submission_deadline: string;
-  voting_deadline: string;
-  review_deadline: any; // JSON type in DB
-  auto_assign_group: boolean;
-  team_lead_acceptance: boolean;
-  number_of_groups: number;
-  created_by: number;
-};
-
-type Idea = {
-  idea_id: number;
-  theme_id: number;
-  submitted_by: number;
-  idea_name: string;
-  description: string;
-  status: 'Pending' | 'Approved' | 'Rejected';
-  created_at: string;
-  // Adding joined fields
-  submitter_name?: string;
-  votes_count?: number;
-};
+import { User, Theme, Idea } from '@/app/shared/utils/types';
 
 const Review: React.FC = () => {
   const [themes, setThemes] = useState<Theme[]>([]);

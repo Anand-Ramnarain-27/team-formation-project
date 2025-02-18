@@ -3,29 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import styles from './Dashboard.module.css';
 import { Theme } from '../components/ThemeModals'; 
 import ThemeModals from '../components/ThemeModals';
-
-interface Idea {
-  idea_id: number;
-  theme_id: number;
-  idea_name: string;
-  description: string;
-  status: 'Pending' | 'Approved' | 'Rejected';
-  created_at: string;
-}
-
-interface Group {
-  group_id: number;
-  theme_id: number;
-  group_name: string;
-  team_lead: number;
-}
-
-interface Notification {
-  notification_id: number;
-  recipient_role: string;
-  message: string;
-  created_at: string;
-}
+import { Idea, Group, Notification } from '@/app/shared/utils/types';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -119,6 +97,7 @@ const Dashboard: React.FC = () => {
     {
       idea_id: 1,
       theme_id: 1,
+      submitted_by: 1,
       idea_name: 'AI-Powered Study Assistant',
       description: 'An AI tool to help students organize their study materials',
       status: 'Pending',
@@ -132,6 +111,8 @@ const Dashboard: React.FC = () => {
     theme_id: 1,
     group_name: 'Innovation Team Alpha',
     team_lead: 123,
+    created_at: '2025-02-16T15:30:00Z',
+    updated_at: null,
   });
 
   const getStatusColor = (deadline: string): string => {

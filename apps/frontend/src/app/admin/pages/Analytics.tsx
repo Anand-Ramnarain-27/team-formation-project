@@ -1,33 +1,6 @@
 import React, { useState } from 'react';
 import styles from './Analytics.module.css';
-
-interface AnalyticsReport {
-  report_id: number;
-  theme_id: number;
-  total_students: number;
-  total_reports: number;
-  average_rating: number;
-  participation_stats: {
-    ideas_submitted: number;
-    votes_cast: number;
-    reviews_completed: number;
-  };
-}
-
-interface Student {
-  user_id: number;
-  name: string;
-  email: string;
-  group_id?: number;
-  group_name?: string;
-  metrics: {
-    ideas_submitted: number;
-    votes_given: number;
-    reviews_given: number;
-    average_rating_received: number;
-    participation_rate: string;
-  };
-}
+import { AnalyticsReport, Student } from '@/app/shared/utils/types';
 
 interface MetricCardProps {
   icon: string;
@@ -50,8 +23,12 @@ const Analytics: React.FC = () => {
     participation_stats: {
       ideas_submitted: 125,
       votes_cast: 1200,
-      reviews_completed: 300
-    }
+      reviews_completed: 300,
+      totalIdeas: 5,
+      totalVotes: 15,
+      totalReviews: 12,
+      averageRating: 4.2,
+    },
   };
 
   const mockStudents: Student[] = [
@@ -65,9 +42,9 @@ const Analytics: React.FC = () => {
         votes_given: 15,
         reviews_given: 8,
         average_rating_received: 4.5,
-        participation_rate: '95%'
-      }
-    }
+        participation_rate: '95%',
+      },
+    },
   ];
 
   const MetricCard: React.FC<MetricCardProps> = ({
@@ -106,7 +83,9 @@ const Analytics: React.FC = () => {
           <div
             key={student.user_id}
             className={`${styles.studentCard} ${
-              selectedStudent?.user_id === student.user_id ? styles.selected : ''
+              selectedStudent?.user_id === student.user_id
+                ? styles.selected
+                : ''
             }`}
             onClick={() => setSelectedStudent(student)}
           >
@@ -139,23 +118,33 @@ const Analytics: React.FC = () => {
         <div className={styles.studentMetrics}>
           <div className={styles.metricBox}>
             <div className={styles.metricTitle}>Ideas Submitted</div>
-            <div className={styles.metricNumber}>{student.metrics.ideas_submitted}</div>
+            <div className={styles.metricNumber}>
+              {student.metrics.ideas_submitted}
+            </div>
           </div>
           <div className={styles.metricBox}>
             <div className={styles.metricTitle}>Votes Given</div>
-            <div className={styles.metricNumber}>{student.metrics.votes_given}</div>
+            <div className={styles.metricNumber}>
+              {student.metrics.votes_given}
+            </div>
           </div>
           <div className={styles.metricBox}>
             <div className={styles.metricTitle}>Reviews Given</div>
-            <div className={styles.metricNumber}>{student.metrics.reviews_given}</div>
+            <div className={styles.metricNumber}>
+              {student.metrics.reviews_given}
+            </div>
           </div>
           <div className={styles.metricBox}>
             <div className={styles.metricTitle}>Average Rating</div>
-            <div className={styles.metricNumber}>{student.metrics.average_rating_received}</div>
+            <div className={styles.metricNumber}>
+              {student.metrics.average_rating_received}
+            </div>
           </div>
           <div className={styles.metricBox}>
             <div className={styles.metricTitle}>Participation Rate</div>
-            <div className={styles.metricNumber}>{student.metrics.participation_rate}</div>
+            <div className={styles.metricNumber}>
+              {student.metrics.participation_rate}
+            </div>
           </div>
         </div>
       </div>

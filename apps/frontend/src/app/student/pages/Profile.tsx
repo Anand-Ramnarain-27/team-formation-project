@@ -1,55 +1,6 @@
 import React, { useState } from 'react';
 import styles from './Profile.module.css';
-
-// TypeScript interfaces matching the database schema
-interface User {
-  user_id: number;
-  name: string;
-  email: string;
-  role: string;
-  created_at: string;
-  updated_at?: string;
-}
-
-interface Idea {
-  idea_id: number;
-  theme_id: number;
-  idea_name: string;
-  description: string;
-  status: 'Pending' | 'Approved' | 'Rejected';
-  created_at: string;
-  theme_title?: string; // Joined from theme table
-  votes_count?: number; // Aggregated from votes table
-}
-
-interface Group {
-  group_id: number;
-  theme_id: number;
-  group_name: string;
-  team_lead: number;
-  created_at: string;
-  updated_at?: string;
-  theme_title?: string; // Joined from theme table
-  average_rating?: number; // Calculated from reviews
-}
-
-interface Review {
-  review_id: number;
-  reviewer_id: number;
-  reviewee_id: number;
-  group_id: number;
-  rating: '1' | '2' | '3' | '4' | '5';
-  feedback: string;
-  created_at: string;
-  group_name?: string; // Joined from groups table
-}
-
-interface ParticipationStats {
-  totalIdeas: number;
-  totalVotes: number;
-  totalReviews: number;
-  averageRating: number;
-}
+import { User, Idea, Group, Review, ParticipationStats} from '@/app/shared/utils/types';
 
 const Profile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'participation' | 'ideas' | 'groups' | 'reviews'>('participation');
@@ -64,6 +15,9 @@ const Profile: React.FC = () => {
   });
 
   const [participationStats] = useState<ParticipationStats>({
+    ideas_submitted: 1,
+    votes_cast: 3,
+    reviews_completed: 3,
     totalIdeas: 5,
     totalVotes: 15,
     totalReviews: 12,
@@ -74,6 +28,7 @@ const Profile: React.FC = () => {
     {
       idea_id: 1,
       theme_id: 1,
+      submitted_by: 1,
       idea_name: "AI-Powered Study Assistant",
       description: "An AI assistant to help with studying",
       status: "Approved",
@@ -84,6 +39,7 @@ const Profile: React.FC = () => {
     {
       idea_id: 2,
       theme_id: 2,
+      submitted_by: 2,
       idea_name: "Sustainable Campus Initiative",
       description: "Making our campus more sustainable",
       status: "Pending",

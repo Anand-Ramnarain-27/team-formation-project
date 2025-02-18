@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './ThemeModals.module.css';
-import { Theme, BaseTheme, ReviewDeadline } from '../types/types';
+import { Theme, BaseTheme} from '@/app/shared/utils/types'
 
 interface ThemeModalProps {
   isOpen: boolean;

@@ -1,37 +1,6 @@
 import React, { useState } from 'react';
 import styles from './GroupManagemnt.module.css';
-
-// Updated interfaces to match database schema
-interface User {
-  user_id: number;
-  name: string;
-  email: string;
-  role: string;
-}
-
-interface Theme {
-  theme_id: number;
-  title: string;
-  description: string;
-  submission_deadline: string;
-  voting_deadline: string;
-  review_deadline: any;
-  number_of_groups: number;
-}
-
-interface Group {
-  group_id: number;
-  theme_id: number;
-  group_name: string;
-  team_lead: number;
-  created_at: string;
-  updated_at: string;
-  // Additional fields for UI
-  theme_title?: string;
-  team_lead_details?: User;
-  members?: User[];
-  average_rating?: number;
-}
+import { User, Group, Theme } from '@/app/shared/utils/types';
 
 interface GroupDialogProps {
   group: Group | null;
@@ -57,8 +26,9 @@ const GroupManagement = () => {
       description: 'Exploring AI applications',
       submission_deadline: '2025-03-01',
       voting_deadline: '2025-03-15',
-      review_deadline: { start: '2025-03-16', end: '2025-03-30' },
+      review_deadline: [{ start: '2025-03-16T00:00', end: '2025-03-30T00:00' }],
       number_of_groups: 5,
+      auto_assign_group: true,
     },
     {
       theme_id: 2,
@@ -66,8 +36,9 @@ const GroupManagement = () => {
       description: 'Modern web development',
       submission_deadline: '2025-03-01',
       voting_deadline: '2025-03-15',
-      review_deadline: { start: '2025-03-16', end: '2025-03-30' },
+      review_deadline: [{ start: '2025-03-16', end: '2025-03-30' }],
       number_of_groups: 5,
+      auto_assign_group: true,
     },
   ];
 
@@ -77,24 +48,32 @@ const GroupManagement = () => {
       name: 'John Doe',
       email: 'john@example.com',
       role: 'Student',
+      created_at: '12:00:00',
+      updated_at: null,
     },
     {
       user_id: 2,
       name: 'Jane Smith',
       email: 'jane@example.com',
       role: 'Student',
+      created_at: '12:00:00',
+      updated_at: null,
     },
     {
       user_id: 3,
       name: 'Bob Wilson',
       email: 'bob@example.com',
       role: 'Student',
+      created_at: '12:00:00',
+      updated_at: null,
     },
     {
       user_id: 4,
       name: 'Sarah Johnson',
       email: 'sarah@example.com',
       role: 'Student',
+      created_at: '12:00:00',
+      updated_at: null,
     },
   ];
 

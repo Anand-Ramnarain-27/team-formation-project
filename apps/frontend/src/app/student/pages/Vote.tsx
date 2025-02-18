@@ -1,24 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './Voting.module.css';
-
-interface Idea {
-  idea_id: number;
-  theme_id: number;
-  submitted_by: number;
-  idea_name: string;
-  description: string;
-  status: 'Pending' | 'Approved' | 'Rejected';
-  created_at: string;
-  submitter_name?: string; // Joined from users table
-  vote_count?: number; // Aggregated from votes table
-}
-
-interface Vote {
-  vote_id: number;
-  idea_id: number;
-  voted_by: number;
-  created_at: string;
-}
+import { Idea, Vote } from '@/app/shared/utils/types';
 
 const Voting: React.FC = () => {
   const [ideas, setIdeas] = useState<Idea[]>([]);

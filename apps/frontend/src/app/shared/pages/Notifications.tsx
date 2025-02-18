@@ -1,23 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import styles from './Notifications.module.css';
-
-// TypeScript interfaces matching the database schema
-interface User {
-  user_id: number;
-  name: string;
-  email: string;
-  role: string;
-}
-
-interface Notification {
-  notification_id: number;
-  recipient_role: string;
-  message: string;
-  created_by: number;
-  created_at: string;
-  creator?: User; // Joined from users table
-}
+import { User, Notification } from '@/app/shared/utils/types';
 
 const NotificationCard = ({ notification }: { notification: Notification }) => {
   const getIconClass = () => {
@@ -49,7 +33,9 @@ const CreateNotification = ({
   onNotificationCreate,
   currentUser,
 }: {
-  onNotificationCreate: (notification: Omit<Notification, 'notification_id' | 'created_at'>) => void;
+  onNotificationCreate: (
+    notification: Omit<Notification, 'notification_id' | 'created_at'>
+  ) => void;
   currentUser: User;
 }) => {
   const [message, setMessage] = useState('');
@@ -61,7 +47,7 @@ const CreateNotification = ({
       onNotificationCreate({
         recipient_role: recipientRole,
         message: message.trim(),
-        created_by: currentUser.user_id
+        created_by: currentUser.user_id,
       });
       setMessage('');
     }
@@ -99,8 +85,8 @@ const CreateNotification = ({
           rows={3}
         />
       </div>
-      <button 
-        type="submit" 
+      <button
+        type="submit"
         className={styles.submitButton}
         disabled={!message.trim()}
       >
@@ -115,11 +101,13 @@ const NotificationsPage = () => {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<User>({
     user_id: 1,
-    name: "Admin User",
-    email: "admin@example.com",
-    role: "admin"
+    name: 'Admin User',
+    email: 'admin@example.com',
+    role: 'admin',
+    created_at: '12:00:00',
+    updated_at: null,
   });
-  
+
   const location = useLocation();
   const isAdmin = currentUser.role === 'admin';
 
@@ -135,39 +123,41 @@ const NotificationsPage = () => {
         WHERE n.recipient_role = $1 OR n.recipient_role = 'all'
         ORDER BY n.created_at DESC
         */
-        
+
         const mockUser: User = {
           user_id: 2,
-          name: "Jane Smith",
-          email: "jane@example.com",
-          role: "admin"
+          name: 'Jane Smith',
+          email: 'jane@example.com',
+          role: 'admin',
+          created_at: '12:00:00',
+          updated_at: null,
         };
 
         const mockNotifications: Notification[] = [
           {
             notification_id: 1,
-            recipient_role: "all",
+            recipient_role: 'all',
             message: "New theme 'Web Development' has been created",
             created_by: 2,
             created_at: new Date().toISOString(),
-            creator: mockUser
+            creator: mockUser,
           },
           {
             notification_id: 2,
-            recipient_role: "student",
-            message: "Deadline for idea submission is approaching",
+            recipient_role: 'student',
+            message: 'Deadline for idea submission is approaching',
             created_by: 2,
             created_at: new Date(Date.now() - 86400000).toISOString(),
-            creator: mockUser
+            creator: mockUser,
           },
           {
             notification_id: 3,
-            recipient_role: "team_lead",
-            message: "New review submitted for your group",
+            recipient_role: 'team_lead',
+            message: 'New review submitted for your group',
             created_by: 2,
             created_at: new Date(Date.now() - 172800000).toISOString(),
-            creator: mockUser
-          }
+            creator: mockUser,
+          },
         ];
 
         setNotifications(mockNotifications);
@@ -181,7 +171,9 @@ const NotificationsPage = () => {
     fetchNotifications();
   }, [currentUser.role]);
 
-  const handleCreateNotification = async (newNotification: Omit<Notification, 'notification_id' | 'created_at'>) => {
+  const handleCreateNotification = async (
+    newNotification: Omit<Notification, 'notification_id' | 'created_at'>
+  ) => {
     try {
       // In a real implementation, this would be an API call to your database
       // Example SQL query for reference:
@@ -195,7 +187,7 @@ const NotificationsPage = () => {
         notification_id: Date.now(),
         ...newNotification,
         created_at: new Date().toISOString(),
-        creator: currentUser
+        creator: currentUser,
       };
 
       setNotifications([createdNotification, ...notifications]);
@@ -220,7 +212,7 @@ const NotificationsPage = () => {
 
       {isAdmin && (
         <div className={styles.createSection}>
-          <CreateNotification 
+          <CreateNotification
             onNotificationCreate={handleCreateNotification}
             currentUser={currentUser}
           />
