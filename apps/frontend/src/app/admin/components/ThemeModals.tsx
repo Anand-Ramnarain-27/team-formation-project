@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './ThemeModals.module.css';
-import { Theme, BaseTheme} from '@/app/shared/utils/types'
+import { Theme, BaseTheme } from '@/app/shared/utils/types';
+import { SharedModal } from '@/app/shared/components/Modal';
 
 interface ThemeModalProps {
   isOpen: boolean;
@@ -65,137 +66,135 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
     }));
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modal}>
-        <div className={styles.modalHeader}>
-          <h2>{theme ? 'Edit Theme' : 'Create New Theme'}</h2>
-          <button className={styles.closeButton} onClick={onClose}>×</button>
+    <SharedModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={theme ? 'Edit Theme' : 'Create New Theme'}
+      size="medium"
+      showFooter={true}
+      footerContent={
+        <>
+          <button type="button" className={styles.cancelButton} onClick={onClose}>
+            Cancel
+          </button>
+          <button type="submit" form="modalForm" className={styles.submitButton}>
+            {theme ? 'Save Changes' : 'Create Theme'}
+          </button>
+        </>
+      }
+    >
+      <form id="modalForm" onSubmit={handleSubmit} className={styles.form}>
+        <div className={styles.formGroup}>
+          <label htmlFor="title">Title</label>
+          <input
+            type="text"
+            id="title"
+            value={formData.title}
+            onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+            required
+          />
         </div>
-        
-        <form onSubmit={handleSubmit} className={styles.form}>
+
+        <div className={styles.formGroup}>
+          <label htmlFor="description">Description</label>
+          <textarea
+            id="description"
+            value={formData.description}
+            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+            required
+          />
+        </div>
+
+        <div className={styles.formRow}>
           <div className={styles.formGroup}>
-            <label htmlFor="title">Title</label>
+            <label htmlFor="submission_deadline">Submission Deadline</label>
             <input
-              type="text"
-              id="title"
-              value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              type="datetime-local"
+              id="submission_deadline"
+              value={formData.submission_deadline}
+              onChange={(e) => setFormData(prev => ({ ...prev, submission_deadline: e.target.value }))}
               required
             />
           </div>
 
           <div className={styles.formGroup}>
-            <label htmlFor="description">Description</label>
-            <textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+            <label htmlFor="voting_deadline">Voting Deadline</label>
+            <input
+              type="datetime-local"
+              id="voting_deadline"
+              value={formData.voting_deadline}
+              onChange={(e) => setFormData(prev => ({ ...prev, voting_deadline: e.target.value }))}
               required
             />
           </div>
+        </div>
 
-          <div className={styles.formRow}>
-            <div className={styles.formGroup}>
-              <label htmlFor="submission_deadline">Submission Deadline</label>
-              <input
-                type="datetime-local"
-                id="submission_deadline"
-                value={formData.submission_deadline}
-                onChange={(e) => setFormData(prev => ({ ...prev, submission_deadline: e.target.value }))}
-                required
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="voting_deadline">Voting Deadline</label>
-              <input
-                type="datetime-local"
-                id="voting_deadline"
-                value={formData.voting_deadline}
-                onChange={(e) => setFormData(prev => ({ ...prev, voting_deadline: e.target.value }))}
-                required
-              />
-            </div>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label>Review Deadlines</label>
-            {formData.review_deadline.map((deadline, index) => (
-              <div key={index} className={styles.reviewDeadlineRow}>
-                <div className={styles.reviewDeadlineInputs}>
-                  <input
-                    type="datetime-local"
-                    value={deadline.start}
-                    onChange={(e) => updateReviewDeadline(index, 'start', e.target.value)}
-                    placeholder="Start Date"
-                    required
-                  />
-                  <input
-                    type="datetime-local"
-                    value={deadline.end}
-                    onChange={(e) => updateReviewDeadline(index, 'end', e.target.value)}
-                    placeholder="End Date"
-                    required
-                  />
-                </div>
-                {formData.review_deadline.length > 1 && (
-                  <button
-                    type="button"
-                    className={styles.removeButton}
-                    onClick={() => removeReviewDeadline(index)}
-                  >
-                    Remove
-                  </button>
-                )}
-              </div>
-            ))}
-            <button
-              type="button"
-              className={styles.addButton}
-              onClick={addReviewDeadline}
-            >
-              + Add Review Period
-            </button>
-          </div>
-
-          <div className={styles.formRow}>
-            <div className={styles.formGroup}>
-              <label htmlFor="number_of_groups">Number of Groups</label>
-              <input
-                type="number"
-                id="number_of_groups"
-                min="1"
-                value={formData.number_of_groups}
-                onChange={(e) => setFormData(prev => ({ ...prev, number_of_groups: parseInt(e.target.value) }))}
-                required
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label className={styles.checkboxLabel}>
+        <div className={styles.formGroup}>
+          <label>Review Deadlines</label>
+          {formData.review_deadline.map((deadline, index) => (
+            <div key={index} className={styles.reviewDeadlineRow}>
+              <div className={styles.reviewDeadlineInputs}>
                 <input
-                  type="checkbox"
-                  checked={formData.auto_assign_group}
-                  onChange={(e) => setFormData(prev => ({ ...prev, auto_assign_group: e.target.checked }))}
+                  type="datetime-local"
+                  value={deadline.start}
+                  onChange={(e) => updateReviewDeadline(index, 'start', e.target.value)}
+                  placeholder="Start Date"
+                  required
                 />
-                Auto-assign Groups
-              </label>
+                <input
+                  type="datetime-local"
+                  value={deadline.end}
+                  onChange={(e) => updateReviewDeadline(index, 'end', e.target.value)}
+                  placeholder="End Date"
+                  required
+                />
+              </div>
+              {formData.review_deadline.length > 1 && (
+                <button
+                  type="button"
+                  className={styles.removeButton}
+                  onClick={() => removeReviewDeadline(index)}
+                >
+                  Remove
+                </button>
+              )}
             </div>
+          ))}
+          <button
+            type="button"
+            className={styles.addButton}
+            onClick={addReviewDeadline}
+          >
+            + Add Review Period
+          </button>
+        </div>
+
+        <div className={styles.formRow}>
+          <div className={styles.formGroup}>
+            <label htmlFor="number_of_groups">Number of Groups</label>
+            <input
+              type="number"
+              id="number_of_groups"
+              min="1"
+              value={formData.number_of_groups}
+              onChange={(e) => setFormData(prev => ({ ...prev, number_of_groups: parseInt(e.target.value) }))}
+              required
+            />
           </div>
 
-          <div className={styles.modalFooter}>
-            <button type="button" className={styles.cancelButton} onClick={onClose}>
-              Cancel
-            </button>
-            <button type="submit" className={styles.submitButton}>
-              {theme ? 'Save Changes' : 'Create Theme'}
-            </button>
+          <div className={styles.formGroup}>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={formData.auto_assign_group}
+                onChange={(e) => setFormData(prev => ({ ...prev, auto_assign_group: e.target.checked }))}
+              />
+              Auto-assign Groups
+            </label>
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+      </form>
+    </SharedModal>
   );
 };

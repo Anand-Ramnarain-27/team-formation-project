@@ -1,61 +1,3 @@
-/* ThemeModals.module.css */
-.modalOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modalContent {
-  background-color: white;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  max-width: 32rem;
-  width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.modalHeader {
-  margin-bottom: 1.5rem;
-}
-
-.modalTitle {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin-bottom: 0.5rem;
-}
-
-.modalDescription {
-  font-size: 0.875rem;
-  color: #666;
-}
-
-.closeButton {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #666;
-  padding: 0.25rem;
-}
-
-.closeButton:hover {
-  color: #1a1a1a;
-}
-
 .formGroup {
   margin-bottom: 1.5rem;
 }
@@ -91,47 +33,6 @@
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-}
-
-.buttonGroup {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
-}
-
-.button {
-  padding: 0.5rem 1rem;
-  border-radius: 0.25rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.primaryButton {
-  background-color: #3b82f6;
-  color: white;
-  border: none;
-}
-
-.primaryButton:hover {
-  background-color: #2563eb;
-}
-
-.primaryButton:disabled {
-  background-color: #93c5fd;
-  cursor: not-allowed;
-}
-
-.secondaryButton {
-  background-color: white;
-  color: #1a1a1a;
-  border: 1px solid #e2e8f0;
-}
-
-.secondaryButton:hover {
-  background-color: #f8fafc;
 }
 
 .infoRow {

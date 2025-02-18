@@ -1,8 +1,7 @@
-// ThemeModals.tsx
 import React, { useState } from 'react';
+import { SharedModal } from '@/app/shared/components/Modal';
 import styles from './ThemeModals.module.css';
 
-// Define the Theme interface
 export interface Theme {
   theme_id: number;
   title: string;
@@ -36,8 +35,6 @@ const ThemeModals: React.FC<ThemeModalsProps> = ({
     description: '',
   });
 
-  if (!isOpen) return null;
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -49,7 +46,6 @@ const ThemeModals: React.FC<ThemeModalsProps> = ({
   };
 
   const handleSubmitIdea = () => {
-    // Here you would integrate with your API to submit the idea
     const newIdea = {
       theme_id: theme.theme_id,
       idea_name: ideaSubmission.idea_name,
@@ -60,16 +56,9 @@ const ThemeModals: React.FC<ThemeModalsProps> = ({
     onClose();
   };
 
-  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
   const renderThemeDetails = () => (
     <>
-      <div className={styles.modalHeader}>
-        <h2 className={styles.modalTitle}>{theme.title}</h2>
+      <div>
         <p className={styles.modalDescription}>{theme.description}</p>
       </div>
       <div>
@@ -101,74 +90,53 @@ const ThemeModals: React.FC<ThemeModalsProps> = ({
   );
 
   const renderIdeaSubmission = () => (
-    <>
-      <div className={styles.modalHeader}>
-        <h2 className={styles.modalTitle}>Submit New Idea</h2>
-        <p className={styles.modalDescription}>
-          Submit your idea for the theme: {theme.title}
-        </p>
+    <form id="modalForm" onSubmit={(e) => e.preventDefault()}>
+      <p className={styles.modalDescription}>
+        Submit your idea for the theme: {theme.title}
+      </p>
+      <div className={styles.formGroup}>
+        <label className={styles.label}>Idea Name</label>
+        <input
+          type="text"
+          className={styles.input}
+          value={ideaSubmission.idea_name}
+          onChange={(e) =>
+            setIdeaSubmission((prev) => ({
+              ...prev,
+              idea_name: e.target.value,
+            }))
+          }
+          placeholder="Enter your idea name"
+        />
       </div>
-      <form onSubmit={(e) => e.preventDefault()}>
-        <div className={styles.formGroup}>
-          <label className={styles.label}>Idea Name</label>
-          <input
-            type="text"
-            className={styles.input}
-            value={ideaSubmission.idea_name}
-            onChange={(e) =>
-              setIdeaSubmission((prev) => ({
-                ...prev,
-                idea_name: e.target.value,
-              }))
-            }
-            placeholder="Enter your idea name"
-          />
-        </div>
-        <div className={styles.formGroup}>
-          <label className={styles.label}>Description</label>
-          <textarea
-            className={styles.textarea}
-            value={ideaSubmission.description}
-            onChange={(e) =>
-              setIdeaSubmission((prev) => ({
-                ...prev,
-                description: e.target.value,
-              }))
-            }
-            placeholder="Describe your idea in detail"
-            rows={5}
-          />
-        </div>
-        <div className={styles.buttonGroup}>
-          <button
-            type="button"
-            className={`${styles.button} ${styles.secondaryButton}`}
-            onClick={onClose}
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            className={`${styles.button} ${styles.primaryButton}`}
-            onClick={handleSubmitIdea}
-            disabled={!ideaSubmission.idea_name || !ideaSubmission.description}
-          >
-            Submit Idea
-          </button>
-        </div>
-      </form>
-    </>
+      <div className={styles.formGroup}>
+        <label className={styles.label}>Description</label>
+        <textarea
+          className={styles.textarea}
+          value={ideaSubmission.description}
+          onChange={(e) =>
+            setIdeaSubmission((prev) => ({
+              ...prev,
+              description: e.target.value,
+            }))
+          }
+          placeholder="Describe your idea in detail"
+          rows={5}
+        />
+      </div>
+    </form>
   );
 
   return (
-    <div className={styles.modalOverlay} onClick={handleOverlayClick}>
-      <div className={styles.modalContent}>
-        <button className={styles.closeButton} onClick={onClose}>
-          ×
-        </button>
-        {modalType === 'view' ? renderThemeDetails() : renderIdeaSubmission()}
-      </div>
-    </div>
+    <SharedModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={modalType === 'view' ? theme.title : 'Submit New Idea'}
+      showFooter={modalType === 'submit'}
+      size="medium"
+    >
+      {modalType === 'view' ? renderThemeDetails() : renderIdeaSubmission()}
+    </SharedModal>
   );
 };
 

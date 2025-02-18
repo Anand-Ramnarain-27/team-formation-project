@@ -222,36 +222,6 @@
   border-color: #fca5a5;
 }
 
-.modal {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
-}
-
-.modalContent {
-  background: white;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  width: 100%;
-  max-width: 32rem;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.memberManagementContent {
-  max-width: 48rem;
-}
-
-.modalTitle {
-  font-size: 1.25rem;
-  font-weight: bold;
-  margin-bottom: 1.5rem;
-}
-
 .form {
   display: flex;
   flex-direction: column;

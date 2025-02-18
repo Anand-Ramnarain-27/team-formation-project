@@ -1,6 +1,13 @@
 import React, { useState, ReactNode, ChangeEvent, FormEvent } from 'react';
 import styles from './StudentManagement.module.css';
-import { User, GroupMember, Group, Review, StudentWithDetails } from '@/app/shared/utils/types';
+import {
+  User,
+  GroupMember,
+  Group,
+  Review,
+  StudentWithDetails,
+} from '@/app/shared/utils/types';
+import { SharedModal } from '@/app/shared/components/Modal';
 
 interface ModalProps {
   isOpen: boolean;
@@ -26,9 +33,9 @@ const StudentManagement: React.FC = () => {
       updated_at: null,
       currentGroup: {
         group_name: 'Innovation Team A',
-        theme_id: 1
+        theme_id: 1,
       },
-      averageRating: 4.5
+      averageRating: 4.5,
     },
     {
       user_id: 2,
@@ -39,16 +46,17 @@ const StudentManagement: React.FC = () => {
       updated_at: null,
       currentGroup: {
         group_name: 'Sustainability Group B',
-        theme_id: 2
+        theme_id: 2,
       },
-      averageRating: 4.8
-    }
+      averageRating: 4.8,
+    },
   ]);
 
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [filterRole, setFilterRole] = useState<string>('all');
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
-  const [editingStudent, setEditingStudent] = useState<StudentWithDetails | null>(null);
+  const [editingStudent, setEditingStudent] =
+    useState<StudentWithDetails | null>(null);
 
   const handleSearch = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -71,32 +79,15 @@ const StudentManagement: React.FC = () => {
     const matchesSearch =
       student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter =
-      filterRole === 'all' || student.role === filterRole;
+    const matchesFilter = filterRole === 'all' || student.role === filterRole;
     return matchesSearch && matchesFilter;
   });
-
-  const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
-    if (!isOpen) return null;
-
-    return (
-      <div className={styles.modalOverlay} onClick={onClose}>
-        <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-          <div className={styles.modalHeader}>
-            <h2>{title}</h2>
-            <button className={styles.closeButton} onClick={onClose}>×</button>
-          </div>
-          {children}
-        </div>
-      </div>
-    );
-  };
 
   const StudentForm: React.FC<StudentFormProps> = ({ student, onSubmit }) => {
     const [formData, setFormData] = useState({
       name: student?.name || '',
       email: student?.email || '',
-      role: student?.role || 'student'
+      role: student?.role || 'student',
     });
 
     const handleSubmit = (e: FormEvent) => {
@@ -121,7 +112,9 @@ const StudentManagement: React.FC = () => {
           <input
             type="email"
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, email: e.target.value })
+            }
             required
           />
         </div>
@@ -135,8 +128,7 @@ const StudentManagement: React.FC = () => {
             <option value="admin">Admin</option>
           </select>
         </div>
-        <div className={styles.formGroup}>
-        </div>
+        <div className={styles.formGroup}></div>
         <button type="submit" className={styles.submitButton}>
           {student ? 'Update Student' : 'Add Student'}
         </button>
@@ -203,7 +195,11 @@ const StudentManagement: React.FC = () => {
                   </span>
                 </td>
                 <td>{student.currentGroup?.group_name || 'Not Assigned'}</td>
-                <td>{student.averageRating ? `${student.averageRating}/5.0` : 'N/A'}</td>
+                <td>
+                  {student.averageRating
+                    ? `${student.averageRating}/5.0`
+                    : 'N/A'}
+                </td>
                 <td className={styles.actions}>
                   <button
                     onClick={() => handleEdit(student)}
@@ -218,10 +214,12 @@ const StudentManagement: React.FC = () => {
         </table>
       </div>
 
-      <Modal
+      <SharedModal
         isOpen={isAddModalOpen}
         onClose={closeModal}
         title="Add New Student"
+        size="small"
+        showFooter={false} // Since StudentForm has its own submit button
       >
         <StudentForm
           onSubmit={(data) => {
@@ -231,18 +229,20 @@ const StudentManagement: React.FC = () => {
               email: data.email!,
               role: data.role!,
               created_at: new Date().toISOString(),
-              updated_at: null
+              updated_at: null,
             };
             setStudents([...students, newStudent]);
             closeModal();
           }}
         />
-      </Modal>
+      </SharedModal>
 
-      <Modal
+      <SharedModal
         isOpen={!!editingStudent}
         onClose={closeModal}
         title="Edit Student"
+        size="small"
+        showFooter={false}
       >
         {editingStudent && (
           <StudentForm
@@ -254,7 +254,7 @@ const StudentManagement: React.FC = () => {
                     ? {
                         ...s,
                         ...data,
-                        updated_at: new Date().toISOString()
+                        updated_at: new Date().toISOString(),
                       }
                     : s
                 )
@@ -263,7 +263,7 @@ const StudentManagement: React.FC = () => {
             }}
           />
         )}
-      </Modal>
+      </SharedModal>
     </div>
   );
 };

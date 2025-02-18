@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styles from './GroupManagemnt.module.css';
 import { User, Group, Theme } from '@/app/shared/utils/types';
+import { SharedModal } from '@/app/shared/components/Modal';
 
 interface GroupDialogProps {
   group: Group | null;
@@ -18,7 +19,6 @@ interface MemberManagementDialogProps {
 }
 
 const GroupManagement = () => {
-  // Sample data - in real app, fetch from API
   const themes: Theme[] = [
     {
       theme_id: 1,
@@ -205,62 +205,13 @@ const GroupManagement = () => {
     };
 
     return (
-      <div className={styles.modal}>
-        <div className={styles.modalContent}>
-          <h2 className={styles.modalTitle}>
-            {group ? 'Edit Group' : 'Create New Group'}
-          </h2>
-          <form className={styles.form}>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Group Name</label>
-              <input
-                type="text"
-                className={styles.input}
-                value={editForm.group_name}
-                onChange={(e) =>
-                  setEditForm({ ...editForm, group_name: e.target.value })
-                }
-                required
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Theme</label>
-              <select
-                className={styles.select}
-                value={editForm.theme_id}
-                onChange={(e) =>
-                  setEditForm({ ...editForm, theme_id: e.target.value })
-                }
-                required
-              >
-                <option value="">Select theme</option>
-                {themes.map((theme) => (
-                  <option key={theme.theme_id} value={theme.theme_id}>
-                    {theme.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Team Lead</label>
-              <select
-                className={styles.select}
-                value={editForm.team_lead}
-                onChange={(e) =>
-                  setEditForm({ ...editForm, team_lead: e.target.value })
-                }
-                required
-              >
-                <option value="">Select team lead</option>
-                {users.map((user) => (
-                  <option key={user.user_id} value={user.user_id}>
-                    {user.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </form>
-          <div className={styles.modalActions}>
+      <SharedModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title={group ? 'Edit Group' : 'Create New Group'}
+        showFooter={true}
+        footerContent={
+          <>
             <button className={styles.secondaryButton} onClick={onClose}>
               Cancel
             </button>
@@ -275,9 +226,60 @@ const GroupManagement = () => {
             >
               Save Changes
             </button>
+          </>
+        }
+      >
+        <form className={styles.form}>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Group Name</label>
+            <input
+              type="text"
+              className={styles.input}
+              value={editForm.group_name}
+              onChange={(e) =>
+                setEditForm({ ...editForm, group_name: e.target.value })
+              }
+              required
+            />
           </div>
-        </div>
-      </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Theme</label>
+            <select
+              className={styles.select}
+              value={editForm.theme_id}
+              onChange={(e) =>
+                setEditForm({ ...editForm, theme_id: e.target.value })
+              }
+              required
+            >
+              <option value="">Select theme</option>
+              {themes.map((theme) => (
+                <option key={theme.theme_id} value={theme.theme_id}>
+                  {theme.title}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Team Lead</label>
+            <select
+              className={styles.select}
+              value={editForm.team_lead}
+              onChange={(e) =>
+                setEditForm({ ...editForm, team_lead: e.target.value })
+              }
+              required
+            >
+              <option value="">Select team lead</option>
+              {users.map((user) => (
+                <option key={user.user_id} value={user.user_id}>
+                  {user.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </form>
+      </SharedModal>
     );
   };
 
@@ -330,73 +332,74 @@ const GroupManagement = () => {
     };
 
     return (
-      <div className={styles.modal}>
-        <div
-          className={`${styles.modalContent} ${styles.memberManagementContent}`}
-        >
-          <h2 className={styles.modalTitle}>Manage Group Members</h2>
-          <div className={styles.memberGrid}>
-            <div className={styles.memberSection}>
-              <h3 className={styles.label}>Current Members</h3>
-              <div className={styles.memberList}>
-                {group.members?.map((member) => (
-                  <div key={member.user_id} className={styles.memberItem}>
+      <SharedModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Manage Group Members"
+        size="large"
+        showFooter={true}
+        footerContent={
+          <button className={styles.secondaryButton} onClick={onClose}>
+            Close
+          </button>
+        }
+      >
+        <div className={styles.memberGrid}>
+          <div className={styles.memberSection}>
+            <h3 className={styles.label}>Current Members</h3>
+            <div className={styles.memberList}>
+              {group.members?.map((member) => (
+                <div key={member.user_id} className={styles.memberItem}>
+                  <div>
+                    <div className={styles.memberName}>{member.name}</div>
+                    <div className={styles.memberEmail}>{member.email}</div>
+                    <div className={styles.memberRole}>{member.role}</div>
+                  </div>
+                  <button
+                    className={`${styles.iconButton} ${styles.danger}`}
+                    onClick={() => handleRemoveMember(member.user_id)}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+              {(!group.members || group.members.length === 0) && (
+                <div className={styles.emptyState}>
+                  No members in this group
+                </div>
+              )}
+            </div>
+          </div>
+          <div className={styles.memberSection}>
+            <h3 className={styles.label}>Available Students</h3>
+            <div className={styles.memberList}>
+              {availableUsers
+                .filter(
+                  (user) =>
+                    user.role === 'Student' &&
+                    !group.members?.find(
+                      (member) => member.user_id === user.user_id
+                    ) &&
+                    user.user_id !== group.team_lead
+                )
+                .map((user) => (
+                  <div key={user.user_id} className={styles.memberItem}>
                     <div>
-                      <div className={styles.memberName}>{member.name}</div>
-                      <div className={styles.memberEmail}>{member.email}</div>
-                      <div className={styles.memberRole}>{member.role}</div>
+                      <div className={styles.memberName}>{user.name}</div>
+                      <div className={styles.memberEmail}>{user.email}</div>
                     </div>
                     <button
-                      className={`${styles.iconButton} ${styles.danger}`}
-                      onClick={() => handleRemoveMember(member.user_id)}
+                      className={styles.iconButton}
+                      onClick={() => handleAddMember(user)}
                     >
-                      Remove
+                      Add
                     </button>
                   </div>
                 ))}
-                {(!group.members || group.members.length === 0) && (
-                  <div className={styles.emptyState}>
-                    No members in this group
-                  </div>
-                )}
-              </div>
             </div>
-            <div className={styles.memberSection}>
-              <h3 className={styles.label}>Available Students</h3>
-              <div className={styles.memberList}>
-                {availableUsers
-                  .filter(
-                    (user) =>
-                      user.role === 'Student' &&
-                      !group.members?.find(
-                        (member) => member.user_id === user.user_id
-                      ) &&
-                      user.user_id !== group.team_lead
-                  )
-                  .map((user) => (
-                    <div key={user.user_id} className={styles.memberItem}>
-                      <div>
-                        <div className={styles.memberName}>{user.name}</div>
-                        <div className={styles.memberEmail}>{user.email}</div>
-                      </div>
-                      <button
-                        className={styles.iconButton}
-                        onClick={() => handleAddMember(user)}
-                      >
-                        Add
-                      </button>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          </div>
-          <div className={styles.modalActions}>
-            <button className={styles.secondaryButton} onClick={onClose}>
-              Close
-            </button>
           </div>
         </div>
-      </div>
+      </SharedModal>
     );
   };
 

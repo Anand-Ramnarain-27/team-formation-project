@@ -1,22 +1,15 @@
 import React, { useState } from 'react';
 import styles from './Dashboard.module.css';
 import { ThemeModal } from '@/app/admin/components/ThemeModals';
-import {
-  Theme,
-  BaseTheme,
-  AnalyticsReport,
-  Notification,
-} from '@/app/shared/utils/types';
+import { Theme, BaseTheme, AnalyticsReport, Notification } from '@/app/shared/utils/types';
 
 const Dashboard: React.FC = () => {
-  // Modal state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<Theme | undefined>(
     undefined
   );
 
-  // Data state
   const [activeThemes, setActiveThemes] = useState<Theme[]>([
     {
       theme_id: 1,
@@ -51,9 +44,9 @@ const Dashboard: React.FC = () => {
       votes_cast: 1200,
       reviews_completed: 450,
       totalIdeas: 0,
-      totalVotes: 0,
-      totalReviews: 0,
-      averageRating: 0,
+    totalVotes: 0,
+    totalReviews: 0,
+    averageRating: 0,
     },
   });
 
@@ -78,7 +71,6 @@ const Dashboard: React.FC = () => {
     },
   ]);
 
-  // Event handlers
   const handleCreateTheme = (newTheme: BaseTheme) => {
     const theme: Theme = {
       ...newTheme,
@@ -107,7 +99,6 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      {/* Header */}
       <div className={styles.header}>
         <h1>Theme Management Dashboard</h1>
         <div className={styles.headerActions}>
@@ -127,7 +118,6 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Quick Stats */}
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <div className={styles.statTitle}>Total Students</div>
@@ -165,7 +155,6 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Active Themes Section */}
       <section className={styles.themesSection}>
         <div className={styles.sectionHeader}>
           <h2>Active Themes</h2>
@@ -203,7 +192,6 @@ const Dashboard: React.FC = () => {
         </div>
       </section>
 
-      {/* Analytics and Notifications Grid */}
       <div className={styles.gridContainer}>
         <div className={styles.analyticsCard}>
           <h3>Activity Overview</h3>
@@ -238,7 +226,6 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Notifications */}
         <div className={styles.notificationsCard}>
           <h3>Recent Notifications</h3>
           <div className={styles.notificationsList}>
