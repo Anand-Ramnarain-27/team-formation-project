@@ -4,6 +4,7 @@ import { User, Theme, Idea } from '@/app/shared/utils/types';
 import Card from '@/app/shared/components/Card/Card';
 import Button from '@/app/shared/components/Button/Button';
 import style from '@/app/shared/components/Button/Button.module.css'
+import TextInput from '@/app/shared/components/Form/TextInput';
 
 const Review: React.FC = () => {
   const [themes, setThemes] = useState<Theme[]>([]);
@@ -116,13 +117,12 @@ const Review: React.FC = () => {
             <option value="rejected">Rejected</option>
           </select>
 
-          <input
-            type="text"
-            placeholder="Search ideas..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={styles.searchInput}
-          />
+          <TextInput
+              value={searchTerm}
+              onChange={(value) => setSearchTerm(value)}
+              placeholder="Search ideas..."
+              className={styles.searchInput}
+            />
         </div>
 
         <div className={styles.ideasList}>
