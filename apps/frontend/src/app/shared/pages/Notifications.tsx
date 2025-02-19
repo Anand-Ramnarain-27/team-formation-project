@@ -3,6 +3,8 @@ import { useLocation } from 'react-router-dom';
 import styles from './Notifications.module.css';
 import { User, Notification } from '@/app/shared/utils/types';
 import Button from '@/app/shared/components/Button/Button';
+import FormGroup from '@/app/shared/components/Form/FormGroup'; 
+import TextArea from '@/app/shared/components/Form/TextArea';
 
 const NotificationCard = ({ notification }: { notification: Notification }) => {
   const getIconClass = () => {
@@ -57,12 +59,8 @@ const CreateNotification = ({
   return (
     <form onSubmit={handleSubmit} className={styles.createForm}>
       <h2 className={styles.formTitle}>Create New Notification</h2>
-      <div className={styles.formGroup}>
-        <label htmlFor="recipient" className={styles.label}>
-          Send to:
-        </label>
+      <FormGroup label="Send to:">
         <select
-          id="recipient"
           value={recipientRole}
           onChange={(e) => setRecipientRole(e.target.value)}
           className={styles.select}
@@ -72,20 +70,15 @@ const CreateNotification = ({
           <option value="team_lead">Team Leads</option>
           <option value="admin">Administrators</option>
         </select>
-      </div>
-      <div className={styles.formGroup}>
-        <label htmlFor="message" className={styles.label}>
-          Message:
-        </label>
-        <textarea
-          id="message"
+      </FormGroup>
+      <FormGroup label="Message:">
+        <TextArea
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          className={styles.textarea}
+          onChange={setMessage}
           placeholder="Enter notification message..."
           rows={3}
         />
-      </div>
+      </FormGroup>
       <Button
         type="submit"
         disabled={!message.trim()}

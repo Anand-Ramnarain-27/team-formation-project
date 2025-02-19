@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { SharedModal } from '@/app/shared/components/Modal/Modal';
-import { Theme } from '@/app/shared/utils/types'; 
+import { Theme } from '@/app/shared/utils/types';
 import styles from './ThemeModals.module.css';
+import FormGroup from '@/app/shared/components/Form/FormGroup';
+import TextInput from '@/app/shared/components/Form/TextInput';
+import TextArea from '@/app/shared/components/Form/TextArea';
 
 interface IdeaSubmissionForm {
   idea_name: string;
@@ -86,36 +89,33 @@ const ThemeModals: React.FC<ThemeModalsProps> = ({
       <p className={styles.modalDescription}>
         Submit your idea for the theme: {theme.title}
       </p>
-      <div className={styles.formGroup}>
-        <label className={styles.label}>Idea Name</label>
-        <input
-          type="text"
-          className={styles.input}
+
+      <FormGroup label="Idea Name">
+        <TextInput
           value={ideaSubmission.idea_name}
-          onChange={(e) =>
+          onChange={(value) =>
             setIdeaSubmission((prev) => ({
               ...prev,
-              idea_name: e.target.value,
+              idea_name: value,
             }))
           }
           placeholder="Enter your idea name"
         />
-      </div>
-      <div className={styles.formGroup}>
-        <label className={styles.label}>Description</label>
-        <textarea
-          className={styles.textarea}
+      </FormGroup>
+
+      <FormGroup label="Description">
+        <TextArea
           value={ideaSubmission.description}
-          onChange={(e) =>
+          onChange={(value) =>
             setIdeaSubmission((prev) => ({
               ...prev,
-              description: e.target.value,
+              description: value,
             }))
           }
           placeholder="Describe your idea in detail"
           rows={5}
         />
-      </div>
+      </FormGroup>
     </form>
   );
 

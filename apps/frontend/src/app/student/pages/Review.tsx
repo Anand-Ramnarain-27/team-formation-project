@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import styles from './Review.module.css';
 import { User, Group, GroupMember, Review } from '@/app/shared/utils/types';
 import Button from '@/app/shared/components/Button/Button';
+import FormGroup from '@/app/shared/components/Form/FormGroup';
+import TextArea from '@/app/shared/components/Form/TextArea';
 
 const Reviews: React.FC = () => {
   const currentUserId = 1; // This should be dynamic
@@ -10,6 +12,7 @@ const Reviews: React.FC = () => {
   const [reviews, setReviews] = useState<{ [key: number]: Review }>({});
   const [submitted, setSubmitted] = useState(false);
   const [activeTab, setActiveTab] = useState<'ratings' | 'feedback'>('ratings');
+  const [feedback, setFeedback] = useState('');
 
   useEffect(() => {
     // Simulate fetching group and member data
@@ -226,15 +229,14 @@ const Reviews: React.FC = () => {
 
           {membersToReview.map((member) => (
             <div key={member.user.user_id} className={styles.feedbackContainer}>
-              <label className={styles.feedbackLabel}>{member.user.name}</label>
-              <textarea
-                className={styles.feedbackTextarea}
-                value={reviews[member.user.user_id]?.feedback || ''}
-                onChange={(e) =>
-                  handleFeedbackChange(member.user.user_id, e.target.value)
-                }
-                placeholder="Share your thoughts on their performance, contributions, and areas for improvement..."
-              />
+              <FormGroup label="Feedback">
+                <TextArea
+                  value={reviews[member.user.user_id]?.feedback || ''}
+                  onChange={(e) => handleFeedbackChange(member.user.user_id, e)}
+                  placeholder="Provide constructive feedback..."
+                  rows={5}
+                />
+              </FormGroup>
               {reviews[member.user.user_id]?.feedback?.length < 10 && (
                 <div className={styles.error}>
                   Please provide more detailed feedback (minimum 10 characters)

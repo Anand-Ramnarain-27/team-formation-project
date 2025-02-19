@@ -15,7 +15,8 @@
 .header h1 {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
-  color: var(--dark-color);
+  color: var(--text-dark, #374151);
+  margin: 0;
 }
 
 .controls {
@@ -31,30 +32,31 @@
 
 .searchInput {
   width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 0.5rem;
   font-size: 0.875rem;
 }
 
 .filterSelect {
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 0.5rem;
   font-size: 0.875rem;
   min-width: 120px;
 }
 
 .totalStudents {
   font-size: 0.875rem;
-  color: #666;
+  color: var(--text-muted, #6b7280);
 }
 
 .tableContainer {
   overflow-x: auto;
   background: white;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-color, #e5e7eb);
 }
 
 .table {
@@ -67,13 +69,13 @@
 .table td {
   padding: 0.75rem 1rem;
   text-align: left;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-color-light, #eee);
 }
 
 .table th {
-  background: #f9fafb;
-  font-weight: 600;
-  color: #374151;
+  background: var(--card-header-bg, #f9fafb);
+  font-weight: var(--font-weight-semibold, 600);
+  color: var(--text-dark, #374151);
 }
 
 .status {
@@ -81,16 +83,17 @@
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 500;
+  display: inline-block;
 }
 
 .active {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--success-bg, #dcfce7);
+  color: var(--success-text, #166534);
 }
 
 .inactive {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--error-bg, #fee2e2);
+  color: var(--error-text, #991b1b);
 }
 
 .actions {
@@ -98,28 +101,9 @@
   gap: 0.5rem;
 }
 
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.formGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.formGroup label {
-  font-weight: 500;
-  color: #374151;
-}
-
-.formGroup input,
-.formGroup select {
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+.empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-muted, #6b7280);
   font-size: 0.875rem;
 }
-

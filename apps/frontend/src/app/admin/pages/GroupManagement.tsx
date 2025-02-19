@@ -4,7 +4,10 @@ import { User, Group, Theme } from '@/app/shared/utils/types';
 import { SharedModal } from '@/app/shared/components/Modal/Modal';
 import Card from '@/app/shared/components/Card/Card';
 import Button from '@/app/shared/components/Button/Button';
-import style from '@/app/shared/components/Button/Button.module.css'
+import style from '@/app/shared/components/Button/Button.module.css';
+import FormGroup from '@/app/shared/components/Form/FormGroup';
+import TextInput from '@/app/shared/components/Form/TextInput';
+import TextArea from '@/app/shared/components/Form/TextArea';
 
 interface GroupDialogProps {
   group: Group | null;
@@ -134,21 +137,6 @@ const GroupManagement = () => {
     }));
   };
 
-  const handleDeleteGroup = async (groupId: number) => {
-    try {
-      // In a real application, make an API call to delete the group
-      // await deleteGroup(groupId);
-      const updatedGroups = groups.filter(
-        (group) => group.group_id !== groupId
-      );
-      setGroups(updatedGroups);
-      setFilteredGroups(updatedGroups);
-    } catch (error) {
-      console.error('Error deleting group:', error);
-      // Handle error (show notification, etc.)
-    }
-  };
-
   const GroupDialog = ({
     group,
     isOpen,
@@ -232,20 +220,16 @@ const GroupManagement = () => {
         }
       >
         <form className={styles.form}>
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Group Name</label>
-            <input
-              type="text"
-              className={styles.input}
+          <FormGroup label="Group Name">
+            <TextInput
               value={editForm.group_name}
-              onChange={(e) =>
-                setEditForm({ ...editForm, group_name: e.target.value })
+              onChange={(value) =>
+                setEditForm({ ...editForm, group_name: value })
               }
-              required
+              placeholder="Enter group name"
             />
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Theme</label>
+          </FormGroup>
+          <FormGroup label="Theme">
             <select
               className={styles.select}
               value={editForm.theme_id}
@@ -261,9 +245,8 @@ const GroupManagement = () => {
                 </option>
               ))}
             </select>
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Team Lead</label>
+          </FormGroup>
+          <FormGroup label="Team Lead">
             <select
               className={styles.select}
               value={editForm.team_lead}
@@ -279,7 +262,7 @@ const GroupManagement = () => {
                 </option>
               ))}
             </select>
-          </div>
+          </FormGroup>
         </form>
       </SharedModal>
     );
@@ -390,11 +373,7 @@ const GroupManagement = () => {
                       <div className={styles.memberName}>{user.name}</div>
                       <div className={styles.memberEmail}>{user.email}</div>
                     </div>
-                    <Button
-                      onClick={() => handleAddMember(user)}
-                    >
-                      Add
-                    </Button>
+                    <Button onClick={() => handleAddMember(user)}>Add</Button>
                   </div>
                 ))}
             </div>
@@ -406,7 +385,7 @@ const GroupManagement = () => {
 
   return (
     <div className={styles.container}>
-      <Card title='Group Management'>
+      <Card title="Group Management">
         <div className={styles.header}>
           <div className={styles.headerContent}>
             <Button
@@ -421,12 +400,11 @@ const GroupManagement = () => {
         </div>
         <div className={styles.content}>
           <div className={styles.searchBar}>
-            <input
-              type="text"
+            <TextInput
+              value={searchQuery}
+              onChange={(value) => handleSearch(value)}
               placeholder="Search groups..."
               className={styles.searchInput}
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
             />
           </div>
           <div className={styles.groupList}>

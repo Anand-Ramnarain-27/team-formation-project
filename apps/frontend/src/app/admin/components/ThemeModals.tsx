@@ -3,8 +3,10 @@ import styles from './ThemeModals.module.css';
 import { Theme, BaseTheme } from '@/app/shared/utils/types';
 import { SharedModal } from '@/app/shared/components/Modal/Modal';
 import Button from '@/app/shared/components/Button/Button';
-import style from '@/app/shared/components/Button/Button.module.css'
-
+import style from '@/app/shared/components/Button/Button.module.css';
+import FormGroup from '@/app/shared/components/Form/FormGroup'; 
+import TextInput from '@/app/shared/components/Form/TextInput';
+import TextArea from '@/app/shared/components/Form/TextArea';
 
 interface ThemeModalProps {
   isOpen: boolean;
@@ -78,7 +80,7 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
       showFooter={true}
       footerContent={
         <>
-          <Button onClick={onClose} className={style.third} >
+          <Button onClick={onClose} className={style.third}>
             Cancel
           </Button>
           <button type="submit" form="modalForm" className={styles.submitButton}>
@@ -88,69 +90,56 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
       }
     >
       <form id="modalForm" onSubmit={handleSubmit} className={styles.form}>
-        <div className={styles.formGroup}>
-          <label htmlFor="title">Title</label>
-          <input
-            type="text"
-            id="title"
+        <FormGroup label="Title">
+          <TextInput
             value={formData.title}
-            onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-            required
+            onChange={(value) => setFormData(prev => ({ ...prev, title: value }))}
+            placeholder="Enter theme title"
           />
-        </div>
+        </FormGroup>
 
-        <div className={styles.formGroup}>
-          <label htmlFor="description">Description</label>
-          <textarea
-            id="description"
+        <FormGroup label="Description">
+          <TextArea
             value={formData.description}
-            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-            required
+            onChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
+            placeholder="Enter theme description"
+            rows={4}
           />
-        </div>
+        </FormGroup>
 
         <div className={styles.formRow}>
-          <div className={styles.formGroup}>
-            <label htmlFor="submission_deadline">Submission Deadline</label>
-            <input
+          <FormGroup label="Submission Deadline">
+            <TextInput
               type="datetime-local"
-              id="submission_deadline"
               value={formData.submission_deadline}
-              onChange={(e) => setFormData(prev => ({ ...prev, submission_deadline: e.target.value }))}
-              required
+              onChange={(value) => setFormData(prev => ({ ...prev, submission_deadline: value }))}
             />
-          </div>
+          </FormGroup>
 
-          <div className={styles.formGroup}>
-            <label htmlFor="voting_deadline">Voting Deadline</label>
-            <input
+          <FormGroup label="Voting Deadline">
+            <TextInput
               type="datetime-local"
-              id="voting_deadline"
               value={formData.voting_deadline}
-              onChange={(e) => setFormData(prev => ({ ...prev, voting_deadline: e.target.value }))}
-              required
+              onChange={(value) => setFormData(prev => ({ ...prev, voting_deadline: value }))}
             />
-          </div>
+          </FormGroup>
         </div>
 
-        <div className={styles.formGroup}>
-          <label>Review Deadlines</label>
+        <FormGroup label="Review Deadlines">
           {formData.review_deadline.map((deadline, index) => (
             <div key={index} className={styles.reviewDeadlineRow}>
               <div className={styles.reviewDeadlineInputs}>
-                <input
+                <TextInput
                   type="datetime-local"
                   value={deadline.start}
-                  onChange={(e) => updateReviewDeadline(index, 'start', e.target.value)}
+                  onChange={(value) => updateReviewDeadline(index, 'start', value)}
                   placeholder="Start Date"
-                  required
                 />
-                <input
+                <TextInput
                   type="datetime-local"
                   value={deadline.end}
-                  onChange={(e) => updateReviewDeadline(index, 'end', e.target.value)}
+                  onChange={(value) => updateReviewDeadline(index, 'end', value)}
                   placeholder="End Date"
-                  required
                 />
               </div>
               {formData.review_deadline.length > 1 && (
@@ -163,36 +152,29 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
               )}
             </div>
           ))}
-          <Button
-            onClick={addReviewDeadline}
-          >
+          <Button onClick={addReviewDeadline}>
             + Add Review Period
           </Button>
-        </div>
+        </FormGroup>
 
         <div className={styles.formRow}>
-          <div className={styles.formGroup}>
-            <label htmlFor="number_of_groups">Number of Groups</label>
-            <input
+          <FormGroup label="Number of Groups">
+            <TextInput
               type="number"
-              id="number_of_groups"
-              min="1"
-              value={formData.number_of_groups}
-              onChange={(e) => setFormData(prev => ({ ...prev, number_of_groups: parseInt(e.target.value) }))}
-              required
+              value={formData.number_of_groups.toString()}
+              onChange={(value) => setFormData(prev => ({ ...prev, number_of_groups: parseInt(value) || 1 }))}
             />
-          </div>
+          </FormGroup>
 
-          <div className={styles.formGroup}>
+          <FormGroup label="Auto-assign Groups">
             <label className={styles.checkboxLabel}>
               <input
                 type="checkbox"
                 checked={formData.auto_assign_group}
                 onChange={(e) => setFormData(prev => ({ ...prev, auto_assign_group: e.target.checked }))}
               />
-              Auto-assign Groups
             </label>
-          </div>
+          </FormGroup>
         </div>
       </form>
     </SharedModal>

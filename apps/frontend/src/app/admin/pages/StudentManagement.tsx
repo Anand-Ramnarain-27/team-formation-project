@@ -9,6 +9,8 @@ import {
 } from '@/app/shared/utils/types';
 import { SharedModal } from '@/app/shared/components/Modal/Modal';
 import Button from '@/app/shared/components/Button/Button';
+import FormGroup from '@/app/shared/components/Form/FormGroup';
+import TextInput from '@/app/shared/components/Form/TextInput';
 
 interface StudentFormProps {
   student?: StudentWithDetails;
@@ -16,6 +18,11 @@ interface StudentFormProps {
 }
 
 const StudentManagement: React.FC = () => {
+  // const [formData, setFormData] = useState({
+  //   name: student?.name || '',
+  //   email: student?.email || '',
+  //   role: student?.role || 'student',
+  // });
   // Mock data based on database schema
   const [students, setStudents] = useState<StudentWithDetails[]>([
     {
@@ -92,28 +99,22 @@ const StudentManagement: React.FC = () => {
 
     return (
       <form onSubmit={handleSubmit} className={styles.form}>
-        <div className={styles.formGroup}>
-          <label>Name:</label>
-          <input
-            type="text"
+        <FormGroup label="Name:">
+          <TextInput
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
+            onChange={(value) => setFormData({ ...formData, name: value })}
+            placeholder="Enter full name"
           />
-        </div>
-        <div className={styles.formGroup}>
-          <label>Email:</label>
-          <input
+        </FormGroup>
+        <FormGroup label="Email:">
+          <TextInput
             type="email"
             value={formData.email}
-            onChange={(e) =>
-              setFormData({ ...formData, email: e.target.value })
-            }
-            required
+            onChange={(value) => setFormData({ ...formData, email: value })}
+            placeholder="Enter email address"
           />
-        </div>
-        <div className={styles.formGroup}>
-          <label>Role:</label>
+        </FormGroup>
+        <FormGroup label="Role:">
           <select
             value={formData.role}
             onChange={(e) => setFormData({ ...formData, role: e.target.value })}
@@ -121,8 +122,7 @@ const StudentManagement: React.FC = () => {
             <option value="student">Student</option>
             <option value="admin">Admin</option>
           </select>
-        </div>
-        <div className={styles.formGroup}></div>
+        </FormGroup>
         <Button type="submit">
           {student ? 'Update Student' : 'Add Student'}
         </Button>
@@ -134,20 +134,15 @@ const StudentManagement: React.FC = () => {
     <div className={styles.container}>
       <div className={styles.header}>
         <h1>Student Management</h1>
-        <Button
-          onClick={() => setIsAddModalOpen(true)}
-        >
-          Add Student
-        </Button>
+        <Button onClick={() => setIsAddModalOpen(true)}>Add Student</Button>
       </div>
 
       <div className={styles.controls}>
         <div className={styles.searchContainer}>
-          <input
-            type="text"
-            placeholder="Search by name or email..."
+          <TextInput
             value={searchTerm}
-            onChange={handleSearch}
+            onChange={(value) => setSearchTerm(value)}
+            placeholder="Search by name or email..."
             className={styles.searchInput}
           />
         </div>
@@ -194,11 +189,7 @@ const StudentManagement: React.FC = () => {
                     : 'N/A'}
                 </td>
                 <td className={styles.actions}>
-                  <Button
-                    onClick={() => handleEdit(student)}
-                  >
-                    Edit
-                  </Button>
+                  <Button onClick={() => handleEdit(student)}>Edit</Button>
                 </td>
               </tr>
             ))}
