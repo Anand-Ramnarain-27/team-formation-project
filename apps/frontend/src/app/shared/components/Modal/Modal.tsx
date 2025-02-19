@@ -1,5 +1,7 @@
 import React, { ReactNode } from 'react';
 import styles from './Modal.module.css';
+import Button from '../Button/Button';
+import style from '@/app/shared/components/Button/Button.module.css'
 
 interface SharedModalProps {
   isOpen: boolean;
@@ -36,7 +38,7 @@ export const SharedModal: React.FC<SharedModalProps> = ({
       >
         <div className={styles.modalHeader}>
           <h2>{title}</h2>
-          <button className={styles.closeButton} onClick={onClose}>
+          <button onClick={onClose} className={styles.closeButton}>
             ×
           </button>
         </div>

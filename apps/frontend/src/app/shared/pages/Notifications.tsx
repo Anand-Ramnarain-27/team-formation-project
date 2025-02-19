@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import styles from './Notifications.module.css';
 import { User, Notification } from '@/app/shared/utils/types';
+import Button from '@/app/shared/components/Button/Button';
 
 const NotificationCard = ({ notification }: { notification: Notification }) => {
   const getIconClass = () => {
@@ -85,13 +86,13 @@ const CreateNotification = ({
           rows={3}
         />
       </div>
-      <button
+      <Button
         type="submit"
-        className={styles.submitButton}
         disabled={!message.trim()}
+        className={styles.submitButton}
       >
         Send Notification
-      </button>
+      </Button>
     </form>
   );
 };

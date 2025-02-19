@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import styles from './Navbar.module.css';
+import Button from '@/app/shared/components/Button/Button';
 
 const adminMenuItems = [
   { name: 'Dashboard', path: '/admin' },
@@ -93,9 +94,9 @@ const Navbar: React.FC<NavbarProps> = ({ userType, userName }) => {
             ))}
           </nav>
           <div className={styles.userSection}>
-            <button className={styles.signOutButton} onClick={handleSignOut}>
+            <Button onClick={handleSignOut} className={styles.signOutButton}>
               Sign Out
-            </button>
+            </Button>
           </div>
         </div>
       )}

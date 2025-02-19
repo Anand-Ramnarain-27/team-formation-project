@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import styles from './Review.module.css';
 import { User, Theme, Idea } from '@/app/shared/utils/types';
 import Card from '@/app/shared/components/Card/Card';
+import Button from '@/app/shared/components/Button/Button';
+import style from '@/app/shared/components/Button/Button.module.css'
 
 const Review: React.FC = () => {
   const [themes, setThemes] = useState<Theme[]>([]);
@@ -153,18 +155,18 @@ const Review: React.FC = () => {
 
               {idea.status === 'Pending' && (
                 <div className={styles.actions}>
-                  <button
-                    className={`${styles.button} ${styles.approveButton}`}
+                  <Button
                     onClick={() => updateIdeaStatus(idea.idea_id, 'Approved')}
+                    className={`${styles.button} ${styles.approveButton}`}
                   >
                     ✓ Approve
-                  </button>
-                  <button
-                    className={`${styles.button} ${styles.rejectButton}`}
+                  </Button>
+                  <Button
                     onClick={() => updateIdeaStatus(idea.idea_id, 'Rejected')}
+                    className={`${styles.button} ${styles.rejectButton}`}
                   >
                     ✕ Reject
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>

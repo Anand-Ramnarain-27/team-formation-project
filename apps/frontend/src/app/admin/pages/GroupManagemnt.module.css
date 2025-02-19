@@ -142,69 +142,6 @@
   font-weight: 500;
 }
 
-.button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.primaryButton {
-  composes: button;
-  background-color: #0f766e;
-  color: white;
-  border: none;
-}
-
-.primaryButton:hover {
-  background-color: #0e6666;
-}
-
-.primaryButton:disabled {
-  background-color: #9ca3af;
-  cursor: not-allowed;
-}
-
-.secondaryButton {
-  composes: button;
-  background-color: white;
-  border: 1px solid #e5e7eb;
-  color: #374151;
-}
-
-.secondaryButton:hover {
-  background-color: #f9fafb;
-}
-
-.iconButton {
-  padding: 0.375rem 0.75rem;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  border: 1px solid #e5e7eb;
-  background-color: white;
-  color: #374151;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.iconButton:hover {
-  background-color: #f9fafb;
-}
-
-.danger {
-  color: #dc2626;
-  border-color: #fecaca;
-}
-
-.danger:hover {
-  background-color: #fee2e2;
-  border-color: #fca5a5;
-}
 
 .form {
   display: flex;

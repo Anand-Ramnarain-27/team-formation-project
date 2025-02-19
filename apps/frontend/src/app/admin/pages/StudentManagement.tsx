@@ -8,6 +8,7 @@ import {
   StudentWithDetails,
 } from '@/app/shared/utils/types';
 import { SharedModal } from '@/app/shared/components/Modal/Modal';
+import Button from '@/app/shared/components/Button/Button';
 
 interface StudentFormProps {
   student?: StudentWithDetails;
@@ -122,9 +123,9 @@ const StudentManagement: React.FC = () => {
           </select>
         </div>
         <div className={styles.formGroup}></div>
-        <button type="submit" className={styles.submitButton}>
+        <Button type="submit">
           {student ? 'Update Student' : 'Add Student'}
-        </button>
+        </Button>
       </form>
     );
   };
@@ -133,12 +134,11 @@ const StudentManagement: React.FC = () => {
     <div className={styles.container}>
       <div className={styles.header}>
         <h1>Student Management</h1>
-        <button
-          className={styles.addButton}
+        <Button
           onClick={() => setIsAddModalOpen(true)}
         >
           Add Student
-        </button>
+        </Button>
       </div>
 
       <div className={styles.controls}>
@@ -194,12 +194,11 @@ const StudentManagement: React.FC = () => {
                     : 'N/A'}
                 </td>
                 <td className={styles.actions}>
-                  <button
+                  <Button
                     onClick={() => handleEdit(student)}
-                    className={styles.editButton}
                   >
                     Edit
-                  </button>
+                  </Button>
                 </td>
               </tr>
             ))}

@@ -3,6 +3,8 @@ import styles from './GroupManagemnt.module.css';
 import { User, Group, Theme } from '@/app/shared/utils/types';
 import { SharedModal } from '@/app/shared/components/Modal/Modal';
 import Card from '@/app/shared/components/Card/Card';
+import Button from '@/app/shared/components/Button/Button';
+import style from '@/app/shared/components/Button/Button.module.css'
 
 interface GroupDialogProps {
   group: Group | null;
@@ -213,11 +215,10 @@ const GroupManagement = () => {
         showFooter={true}
         footerContent={
           <>
-            <button className={styles.secondaryButton} onClick={onClose}>
+            <Button className={style.third} onClick={onClose}>
               Cancel
-            </button>
-            <button
-              className={styles.primaryButton}
+            </Button>
+            <Button
               onClick={handleSave}
               disabled={
                 !editForm.group_name ||
@@ -226,7 +227,7 @@ const GroupManagement = () => {
               }
             >
               Save Changes
-            </button>
+            </Button>
           </>
         }
       >
@@ -340,9 +341,9 @@ const GroupManagement = () => {
         size="large"
         showFooter={true}
         footerContent={
-          <button className={styles.secondaryButton} onClick={onClose}>
+          <Button className={styles.secondaryButton} onClick={onClose}>
             Close
-          </button>
+          </Button>
         }
       >
         <div className={styles.memberGrid}>
@@ -356,12 +357,12 @@ const GroupManagement = () => {
                     <div className={styles.memberEmail}>{member.email}</div>
                     <div className={styles.memberRole}>{member.role}</div>
                   </div>
-                  <button
-                    className={`${styles.iconButton} ${styles.danger}`}
+                  <Button
                     onClick={() => handleRemoveMember(member.user_id)}
+                    className={style.third}
                   >
                     Remove
-                  </button>
+                  </Button>
                 </div>
               ))}
               {(!group.members || group.members.length === 0) && (
@@ -389,12 +390,11 @@ const GroupManagement = () => {
                       <div className={styles.memberName}>{user.name}</div>
                       <div className={styles.memberEmail}>{user.email}</div>
                     </div>
-                    <button
-                      className={styles.iconButton}
+                    <Button
                       onClick={() => handleAddMember(user)}
                     >
                       Add
-                    </button>
+                    </Button>
                   </div>
                 ))}
             </div>
@@ -409,15 +409,14 @@ const GroupManagement = () => {
       <Card title='Group Management'>
         <div className={styles.header}>
           <div className={styles.headerContent}>
-            <button
-              className={styles.primaryButton}
+            <Button
               onClick={() => {
                 setSelectedGroup(null);
                 setShowGroupDialog(true);
               }}
             >
               Create Group
-            </button>
+            </Button>
           </div>
         </div>
         <div className={styles.content}>
@@ -454,27 +453,21 @@ const GroupManagement = () => {
                     </div>
                   </div>
                   <div className={styles.groupActions}>
-                    <button
-                      className={styles.iconButton}
+                    <Button
                       onClick={() => {
                         setSelectedGroup(group);
                         setShowGroupDialog(true);
                       }}
+                      className={style.fourth}
                     >
                       Edit
-                    </button>
-                    <button
-                      className={styles.iconButton}
+                    </Button>
+                    <Button
                       onClick={() => toggleGroupExpansion(group.group_id)}
+                      className={style.fourth}
                     >
                       {expandedGroups[group.group_id] ? 'Collapse' : 'Expand'}
-                    </button>
-                    <button
-                      className={`${styles.iconButton} ${styles.danger}`}
-                      onClick={() => handleDeleteGroup(group.group_id)}
-                    >
-                      Delete
-                    </button>
+                    </Button>
                   </div>
                 </div>
                 {expandedGroups[group.group_id] && (
@@ -489,15 +482,15 @@ const GroupManagement = () => {
                           {group.team_lead_details?.email}
                         </div>
                       </div>
-                      <button
-                        className={styles.secondaryButton}
+                      <Button
                         onClick={() => {
                           setSelectedGroup(group);
                           setShowMemberDialog(true);
                         }}
+                        className={style.fourth}
                       >
                         Manage Members
-                      </button>
+                      </Button>
                     </div>
                     <div className={styles.themeInfo}>
                       <div className={styles.label}>Theme Details</div>

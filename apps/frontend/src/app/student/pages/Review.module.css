@@ -136,39 +136,6 @@
   margin-top: 2rem;
 }
 
-.button {
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: 4px;
-  font-weight: var(--font-weight-bold);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.buttonPrimary {
-  background: var(--primary-color);
-  color: var(--text-color-light);
-  border: none;
-}
-
-.buttonPrimary:hover:not(:disabled) {
-  background: #1d4ed8;
-}
-
-.buttonSecondary {
-  background: white;
-  color: #2563eb;
-  border: 1px solid #2563eb;
-}
-
-.buttonSecondary:hover:not(:disabled) {
-  background: #f8f9fa;
-}
-
 .progress {
   text-align: center;
   color: #666;

@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import styles from './ThemeModals.module.css';
 import { Theme, BaseTheme } from '@/app/shared/utils/types';
 import { SharedModal } from '@/app/shared/components/Modal/Modal';
+import Button from '@/app/shared/components/Button/Button';
+import style from '@/app/shared/components/Button/Button.module.css'
+
 
 interface ThemeModalProps {
   isOpen: boolean;
@@ -75,9 +78,9 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
       showFooter={true}
       footerContent={
         <>
-          <button type="button" className={styles.cancelButton} onClick={onClose}>
+          <Button onClick={onClose} className={style.third} >
             Cancel
-          </button>
+          </Button>
           <button type="submit" form="modalForm" className={styles.submitButton}>
             {theme ? 'Save Changes' : 'Create Theme'}
           </button>
@@ -151,23 +154,20 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
                 />
               </div>
               {formData.review_deadline.length > 1 && (
-                <button
-                  type="button"
-                  className={styles.removeButton}
+                <Button
                   onClick={() => removeReviewDeadline(index)}
+                  className={style.danger}
                 >
                   Remove
-                </button>
+                </Button>
               )}
             </div>
           ))}
-          <button
-            type="button"
-            className={styles.addButton}
+          <Button
             onClick={addReviewDeadline}
           >
             + Add Review Period
-          </button>
+          </Button>
         </div>
 
         <div className={styles.formRow}>

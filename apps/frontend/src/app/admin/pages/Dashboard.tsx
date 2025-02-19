@@ -1,8 +1,15 @@
 import React, { useState } from 'react';
 import styles from './Dashboard.module.css';
 import { ThemeModal } from '@/app/admin/components/ThemeModals';
-import { Theme, BaseTheme, AnalyticsReport, Notification } from '@/app/shared/utils/types';
+import {
+  Theme,
+  BaseTheme,
+  AnalyticsReport,
+  Notification,
+} from '@/app/shared/utils/types';
 import Card from '@/app/shared/components/Card/Card';
+import Button from '@/app/shared/components/Button/Button';
+import style from '@/app/shared/components/Button/Button.module.css';
 
 const Dashboard: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -45,9 +52,9 @@ const Dashboard: React.FC = () => {
       votes_cast: 1200,
       reviews_completed: 450,
       totalIdeas: 0,
-    totalVotes: 0,
-    totalReviews: 0,
-    averageRating: 0,
+      totalVotes: 0,
+      totalReviews: 0,
+      averageRating: 0,
     },
   });
 
@@ -102,21 +109,7 @@ const Dashboard: React.FC = () => {
     <div className={styles.container}>
       <div className={styles.header}>
         <h1>Theme Management Dashboard</h1>
-        <div className={styles.headerActions}>
-          <button className={styles.iconButton}>
-            <svg
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-              stroke="currentColor"
-              strokeWidth="2"
-              fill="none"
-            >
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-            </svg>
-          </button>
-        </div>
+        <div className={styles.headerActions}></div>
       </div>
 
       <div className={styles.statsGrid}>
@@ -159,12 +152,9 @@ const Dashboard: React.FC = () => {
       <section className={styles.themesSection}>
         <div className={styles.sectionHeader}>
           <h2>Active Themes</h2>
-          <button
-            className={styles.addButton}
-            onClick={() => setIsCreateModalOpen(true)}
-          >
+          <Button onClick={() => setIsCreateModalOpen(true)}>
             + Create New Theme
-          </button>
+          </Button>
         </div>
         <div className={styles.themesGrid}>
           {activeThemes.map((theme) => (
@@ -180,12 +170,9 @@ const Dashboard: React.FC = () => {
                       ? 'Voting'
                       : 'Review Phase'}
                   </span>
-                  <button
-                    className={styles.viewButton}
-                    onClick={() => handleManageTheme(theme)}
-                  >
+                  <Button onClick={() => handleManageTheme(theme)}>
                     Manage →
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -194,7 +181,7 @@ const Dashboard: React.FC = () => {
       </section>
 
       <div className={styles.gridContainer}>
-        <Card title='Activity Overview'>
+        <Card title="Activity Overview">
           <div className={styles.activityGrid}>
             <div className={styles.activityBox}>
               <h4>Participation Stats</h4>
