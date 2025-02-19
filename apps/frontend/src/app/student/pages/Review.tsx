@@ -4,6 +4,10 @@ import { User, Group, GroupMember, Review } from '@/app/shared/utils/types';
 import Button from '@/app/shared/components/Button/Button';
 import FormGroup from '@/app/shared/components/Form/FormGroup';
 import TextArea from '@/app/shared/components/Form/TextArea';
+import Tabs from '@/app/shared/components/Tabs/Tabs';
+
+// Define the tab type
+type TabType = 'ratings' | 'feedback';
 
 const Reviews: React.FC = () => {
   const currentUserId = 1; // This should be dynamic
@@ -11,11 +15,29 @@ const Reviews: React.FC = () => {
   const [currentGroup, setCurrentGroup] = useState<Group | null>(null);
   const [reviews, setReviews] = useState<{ [key: number]: Review }>({});
   const [submitted, setSubmitted] = useState(false);
-  const [activeTab, setActiveTab] = useState<'ratings' | 'feedback'>('ratings');
+  const [activeTab, setActiveTab] = useState<TabType>('ratings');
   const [feedback, setFeedback] = useState('');
 
+  // Define tabs with explicit typing
+  const tabs: Array<{ id: TabType; label: string }> = [
+    { id: 'ratings', label: 'Ratings' },
+    { id: 'feedback', label: 'Feedback' },
+  ];
+
+  // Type-safe tab change handler
+  const handleTabChange = (tabId: string) => {
+    if (isValidTab(tabId)) {
+      setActiveTab(tabId);
+    }
+  };
+
+  // Type guard to ensure tab is valid
+  const isValidTab = (tab: string): tab is TabType => {
+    return ['ratings', 'feedback'].includes(tab);
+  };
+
   useEffect(() => {
-    // Simulate fetching group and member data
+    // Rest of the code remains the same...
     setCurrentGroup({
       group_id: 1,
       theme_id: 1,
@@ -24,7 +46,6 @@ const Reviews: React.FC = () => {
       created_at: '12:00:00',
     });
 
-    // Note: Now we only set members where we have complete user data
     const fetchedMembers: GroupMember[] = [
       {
         group_member_id: 1,
@@ -67,6 +88,7 @@ const Reviews: React.FC = () => {
     setGroupMembers(fetchedMembers);
   }, []);
 
+  // Rest of the component code remains the same...
   const handleRatingChange = (
     revieweeId: number,
     rating: '1' | '2' | '3' | '4' | '5'
@@ -108,7 +130,6 @@ const Reviews: React.FC = () => {
     setSubmitted(true);
   };
 
-  // Filter out current user and get valid members for review
   const membersToReview = groupMembers.filter(
     (member) => member.user.user_id !== currentUserId
   );
@@ -176,25 +197,7 @@ const Reviews: React.FC = () => {
         </h1>
       </div>
 
-      <div className={styles.tabList}>
-        <button
-          className={`${styles.tab} ${
-            activeTab === 'ratings' ? styles.tabActive : ''
-          }`}
-          onClick={() => setActiveTab('ratings')}
-        >
-          Ratings
-        </button>
-        <button
-          className={`${styles.tab} ${
-            activeTab === 'feedback' ? styles.tabActive : ''
-          }`}
-          onClick={() => setActiveTab('feedback')}
-          disabled={!isAllRatingsProvided()}
-        >
-          Written Feedback
-        </button>
-      </div>
+      <Tabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} />
 
       {activeTab === 'ratings' ? (
         <div>
@@ -229,7 +232,7 @@ const Reviews: React.FC = () => {
 
           {membersToReview.map((member) => (
             <div key={member.user.user_id} className={styles.feedbackContainer}>
-              <FormGroup label="Feedback">
+              <FormGroup label={`Feedback for ${member.user.name}`}>
                 <TextArea
                   value={reviews[member.user.user_id]?.feedback || ''}
                   onChange={(e) => handleFeedbackChange(member.user.user_id, e)}

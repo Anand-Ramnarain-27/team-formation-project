@@ -9,11 +9,13 @@ import {
 } from '@/app/shared/utils/types';
 import Card from '@/app/shared/components/Card/Card';
 import StatusBadge from '@/app/shared/components/StatusBadge/StatusBadge';
+import Tabs from '@/app/shared/components/Tabs/Tabs';
+
+// Define the tab type to ensure type safety
+type TabType = 'participation' | 'ideas' | 'groups' | 'reviews';
 
 const Profile: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<
-    'participation' | 'ideas' | 'groups' | 'reviews'
-  >('participation');
+  const [activeTab, setActiveTab] = useState<TabType>('participation');
 
   // Sample data structured according to the database schema
   const [profile] = useState<User>({
@@ -97,6 +99,25 @@ const Profile: React.FC = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
+  const tabs: Array<{ id: TabType; label: string }> = [
+    { id: 'participation', label: 'Participation' },
+    { id: 'ideas', label: 'Ideas' },
+    { id: 'groups', label: 'Groups' },
+    { id: 'reviews', label: 'Reviews' },
+  ];
+
+  // Type-safe tab change handler
+  const handleTabChange = (tabId: string) => {
+    if (isValidTab(tabId)) {
+      setActiveTab(tabId);
+    }
+  };
+
+  // Type guard to ensure tab is valid
+  const isValidTab = (tab: string): tab is TabType => {
+    return tabs.map((t) => t.id).includes(tab as TabType);
+  };
+
   const renderParticipationStats = () => (
     <div className={styles.participationStats}>
       <div className={styles.statBar}>
@@ -159,40 +180,7 @@ const Profile: React.FC = () => {
       </div>
 
       {/* Tab Navigation */}
-      <div className={styles.tabs}>
-        <button
-          className={`${styles.tabButton} ${
-            activeTab === 'participation' ? styles.activeTab : ''
-          }`}
-          onClick={() => setActiveTab('participation')}
-        >
-          Participation
-        </button>
-        <button
-          className={`${styles.tabButton} ${
-            activeTab === 'ideas' ? styles.activeTab : ''
-          }`}
-          onClick={() => setActiveTab('ideas')}
-        >
-          Ideas
-        </button>
-        <button
-          className={`${styles.tabButton} ${
-            activeTab === 'groups' ? styles.activeTab : ''
-          }`}
-          onClick={() => setActiveTab('groups')}
-        >
-          Groups
-        </button>
-        <button
-          className={`${styles.tabButton} ${
-            activeTab === 'reviews' ? styles.activeTab : ''
-          }`}
-          onClick={() => setActiveTab('reviews')}
-        >
-          Reviews
-        </button>
-      </div>
+      <Tabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} />
 
       {/* Tab Content */}
       <div className={styles.tabContent}>
