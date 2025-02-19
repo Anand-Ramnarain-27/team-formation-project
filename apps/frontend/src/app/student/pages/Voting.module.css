@@ -49,14 +49,6 @@
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 }
 
-.card {
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  background-color: white;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
 .votedCard {
   border-color: #22c55e;
 }

@@ -3,19 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import styles from './Dashboard.module.css';
 import ThemeModals from '../components/ThemeModals';
 import { Theme, Idea, Group, Notification } from '@/app/shared/utils/types';
+import Card from '@/app/shared/components/Card/Card';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
 
   const themeColors = [
-    styles.blueTheme,
     styles.pinkTheme,
     styles.greenTheme,
     styles.yellowTheme,
     styles.purpleTheme,
     styles.orangeTheme,
-    styles.tealTheme,
-    styles.indigoTheme,
   ];
 
   const getRandomThemeColor = () => {
@@ -183,11 +181,11 @@ const Dashboard: React.FC = () => {
             const status = getThemeStatus(theme);
             const themeColor = getRandomThemeColor();
             return (
-              <div
+              <Card
+                title={theme.title}
                 key={theme.theme_id}
                 className={`${styles.themeCard} ${themeColor}`}
               >
-                <h3 className={styles.themeTitle}>{theme.title}</h3>
                 <p className={styles.themeInfo}>{theme.description}</p>
                 <div className={styles.themeFooter}>
                   <div className={styles.themeButtons}>
@@ -212,7 +210,7 @@ const Dashboard: React.FC = () => {
                   </div>
                   <span className={styles.status}>Phase: {status.phase}</span>
                 </div>
-              </div>
+              </Card>
             );
           })}
         </div>
@@ -243,10 +241,8 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className={styles.bottomSection}>
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>My Ideas</h2>
-          </div>
+        <Card title="My Ideas">
+          <div className={styles.cardHeader}></div>
           <div className={styles.cardContent}>
             <div className={styles.scrollArea}>
               {myIdeas.map((idea) => (
@@ -274,12 +270,10 @@ const Dashboard: React.FC = () => {
               ))}
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>My Group</h2>
-          </div>
+        <Card title="My Group">
+          <div className={styles.cardHeader}></div>
           <div className={styles.cardContent}>
             {myGroup ? (
               <>
@@ -295,7 +289,7 @@ const Dashboard: React.FC = () => {
               <p>You haven't been assigned to a group yet.</p>
             )}
           </div>
-        </div>
+        </Card>
       </div>
       {selectedTheme && modalType && (
         <ThemeModals

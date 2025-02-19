@@ -12,24 +12,6 @@
   gap: var(--spacing-md);
 }
 
-.card {
-  background: var(--light-color);
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: var(--spacing-md);
-  border: 1px solid var(--grey-color);
-}
-
-.cardHeader {
-  margin-bottom: var(--spacing-md);
-}
-
-.cardTitle {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  color: var(--dark-color);
-}
-
 .metricCard {
   display: flex;
   align-items: center;

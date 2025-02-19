@@ -12,12 +12,6 @@
   margin-bottom: var(--spacing-sm);
 }
 
-.title {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  margin-bottom: var(--spacing-sm);
-}
-
 .dateNav {
   display: flex;
   align-items: center;
@@ -54,37 +48,14 @@
   gap: 1rem;
 }
 
-.themeCard {
-  padding: var(--spacing-md);
-  border-radius: 4px;
-  color: var(--text-color-light);
-  transition: box-shadow 0.2s;
+.pinkTheme {
+  background-color: var(--secondary-color);
 }
-
-.themeCard:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+.greenTheme {
+  background-color: var(--success-color);
 }
-
-.blueTheme { background-color: var(--primary-color); }
-.pinkTheme { background-color: var(--secondary-color); }
-.greenTheme { background-color: var(--success-color); }
-.yellowTheme { background-color: var(--info-color); }
-
-.themeTitle {
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.themeInfo {
-  font-size: 0.875rem;
-  opacity: 0.9;
-}
-
-.themeFooter {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 1rem;
+.yellowTheme {
+  background-color: var(--info-color);
 }
 
 .viewButton {
@@ -165,20 +136,9 @@
   gap: 1.5rem;
 }
 
-.card {
-  background-color: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
 .cardHeader {
   padding: 1rem;
   border-bottom: 1px solid #e2e8f0;
-}
-
-.cardTitle {
-  font-size: 1.125rem;
-  font-weight: 600;
 }
 
 .cardContent {

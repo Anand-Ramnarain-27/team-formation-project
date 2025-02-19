@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styles from './Dashboard.module.css';
 import { ThemeModal } from '@/app/admin/components/ThemeModals';
 import { Theme, BaseTheme, AnalyticsReport, Notification } from '@/app/shared/utils/types';
+import Card from '@/app/shared/components/Card/Card';
 
 const Dashboard: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -119,14 +120,14 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className={styles.statsGrid}>
-        <div className={styles.statCard}>
+        <Card>
           <div className={styles.statTitle}>Total Students</div>
           <div className={styles.statValue}>{analyticsData.total_students}</div>
           <div className={`${styles.statTrend} ${styles.positive}`}>
             Active in current themes
           </div>
-        </div>
-        <div className={styles.statCard}>
+        </Card>
+        <Card>
           <div className={styles.statTitle}>Average Rating</div>
           <div className={styles.statValue}>
             {analyticsData.average_rating}/5.0
@@ -134,8 +135,8 @@ const Dashboard: React.FC = () => {
           <div className={`${styles.statTrend} ${styles.neutral}`}>
             Based on {analyticsData.total_reports} reviews
           </div>
-        </div>
-        <div className={styles.statCard}>
+        </Card>
+        <Card>
           <div className={styles.statTitle}>Ideas Submitted</div>
           <div className={styles.statValue}>
             {analyticsData.participation_stats.ideas_submitted}
@@ -143,8 +144,8 @@ const Dashboard: React.FC = () => {
           <div className={`${styles.statTrend} ${styles.neutral}`}>
             Across all themes
           </div>
-        </div>
-        <div className={styles.statCard}>
+        </Card>
+        <Card>
           <div className={styles.statTitle}>Pending Reviews</div>
           <div className={styles.statValue}>
             {analyticsData.participation_stats.reviews_completed}
@@ -152,7 +153,7 @@ const Dashboard: React.FC = () => {
           <div className={`${styles.statTrend} ${styles.warning}`}>
             Reviews submitted
           </div>
-        </div>
+        </Card>
       </div>
 
       <section className={styles.themesSection}>
@@ -193,8 +194,7 @@ const Dashboard: React.FC = () => {
       </section>
 
       <div className={styles.gridContainer}>
-        <div className={styles.analyticsCard}>
-          <h3>Activity Overview</h3>
+        <Card title='Activity Overview'>
           <div className={styles.activityGrid}>
             <div className={styles.activityBox}>
               <h4>Participation Stats</h4>
@@ -224,7 +224,7 @@ const Dashboard: React.FC = () => {
               </ul>
             </div>
           </div>
-        </div>
+        </Card>
 
         <div className={styles.notificationsCard}>
           <h3>Recent Notifications</h3>

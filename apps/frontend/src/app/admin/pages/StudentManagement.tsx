@@ -7,7 +7,7 @@ import {
   Review,
   StudentWithDetails,
 } from '@/app/shared/utils/types';
-import { SharedModal } from '@/app/shared/components/Modal';
+import { SharedModal } from '@/app/shared/components/Modal/Modal';
 
 interface StudentFormProps {
   student?: StudentWithDetails;

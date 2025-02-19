@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './Voting.module.css';
 import { Idea, Vote } from '@/app/shared/utils/types';
+import Card from '@/app/shared/components/Card/Card';
 
 const Voting: React.FC = () => {
   const [ideas, setIdeas] = useState<Idea[]>([]);
@@ -118,12 +119,8 @@ const Voting: React.FC = () => {
       ) : (
         <div className={styles.ideaGrid}>
           {ideas.map((idea) => (
-            <div 
-              key={idea.idea_id} 
-              className={`${styles.card} ${votedIdeas.has(idea.idea_id) ? styles.votedCard : ''}`}
-            >
+            <Card title={idea.idea_name} key={idea.idea_id}>
               <div className={styles.cardHeader}>
-                <h2>{idea.idea_name}</h2>
                 <p className={styles.submitter}>Submitted by: {idea.submitter_name}</p>
               </div>
               <div className={styles.cardContent}>
@@ -154,7 +151,7 @@ const Voting: React.FC = () => {
                   </button>
                 </div>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       )}

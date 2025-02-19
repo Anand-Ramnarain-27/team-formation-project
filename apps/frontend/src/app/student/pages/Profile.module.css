@@ -96,20 +96,6 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* Cards */
-.card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 24px;
-}
-
-.cardTitle {
-  font-size: 20px;
-  font-weight: bold;
-  margin: 0 0 24px 0;
-}
-
 /* Participation Stats */
 .participationStats {
   display: flex;

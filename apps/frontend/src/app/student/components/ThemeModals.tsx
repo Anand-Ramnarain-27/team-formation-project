@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SharedModal } from '@/app/shared/components/Modal';
+import { SharedModal } from '@/app/shared/components/Modal/Modal';
 import { Theme } from '@/app/shared/utils/types'; 
 import styles from './ThemeModals.module.css';
 

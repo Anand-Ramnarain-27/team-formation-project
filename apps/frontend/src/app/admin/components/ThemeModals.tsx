@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './ThemeModals.module.css';
 import { Theme, BaseTheme } from '@/app/shared/utils/types';
-import { SharedModal } from '@/app/shared/components/Modal';
+import { SharedModal } from '@/app/shared/components/Modal/Modal';
 
 interface ThemeModalProps {
   isOpen: boolean;

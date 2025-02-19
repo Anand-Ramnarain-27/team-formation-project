@@ -3,20 +3,9 @@
   padding: var(--spacing-md);
 }
 
-.card {
-  background: var(--light-color);
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
 .header {
   padding: var(--spacing-md);
   border-bottom: 1px solid var(--grey-color);
-}
-
-.title {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
 }
 
 .content {

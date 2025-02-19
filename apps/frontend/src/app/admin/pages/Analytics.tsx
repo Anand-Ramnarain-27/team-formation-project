@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styles from './Analytics.module.css';
 import { AnalyticsReport, Student } from '@/app/shared/utils/types';
+import Card from '@/app/shared/components/Card/Card';
 
 interface MetricCardProps {
   icon: string;
@@ -53,7 +54,7 @@ const Analytics: React.FC = () => {
     value,
     colorClass,
   }) => (
-    <div className={styles.card}>
+    <Card>
       <div className={styles.metricCard}>
         <div className={`${styles.metricIcon} ${styles[colorClass]}`}>
           {icon}
@@ -63,14 +64,11 @@ const Analytics: React.FC = () => {
           <div className={styles.metricValue}>{value}</div>
         </div>
       </div>
-    </div>
+    </Card>
   );
 
   const StudentSearch: React.FC = () => (
-    <div className={styles.card}>
-      <div className={styles.cardHeader}>
-        <h2 className={styles.cardTitle}>Student Analytics</h2>
-      </div>
+    <Card title="Student Analytics">
       <input
         type="text"
         className={styles.searchInput}
@@ -104,17 +102,14 @@ const Analytics: React.FC = () => {
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   );
 
   const StudentDetails: React.FC<{ student: Student }> = ({ student }) => {
     if (!student) return null;
 
     return (
-      <div className={styles.card}>
-        <div className={styles.cardHeader}>
-          <h2 className={styles.cardTitle}>Student Details</h2>
-        </div>
+      <Card title="Student Details">
         <div className={styles.studentMetrics}>
           <div className={styles.metricBox}>
             <div className={styles.metricTitle}>Ideas Submitted</div>
@@ -147,7 +142,7 @@ const Analytics: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
+      </Card>
     );
   };
 
@@ -181,35 +176,26 @@ const Analytics: React.FC = () => {
       </div>
 
       <div className={styles.chartsGrid}>
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>Ideas Distribution</h2>
-          </div>
+        <Card title="Ideas Distribution">
           <div className={styles.chart}>
             {/* Replace with your own chart implementation */}
             <div>Chart Placeholder</div>
           </div>
-        </div>
+        </Card>
 
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>Rating Distribution</h2>
-          </div>
+        <Card title="Rating Distribution">
           <div className={styles.chart}>
             {/* Replace with your own chart implementation */}
             <div>Chart Placeholder</div>
           </div>
-        </div>
+        </Card>
 
-        <div className={`${styles.card} ${styles.fullWidth}`}>
-          <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>Activity Overview</h2>
-          </div>
+        <Card title="Activity Overview" className={styles.fullWidth}>
           <div className={styles.chart}>
             {/* Replace with your own chart implementation */}
             <div>Chart Placeholder</div>
           </div>
-        </div>
+        </Card>
       </div>
 
       <div className={styles.studentSection}>

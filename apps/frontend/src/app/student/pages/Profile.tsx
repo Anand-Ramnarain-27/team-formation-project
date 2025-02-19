@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styles from './Profile.module.css';
 import { User, Idea, Group, Review, ParticipationStats} from '@/app/shared/utils/types';
+import Card from '@/app/shared/components/Card/Card';
 
 const Profile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'participation' | 'ideas' | 'groups' | 'reviews'>('participation');
@@ -173,15 +174,13 @@ const Profile: React.FC = () => {
       {/* Tab Content */}
       <div className={styles.tabContent}>
         {activeTab === 'participation' && (
-          <div className={styles.card}>
-            <h2 className={styles.cardTitle}>Participation Overview</h2>
-            {renderParticipationStats()}
-          </div>
+          <Card title='Participation Overview'>
+          {renderParticipationStats()}
+        </Card>
         )}
 
         {activeTab === 'ideas' && (
-          <div className={styles.card}>
-            <h2 className={styles.cardTitle}>Submitted Ideas</h2>
+          <Card title='Submitted Ideas'>
             <div className={styles.ideaList}>
               {ideas.map(idea => (
                 <div key={idea.idea_id} className={styles.ideaItem}>
@@ -201,12 +200,11 @@ const Profile: React.FC = () => {
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
         )}
 
         {activeTab === 'groups' && (
-          <div className={styles.card}>
-            <h2 className={styles.cardTitle}>Group History</h2>
+          <Card title='Group History'>
             <div className={styles.groupList}>
               {groups.map(group => (
                 <div key={group.group_id} className={styles.groupItem}>
@@ -225,12 +223,11 @@ const Profile: React.FC = () => {
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
         )}
 
         {activeTab === 'reviews' && (
-          <div className={styles.card}>
-            <h2 className={styles.cardTitle}>Reviews Received</h2>
+          <Card title='Reviews Received'>
             <div className={styles.reviewList}>
               {reviews.map(review => (
                 <div key={review.review_id} className={styles.reviewItem}>
@@ -249,7 +246,7 @@ const Profile: React.FC = () => {
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
         )}
       </div>
     </div>

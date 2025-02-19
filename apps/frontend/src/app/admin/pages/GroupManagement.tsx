@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import styles from './GroupManagemnt.module.css';
 import { User, Group, Theme } from '@/app/shared/utils/types';
-import { SharedModal } from '@/app/shared/components/Modal';
+import { SharedModal } from '@/app/shared/components/Modal/Modal';
+import Card from '@/app/shared/components/Card/Card';
 
 interface GroupDialogProps {
   group: Group | null;
@@ -405,10 +406,9 @@ const GroupManagement = () => {
 
   return (
     <div className={styles.container}>
-      <div className={styles.card}>
+      <Card title='Group Management'>
         <div className={styles.header}>
           <div className={styles.headerContent}>
-            <h1 className={styles.title}>Group Management</h1>
             <button
               className={styles.primaryButton}
               onClick={() => {
@@ -563,7 +563,7 @@ const GroupManagement = () => {
             )}
           </div>
         </div>
-      </div>
+      </Card>
       <GroupDialog
         group={selectedGroup}
         isOpen={showGroupDialog}

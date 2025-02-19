@@ -10,7 +10,7 @@ import StudentDashboard from '@/app/student/pages/Dashboard';
 import StudentVotePage from '@/app/student/pages/Vote';
 import StudentReviewPage from '@/app/student/pages/Review';
 import StudentProfilePage from '@/app/student/pages/Profile';
-import Layout from '@/app/shared/components/Layout';
+import Layout from '@/app/shared/components/Navigation/Layout';
 import Notifications from '@/app/shared/pages/Notifications';
 
 export function App() {
