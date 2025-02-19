@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styles from './Analytics.module.css';
 import { AnalyticsReport, Student } from '@/app/shared/utils/types';
 import Card from '@/app/shared/components/Card/Card';
+import TextInput from '@/app/shared/components/Form/TextInput';
 
 interface MetricCardProps {
   icon: string;
@@ -69,12 +70,11 @@ const Analytics: React.FC = () => {
 
   const StudentSearch: React.FC = () => (
     <Card title="Student Analytics">
-      <input
-        type="text"
-        className={styles.searchInput}
-        placeholder="Search students..."
+      <TextInput
         value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
+        onChange={(value) => setSearchQuery(value)}
+        placeholder="Search students..."
+        className={styles.searchInput}
       />
       <div className={styles.studentList}>
         {filteredStudents.map((student) => (

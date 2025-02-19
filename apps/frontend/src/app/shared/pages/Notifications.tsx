@@ -3,8 +3,9 @@ import { useLocation } from 'react-router-dom';
 import styles from './Notifications.module.css';
 import { User, Notification } from '@/app/shared/utils/types';
 import Button from '@/app/shared/components/Button/Button';
-import FormGroup from '@/app/shared/components/Form/FormGroup'; 
+import FormGroup from '@/app/shared/components/Form/FormGroup';
 import TextArea from '@/app/shared/components/Form/TextArea';
+import SelectInput from '@/app/shared/components/SelectInput/SelectInput';
 
 const NotificationCard = ({ notification }: { notification: Notification }) => {
   const getIconClass = () => {
@@ -56,20 +57,23 @@ const CreateNotification = ({
     }
   };
 
+  const recipientOptions = [
+    { value: 'all', label: 'All Users' },
+    { value: 'student', label: 'Students' },
+    { value: 'team_lead', label: 'Team Leads' },
+    { value: 'admin', label: 'Administrators' },
+  ];
+
   return (
     <form onSubmit={handleSubmit} className={styles.createForm}>
       <h2 className={styles.formTitle}>Create New Notification</h2>
       <FormGroup label="Send to:">
-        <select
+       <SelectInput
           value={recipientRole}
-          onChange={(e) => setRecipientRole(e.target.value)}
-          className={styles.select}
-        >
-          <option value="all">All Users</option>
-          <option value="student">Students</option>
-          <option value="team_lead">Team Leads</option>
-          <option value="admin">Administrators</option>
-        </select>
+          onChange={setRecipientRole}
+          options={recipientOptions}
+          placeholder="Select recipient"
+        />
       </FormGroup>
       <FormGroup label="Message:">
         <TextArea

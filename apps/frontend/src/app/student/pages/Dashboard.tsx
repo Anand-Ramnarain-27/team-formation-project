@@ -4,6 +4,7 @@ import styles from './Dashboard.module.css';
 import ThemeModals from '../components/ThemeModals';
 import { Theme, Idea, Group, Notification } from '@/app/shared/utils/types';
 import Card from '@/app/shared/components/Card/Card';
+import StatusBadge from '@/app/shared/components/StatusBadge/StatusBadge';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -254,17 +255,10 @@ const Dashboard: React.FC = () => {
                     <p className={styles.notificationDescription}>
                       {idea.description}
                     </p>
-                    <span
-                      className={`${styles.status} ${
-                        idea.status === 'Approved'
-                          ? styles.greenTheme
-                          : idea.status === 'Rejected'
-                          ? 'text-red-500'
-                          : styles.yellowTheme
-                      }`}
-                    >
-                      {idea.status}
-                    </span>
+                    <StatusBadge
+                      status={idea.status.toLowerCase()}
+                      label={idea.status}
+                    />
                   </div>
                 </div>
               ))}

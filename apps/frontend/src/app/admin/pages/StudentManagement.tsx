@@ -11,6 +11,7 @@ import { SharedModal } from '@/app/shared/components/Modal/Modal';
 import Button from '@/app/shared/components/Button/Button';
 import FormGroup from '@/app/shared/components/Form/FormGroup';
 import TextInput from '@/app/shared/components/Form/TextInput';
+import SelectInput from '@/app/shared/components/SelectInput/SelectInput';
 
 interface StudentFormProps {
   student?: StudentWithDetails;
@@ -97,6 +98,11 @@ const StudentManagement: React.FC = () => {
       closeModal();
     };
 
+    const roleOptions = [
+      { value: 'student', label: 'Student' },
+      { value: 'admin', label: 'Admin' },
+    ];
+
     return (
       <form onSubmit={handleSubmit} className={styles.form}>
         <FormGroup label="Name:">
@@ -115,13 +121,13 @@ const StudentManagement: React.FC = () => {
           />
         </FormGroup>
         <FormGroup label="Role:">
-          <select
+          <SelectInput
             value={formData.role}
-            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-          >
-            <option value="student">Student</option>
-            <option value="admin">Admin</option>
-          </select>
+            onChange={(value) => setFormData({ ...formData, role: value })}
+            options={roleOptions}
+            placeholder="Select role"
+            className={styles.select}
+          />
         </FormGroup>
         <Button type="submit">
           {student ? 'Update Student' : 'Add Student'}
@@ -129,6 +135,12 @@ const StudentManagement: React.FC = () => {
       </form>
     );
   };
+
+  const roleFilterOptions = [
+    { value: 'all', label: 'All Roles' },
+    { value: 'student', label: 'Students' },
+    { value: 'admin', label: 'Admins' },
+  ];
 
   return (
     <div className={styles.container}>
@@ -146,15 +158,13 @@ const StudentManagement: React.FC = () => {
             className={styles.searchInput}
           />
         </div>
-        <select
+        <SelectInput
           value={filterRole}
-          onChange={handleFilterChange}
+          onChange={(value) => setFilterRole(value)}
+          options={roleFilterOptions}
+          placeholder="Select role"
           className={styles.filterSelect}
-        >
-          <option value="all">All Roles</option>
-          <option value="student">Students</option>
-          <option value="admin">Admins</option>
-        </select>
+        />
         <div className={styles.totalStudents}>
           Total Users: {students.length}
         </div>

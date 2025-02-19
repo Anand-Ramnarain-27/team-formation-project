@@ -3,8 +3,10 @@ import styles from './Review.module.css';
 import { User, Theme, Idea } from '@/app/shared/utils/types';
 import Card from '@/app/shared/components/Card/Card';
 import Button from '@/app/shared/components/Button/Button';
-import style from '@/app/shared/components/Button/Button.module.css'
+import style from '@/app/shared/components/Button/Button.module.css';
 import TextInput from '@/app/shared/components/Form/TextInput';
+import StatusBadge from '@/app/shared/components/StatusBadge/StatusBadge';
+import SelectInput from '@/app/shared/components/SelectInput/SelectInput';
 
 const Review: React.FC = () => {
   const [themes, setThemes] = useState<Theme[]>([]);
@@ -88,41 +90,48 @@ const Review: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
 
+  const themeOptions = [
+    { value: '', label: 'Select Theme' },
+    { value: 'all', label: 'All Themes' },
+    ...themes.map((theme) => ({
+      value: theme.theme_id.toString(),
+      label: theme.title,
+    })),
+  ];
+
+  const statusOptions = [
+    { value: 'all', label: 'All Status' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'approved', label: 'Approved' },
+    { value: 'rejected', label: 'Rejected' },
+  ];
+
   return (
     <div className={styles.container}>
       <Card title="Idea Review Dashboard">
         <div className={styles.filters}>
-          <select
-            className={styles.select}
+          <SelectInput
             value={selectedTheme}
-            onChange={(e) => setSelectedTheme(e.target.value)}
-          >
-            <option value="">Select Theme</option>
-            <option value="all">All Themes</option>
-            {themes.map((theme) => (
-              <option key={theme.theme_id} value={theme.theme_id}>
-                {theme.title}
-              </option>
-            ))}
-          </select>
-
-          <select
+            onChange={(value) => setSelectedTheme(value)}
+            options={themeOptions}
+            placeholder="Select Theme"
             className={styles.select}
+          />
+
+          <SelectInput
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="all">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-          </select>
+            onChange={(value) => setStatusFilter(value)}
+            options={statusOptions}
+            placeholder="Select Status"
+            className={styles.select}
+          />
 
           <TextInput
-              value={searchTerm}
-              onChange={(value) => setSearchTerm(value)}
-              placeholder="Search ideas..."
-              className={styles.searchInput}
-            />
+            value={searchTerm}
+            onChange={(value) => setSearchTerm(value)}
+            placeholder="Search ideas..."
+            className={styles.searchInput}
+          />
         </div>
 
         <div className={styles.ideasList}>
@@ -131,13 +140,10 @@ const Review: React.FC = () => {
               <div className={styles.ideaContent}>
                 <div className={styles.ideaHeader}>
                   <h3 className={styles.ideaName}>{idea.idea_name}</h3>
-                  <span
-                    className={`${styles.status} ${
-                      styles[idea.status.toLowerCase()]
-                    }`}
-                  >
-                    {idea.status}
-                  </span>
+                  <StatusBadge
+                    status={idea.status.toLowerCase()}
+                    label={idea.status}
+                  />
                 </div>
 
                 <p className={styles.ideaDescription}>{idea.description}</p>

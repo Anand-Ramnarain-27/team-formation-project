@@ -7,7 +7,7 @@ import Button from '@/app/shared/components/Button/Button';
 import style from '@/app/shared/components/Button/Button.module.css';
 import FormGroup from '@/app/shared/components/Form/FormGroup';
 import TextInput from '@/app/shared/components/Form/TextInput';
-import TextArea from '@/app/shared/components/Form/TextArea';
+import SelectInput from '@/app/shared/components/SelectInput/SelectInput';
 
 interface GroupDialogProps {
   group: Group | null;
@@ -195,6 +195,16 @@ const GroupManagement = () => {
       }
     };
 
+    const themeOptions = themes.map((theme) => ({
+      value: theme.theme_id.toString(),
+      label: theme.title,
+    }));
+
+    const userOptions = users.map((user) => ({
+      value: user.user_id.toString(),
+      label: user.name,
+    }));
+
     return (
       <SharedModal
         isOpen={isOpen}
@@ -230,38 +240,26 @@ const GroupManagement = () => {
             />
           </FormGroup>
           <FormGroup label="Theme">
-            <select
-              className={styles.select}
+            <SelectInput
               value={editForm.theme_id}
-              onChange={(e) =>
-                setEditForm({ ...editForm, theme_id: e.target.value })
+              onChange={(value) =>
+                setEditForm({ ...editForm, theme_id: value })
               }
-              required
-            >
-              <option value="">Select theme</option>
-              {themes.map((theme) => (
-                <option key={theme.theme_id} value={theme.theme_id}>
-                  {theme.title}
-                </option>
-              ))}
-            </select>
+              options={themeOptions}
+              placeholder="Select theme"
+              className={styles.select}
+            />
           </FormGroup>
           <FormGroup label="Team Lead">
-            <select
-              className={styles.select}
+            <SelectInput
               value={editForm.team_lead}
-              onChange={(e) =>
-                setEditForm({ ...editForm, team_lead: e.target.value })
+              onChange={(value) =>
+                setEditForm({ ...editForm, team_lead: value })
               }
-              required
-            >
-              <option value="">Select team lead</option>
-              {users.map((user) => (
-                <option key={user.user_id} value={user.user_id}>
-                  {user.name}
-                </option>
-              ))}
-            </select>
+              options={userOptions}
+              placeholder="Select team lead"
+              className={styles.select}
+            />
           </FormGroup>
         </form>
       </SharedModal>
