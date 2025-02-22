@@ -1,7 +1,7 @@
-// ReviewCard.tsx
 import React from 'react';
 import styles from './ReviewCard.module.css';
 import { Review } from '../../utils/types';
+import Card from '../Card/Card';
 
 interface ReviewCardProps extends Review {
   showGroupName?: boolean;
@@ -46,7 +46,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
   };
 
   return (
-    <div className={`${styles.reviewCard} ${className || ''}`}>
+    <Card>
       <div className={styles.cardHeader}>
         {showGroupName && group_name && (
           <h2 className={styles.groupName}>{group_name}</h2>
@@ -60,7 +60,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
       <div className={styles.cardContent}>
         <p className={styles.feedback}>{feedback}</p>
       </div>
-    </div>
+    </Card>
   );
 };
 

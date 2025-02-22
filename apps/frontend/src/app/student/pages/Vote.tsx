@@ -7,6 +7,7 @@ import {
   LoadingState,
   EmptyState,
 } from '@/app/shared/components/States/States';
+import IdeaCard from '@/app/shared/components/IdeaCard/IdeaCard';
 
 const Voting: React.FC = () => {
   const [ideas, setIdeas] = useState<Idea[]>([]);
@@ -36,7 +37,7 @@ const Voting: React.FC = () => {
       idea_name: 'Study Group Matcher',
       description:
         'AI-powered platform to match students with compatible study partners',
-      status: 'Approved',
+      status: 'Pending',
       created_at: new Date().toISOString(),
       submitter_name: 'Jane Smith',
       vote_count: 8,
@@ -138,43 +139,21 @@ const Voting: React.FC = () => {
       ) : (
         <div className={styles.ideaGrid}>
           {ideas.map((idea) => (
-            <Card title={idea.idea_name} key={idea.idea_id}>
-              <div className={styles.cardHeader}>
-                <p className={styles.submitter}>
-                  Submitted by: {idea.submitter_name}
-                </p>
-              </div>
-              <div className={styles.cardContent}>
-                <p>{idea.description}</p>
-                <div className={styles.cardFooter}>
-                  <div className={styles.voteCount}>
-                    <svg
-                      className={styles.thumbsUp}
-                      viewBox="0 0 24 24"
-                      width="24"
-                      height="24"
-                    >
-                      <path
-                        fill="currentColor"
-                        d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3m7-2V4a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14"
-                      />
-                    </svg>
-                    <span>{idea.vote_count || 0} votes</span>
-                  </div>
-                  <Button
-                    onClick={() => handleVote(idea.idea_id)}
-                    disabled={
-                      votedIdeas.has(idea.idea_id) || remainingVotes <= 0
-                    }
-                    className={`${styles.voteButton} ${
-                      votedIdeas.has(idea.idea_id) ? styles.votedButton : ''
-                    }`}
-                  >
-                    {votedIdeas.has(idea.idea_id) ? 'Voted' : 'Vote'}
-                  </Button>
-                </div>
-              </div>
-            </Card>
+            <IdeaCard
+              key={idea.idea_id}
+              idea_name={idea.idea_name}
+              description={idea.description}
+              submitter_name={idea.submitter_name || 'Unknown'}
+              vote_count={idea.vote_count || 0}
+              status={idea.status}
+              onVote={() => handleVote(idea.idea_id)}
+              isVoted={votedIdeas.has(idea.idea_id)}
+              remainingVotes={remainingVotes}
+              idea_id={idea.idea_id}
+              theme_id={idea.theme_id}
+              submitted_by={idea.submitted_by}
+              created_at={idea.created_at}
+            />
           ))}
         </div>
       )}

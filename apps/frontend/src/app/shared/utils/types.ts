@@ -97,6 +97,10 @@ export interface Idea {
   votes_count?: number;
   theme_title?: string;
   vote_count?: number;
+  className?: string;
+  onVote?: () => void; // Optional vote handler
+  isVoted?: boolean; // Whether the idea is already voted
+  remainingVotes?: number; // Remaining votes
 }
 
 export interface Vote {

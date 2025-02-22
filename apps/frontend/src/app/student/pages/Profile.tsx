@@ -12,6 +12,7 @@ import StatusBadge from '@/app/shared/components/StatusBadge/StatusBadge';
 import Tabs from '@/app/shared/components/Tabs/Tabs';
 import GroupCard from '@/app/shared/components/GroupCard/GroupCard';
 import ReviewCard from '@/app/shared/components/ReviewCard/ReviewCard';
+import IdeaCard from '@/app/shared/components/IdeaCard/IdeaCard';
 
 // Define the tab type to ensure type safety
 type TabType = 'participation' | 'ideas' | 'groups' | 'reviews';
@@ -196,22 +197,18 @@ const Profile: React.FC = () => {
           <Card title="Submitted Ideas">
             <div className={styles.ideaList}>
               {ideas.map((idea) => (
-                <div key={idea.idea_id} className={styles.ideaItem}>
-                  <div className={styles.ideaHeader}>
-                    <div>
-                      <h3 className={styles.ideaTitle}>{idea.idea_name}</h3>
-                      <p className={styles.ideaTheme}>{idea.theme_title}</p>
-                    </div>
-                    <StatusBadge
-                      status={idea.status.toLowerCase()}
-                      label={idea.status}
-                    />
-                  </div>
-                  <div className={styles.ideaMeta}>
-                    <span>Votes received: {idea.votes_count}</span>
-                    <span>Submitted: {formatDate(idea.created_at)}</span>
-                  </div>
-                </div>
+                <IdeaCard
+                  key={idea.idea_id}
+                  idea_name={idea.idea_name}
+                  description={idea.description}
+                  submitter_name={profile.name}
+                  vote_count={idea.votes_count}
+                  status={idea.status}
+                  idea_id={idea.idea_id}
+                  theme_id={idea.theme_id}
+                  submitted_by={idea.submitted_by}
+                  created_at={idea.created_at}
+                />
               ))}
             </div>
           </Card>
