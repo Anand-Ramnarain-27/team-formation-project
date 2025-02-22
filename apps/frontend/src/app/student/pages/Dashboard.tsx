@@ -63,6 +63,7 @@ const Dashboard: React.FC = () => {
       message: 'New theme available for idea submission',
       created_at: '2025-02-17T10:00:00Z',
     },
+    
   ]);
 
   const getThemeStatus = (theme: Theme) => {
@@ -217,10 +218,8 @@ const Dashboard: React.FC = () => {
           })}
         </div>
 
-        <div className={styles.notificationsCard}>
-          <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>Notifications</h2>
-          </div>
+        <Card title="Notifications">
+          <div className={styles.cardHeader}></div>
           <div className={styles.notificationsContent}>
             {notifications.map((notification) => (
               <NotificationCard
@@ -233,7 +232,7 @@ const Dashboard: React.FC = () => {
               />
             ))}
           </div>
-        </div>
+        </Card>
       </div>
 
       <div className={styles.bottomSection}>
