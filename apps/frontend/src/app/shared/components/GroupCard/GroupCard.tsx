@@ -3,6 +3,7 @@ import styles from './GroupCard.module.css';
 import { Group } from '@/app/shared/utils/types';
 import Button from '@/app/shared/components/Button/Button';
 import style from '@/app/shared/components/Button/Button.module.css';
+import Card from '../Card/Card';
 
 interface GroupCardProps {
   group: Group;
@@ -28,7 +29,7 @@ const GroupCard: React.FC<GroupCardProps> = ({
   };
 
   return (
-    <div className={`${styles.groupCard} ${className}`}>
+    <Card >
       <div className={styles.header}>
         <div className={styles.headerContent}>
           <h3 className={styles.groupName}>{group.group_name}</h3>
@@ -105,7 +106,7 @@ const GroupCard: React.FC<GroupCardProps> = ({
           )}
         </div>
       )}
-    </div>
+    </Card>
   );
 };
 

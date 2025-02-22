@@ -1,0 +1,82 @@
+/* ReviewCard.module.css */
+.reviewCard {
+  padding: 1.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  transition: all 0.2s ease;
+  background-color: white;
+}
+
+.reviewCard:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.cardHeader {
+  margin-bottom: 1rem;
+}
+
+.groupName {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.5rem 0;
+}
+
+.ratingContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.stars {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.star {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: #d1d5db;
+  stroke-width: 2;
+}
+
+.starFilled {
+  fill: #fbbf24;
+  stroke: #fbbf24;
+}
+
+.ratingText {
+  color: #4b5563;
+  font-weight: 500;
+}
+
+.timestamp {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.cardContent {
+  color: #4b5563;
+}
+
+.feedback {
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 640px) {
+  .reviewCard {
+    padding: 1rem;
+  }
+
+  .ratingContainer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

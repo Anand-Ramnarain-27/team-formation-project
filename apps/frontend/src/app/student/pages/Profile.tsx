@@ -11,6 +11,7 @@ import Card from '@/app/shared/components/Card/Card';
 import StatusBadge from '@/app/shared/components/StatusBadge/StatusBadge';
 import Tabs from '@/app/shared/components/Tabs/Tabs';
 import GroupCard from '@/app/shared/components/GroupCard/GroupCard';
+import ReviewCard from '@/app/shared/components/ReviewCard/ReviewCard';
 
 // Define the tab type to ensure type safety
 type TabType = 'participation' | 'ideas' | 'groups' | 'reviews';
@@ -235,22 +236,12 @@ const Profile: React.FC = () => {
           <Card title="Reviews Received">
             <div className={styles.reviewList}>
               {reviews.map((review) => (
-                <div key={review.review_id} className={styles.reviewItem}>
-                  <div className={styles.reviewHeader}>
-                    <div>
-                      <h3 className={styles.reviewTitle}>
-                        {review.group_name}
-                      </h3>
-                      <p className={styles.reviewDate}>
-                        Received: {formatDate(review.created_at)}
-                      </p>
-                    </div>
-                    <span className={styles.reviewRating}>
-                      Rating: {review.rating}/5
-                    </span>
-                  </div>
-                  <p className={styles.reviewFeedback}>{review.feedback}</p>
-                </div>
+                <ReviewCard
+                  key={review.review_id}
+                  {...review}
+                  showGroupName={true}
+                  className={styles.reviewItem}
+                />
               ))}
             </div>
           </Card>

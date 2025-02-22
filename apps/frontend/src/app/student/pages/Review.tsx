@@ -5,6 +5,7 @@ import Button from '@/app/shared/components/Button/Button';
 import FormGroup from '@/app/shared/components/Form/FormGroup';
 import TextArea from '@/app/shared/components/Form/TextArea';
 import Tabs from '@/app/shared/components/Tabs/Tabs';
+import ReviewCard from '@/app/shared/components/ReviewCard/ReviewCard';
 
 // Define the tab type
 type TabType = 'ratings' | 'feedback';
@@ -179,9 +180,21 @@ const Reviews: React.FC = () => {
   if (submitted) {
     return (
       <div className={styles.container}>
-        <div className={styles.successMessage}>
-          Thank you for submitting your reviews! Your feedback helps improve
-          team collaboration.
+        <div className={styles.successContainer}>
+          <div className={styles.successMessage}>
+            Thank you for submitting your reviews! Your feedback helps improve
+            team collaboration.
+          </div>
+          <div className={styles.reviewSummary}>
+            {Object.values(reviews).map((review) => (
+              <ReviewCard
+                key={review.reviewee_id}
+                {...review}
+                showGroupName={false}
+                created_at={new Date().toISOString()}
+              />
+            ))}
+          </div>
         </div>
       </div>
     );
