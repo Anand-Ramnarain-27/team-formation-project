@@ -142,4 +142,5 @@ export interface User {
     created_at: string;
     created_by?: number;
     creator?: User;
+    status?: 'info' | 'warning' | 'success' | undefined; 
   }

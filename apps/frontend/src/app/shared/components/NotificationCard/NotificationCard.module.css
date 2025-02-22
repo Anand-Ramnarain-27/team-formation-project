@@ -1,0 +1,41 @@
+/* NotificationCard.module.css */
+.notificationCard {
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  transition: all 0.2s ease;
+}
+
+.notificationCard:hover {
+  border-color: #d1d5db; 
+  background-color: #f9fafb; 
+}
+
+.notificationContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.message {
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.timestamp {
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+.info {
+  border-left: 4px solid #2563eb;
+}
+
+.warning {
+  border-left: 4px solid #f59e0b; 
+}
+
+.success {
+  border-left: 4px solid #22c55e;
+}

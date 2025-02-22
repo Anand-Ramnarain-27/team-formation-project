@@ -10,6 +10,7 @@ import {
 import Card from '@/app/shared/components/Card/Card';
 import Button from '@/app/shared/components/Button/Button';
 import style from '@/app/shared/components/Button/Button.module.css';
+import NotificationCard from '@/app/shared/components/NotificationCard/NotificationCard';
 
 const Dashboard: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -217,16 +218,14 @@ const Dashboard: React.FC = () => {
           <h3>Recent Notifications</h3>
           <div className={styles.notificationsList}>
             {notifications.map((notification) => (
-              <div
+              <NotificationCard
                 key={notification.notification_id}
-                className={`${styles.notification} ${styles.info}`}
-              >
-                <div className={styles.notificationHeader}>
-                  <h4>{notification.message}</h4>
-                  <button className={styles.closeButton}>×</button>
-                </div>
-                <p>{new Date(notification.created_at).toLocaleString()}</p>
-              </div>
+                message={notification.message}
+                created_at={notification.created_at}
+                status={notification.status}
+                notification_id={notification.notification_id}
+                recipient_role={notification.recipient_role}
+              />
             ))}
           </div>
         </div>

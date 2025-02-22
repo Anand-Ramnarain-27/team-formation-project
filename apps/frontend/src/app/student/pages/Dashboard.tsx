@@ -5,6 +5,7 @@ import ThemeModals from '../components/ThemeModals';
 import { Theme, Idea, Group, Notification } from '@/app/shared/utils/types';
 import Card from '@/app/shared/components/Card/Card';
 import StatusBadge from '@/app/shared/components/StatusBadge/StatusBadge';
+import NotificationCard from '@/app/shared/components/NotificationCard/NotificationCard';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -222,20 +223,14 @@ const Dashboard: React.FC = () => {
           </div>
           <div className={styles.notificationsContent}>
             {notifications.map((notification) => (
-              <div
+              <NotificationCard
                 key={notification.notification_id}
-                className={styles.notification}
-              >
-                <div className={styles.notificationContent}>
-                  <p className={styles.notificationDescription}>
-                    {notification.message}
-                  </p>
-                  <small>
-                    {new Date(notification.created_at).toLocaleString()}
-                  </small>
-                </div>
-                <button className={styles.closeButton}>×</button>
-              </div>
+                message={notification.message}
+                created_at={notification.created_at}
+                status={notification.status}
+                notification_id={notification.notification_id}
+                recipient_role={notification.recipient_role}
+              />
             ))}
           </div>
         </div>

@@ -6,32 +6,7 @@ import Button from '@/app/shared/components/Button/Button';
 import FormGroup from '@/app/shared/components/Form/FormGroup';
 import TextArea from '@/app/shared/components/Form/TextArea';
 import SelectInput from '@/app/shared/components/SelectInput/SelectInput';
-
-const NotificationCard = ({ notification }: { notification: Notification }) => {
-  const getIconClass = () => {
-    if (notification.message.toLowerCase().includes('deadline')) {
-      return styles.warningIcon;
-    } else if (notification.message.toLowerCase().includes('review')) {
-      return styles.successIcon;
-    }
-    return styles.infoIcon;
-  };
-
-  return (
-    <div className={styles.notificationCard}>
-      <div className={styles.notificationContent}>
-        <div className={getIconClass()} />
-        <div className={styles.notificationText}>
-          <p className={styles.message}>{notification.message}</p>
-          <p className={styles.timestamp}>
-            {new Date(notification.created_at).toLocaleString()}
-            {notification.creator && ` • Sent by ${notification.creator.name}`}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
+import NotificationCard from '../components/NotificationCard/NotificationCard';
 
 const CreateNotification = ({
   onNotificationCreate,
@@ -68,7 +43,7 @@ const CreateNotification = ({
     <form onSubmit={handleSubmit} className={styles.createForm}>
       <h2 className={styles.formTitle}>Create New Notification</h2>
       <FormGroup label="Send to:">
-       <SelectInput
+        <SelectInput
           value={recipientRole}
           onChange={setRecipientRole}
           options={recipientOptions}
@@ -139,6 +114,7 @@ const NotificationsPage = () => {
             created_by: 2,
             created_at: new Date().toISOString(),
             creator: mockUser,
+            status: 'info', // Add status to match NotificationCardProps
           },
           {
             notification_id: 2,
@@ -147,6 +123,7 @@ const NotificationsPage = () => {
             created_by: 2,
             created_at: new Date(Date.now() - 86400000).toISOString(),
             creator: mockUser,
+            status: 'warning', // Add status to match NotificationCardProps
           },
           {
             notification_id: 3,
@@ -155,6 +132,7 @@ const NotificationsPage = () => {
             created_by: 2,
             created_at: new Date(Date.now() - 172800000).toISOString(),
             creator: mockUser,
+            status: 'success', // Add status to match NotificationCardProps
           },
         ];
 
@@ -186,6 +164,7 @@ const NotificationsPage = () => {
         ...newNotification,
         created_at: new Date().toISOString(),
         creator: currentUser,
+        status: 'info', // Default status for new notifications
       };
 
       setNotifications([createdNotification, ...notifications]);
@@ -230,7 +209,11 @@ const NotificationsPage = () => {
             {notifications.map((notification) => (
               <NotificationCard
                 key={notification.notification_id}
-                notification={notification}
+                message={notification.message}
+                created_at={notification.created_at}
+                status={notification.status}
+                notification_id={notification.notification_id}
+                recipient_role={notification.recipient_role}
               />
             ))}
           </div>
