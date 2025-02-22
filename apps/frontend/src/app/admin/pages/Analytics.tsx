@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './Analytics.module.css';
 import { AnalyticsReport, Student } from '@/app/shared/utils/types';
 import Card from '@/app/shared/components/Card/Card';
 import TextInput from '@/app/shared/components/Form/TextInput';
+import {
+  LoadingState,
+  EmptyState,
+} from '@/app/shared/components/States/States';
 
 interface MetricCardProps {
   icon: string;
@@ -14,9 +18,44 @@ interface MetricCardProps {
 const Analytics: React.FC = () => {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isStudentsLoading, setIsStudentsLoading] = useState(true);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsReport | null>(
+    null
+  );
+  const [students, setStudents] = useState<Student[]>([]);
+
+  useEffect(() => {
+    const fetchAnalyticsData = async () => {
+      try {
+        // Simulate API call
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        setAnalyticsData(mockAnalyticsData);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error fetching analytics:', error);
+        setIsLoading(false);
+      }
+    };
+
+    const fetchStudents = async () => {
+      try {
+        // Simulate API call
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        setStudents(mockStudents);
+        setIsStudentsLoading(false);
+      } catch (error) {
+        console.error('Error fetching students:', error);
+        setIsStudentsLoading(false);
+      }
+    };
+
+    fetchAnalyticsData();
+    fetchStudents();
+  }, []);
 
   // Mock data based on your database schema - replace with actual API calls
-  const analyticsData: AnalyticsReport = {
+  const mockAnalyticsData: AnalyticsReport = {
     report_id: 1,
     theme_id: 1,
     total_students: 150,
@@ -158,19 +197,19 @@ const Analytics: React.FC = () => {
         <MetricCard
           icon="👥"
           label="Total Students"
-          value={analyticsData.total_students}
+          value={mockAnalyticsData.total_students}
           colorClass="metricBlue"
         />
         <MetricCard
           icon="💡"
           label="Ideas Submitted"
-          value={analyticsData.participation_stats.ideas_submitted}
+          value={mockAnalyticsData.participation_stats.ideas_submitted}
           colorClass="metricYellow"
         />
         <MetricCard
           icon="⭐"
           label="Average Rating"
-          value={analyticsData.average_rating}
+          value={mockAnalyticsData.average_rating}
           colorClass="metricPurple"
         />
       </div>
@@ -199,7 +238,16 @@ const Analytics: React.FC = () => {
       </div>
 
       <div className={styles.studentSection}>
-        <StudentSearch />
+        {isStudentsLoading ? (
+          <LoadingState message="Loading students..." />
+        ) : students.length === 0 ? (
+          <EmptyState
+            title="No Students Found"
+            description="There are no students to display at this time."
+          />
+        ) : (
+          <StudentSearch />
+        )}
         {selectedStudent && <StudentDetails student={selectedStudent} />}
       </div>
     </div>

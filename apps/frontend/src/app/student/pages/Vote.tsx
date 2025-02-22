@@ -3,6 +3,10 @@ import styles from './Voting.module.css';
 import { Idea, Vote } from '@/app/shared/utils/types';
 import Card from '@/app/shared/components/Card/Card';
 import Button from '@/app/shared/components/Button/Button';
+import {
+  LoadingState,
+  EmptyState,
+} from '@/app/shared/components/States/States';
 
 const Voting: React.FC = () => {
   const [ideas, setIdeas] = useState<Idea[]>([]);
@@ -120,7 +124,17 @@ const Voting: React.FC = () => {
       {error && <div className={styles.error}>{error}</div>}
 
       {loading ? (
-        <div className={styles.loading}>Loading ideas...</div>
+        <LoadingState message="Loading ideas..." />
+      ) : ideas.length === 0 ? (
+        <EmptyState
+          title="No ideas available"
+          description="There are no ideas available for voting at this time."
+          action={
+            <Button onClick={() => window.location.reload()}>
+              Refresh Page
+            </Button>
+          }
+        />
       ) : (
         <div className={styles.ideaGrid}>
           {ideas.map((idea) => (

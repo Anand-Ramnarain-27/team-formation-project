@@ -6,7 +6,11 @@ import Button from '@/app/shared/components/Button/Button';
 import FormGroup from '@/app/shared/components/Form/FormGroup';
 import TextArea from '@/app/shared/components/Form/TextArea';
 import SelectInput from '@/app/shared/components/SelectInput/SelectInput';
-import NotificationCard from '../components/NotificationCard/NotificationCard';
+import NotificationCard from '@/app/shared/components/NotificationCard/NotificationCard';
+import {
+  LoadingState,
+  EmptyState,
+} from '@/app/shared/components/States/States';
 
 const CreateNotification = ({
   onNotificationCreate,
@@ -201,9 +205,12 @@ const NotificationsPage = () => {
           {isAdmin ? 'Sent Notifications' : 'Notifications'}
         </h2>
         {loading ? (
-          <div className={styles.loadingState}>Loading notifications...</div>
+          <LoadingState message="Loading notifications..." />
         ) : notifications.length === 0 ? (
-          <div className={styles.emptyState}>No notifications found</div>
+          <EmptyState
+            title="No notifications"
+            description="There are no notifications to display at this time."
+          />
         ) : (
           <div className={styles.notificationsList}>
             {notifications.map((notification) => (
