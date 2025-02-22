@@ -10,6 +10,7 @@ import {
 import Card from '@/app/shared/components/Card/Card';
 import StatusBadge from '@/app/shared/components/StatusBadge/StatusBadge';
 import Tabs from '@/app/shared/components/Tabs/Tabs';
+import GroupCard from '@/app/shared/components/GroupCard/GroupCard';
 
 // Define the tab type to ensure type safety
 type TabType = 'participation' | 'ideas' | 'groups' | 'reviews';
@@ -219,20 +220,12 @@ const Profile: React.FC = () => {
           <Card title="Group History">
             <div className={styles.groupList}>
               {groups.map((group) => (
-                <div key={group.group_id} className={styles.groupItem}>
-                  <div className={styles.groupHeader}>
-                    <div>
-                      <h3 className={styles.groupTitle}>{group.group_name}</h3>
-                      <p className={styles.groupTheme}>{group.theme_title}</p>
-                    </div>
-                    {group.team_lead === profile.user_id && (
-                      <span className={styles.teamLeadBadge}>Team Lead</span>
-                    )}
-                  </div>
-                  <div className={styles.groupMeta}>
-                    Average Group Rating: {group.average_rating}/5
-                  </div>
-                </div>
+                <GroupCard
+                  key={group.group_id}
+                  group={group}
+                  showActions={false}
+                  className={styles.groupItem}
+                />
               ))}
             </div>
           </Card>

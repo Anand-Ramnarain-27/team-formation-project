@@ -8,6 +8,7 @@ import style from '@/app/shared/components/Button/Button.module.css';
 import FormGroup from '@/app/shared/components/Form/FormGroup';
 import TextInput from '@/app/shared/components/Form/TextInput';
 import SelectInput from '@/app/shared/components/SelectInput/SelectInput';
+import GroupCard from '@/app/shared/components/GroupCard/GroupCard';
 
 interface GroupDialogProps {
   group: Group | null;
@@ -407,123 +408,21 @@ const GroupManagement = () => {
           </div>
           <div className={styles.groupList}>
             {filteredGroups.map((group) => (
-              <div key={group.group_id} className={styles.groupCard}>
-                <div className={styles.groupHeader}>
-                  <div className={styles.groupInfo}>
-                    <div>
-                      <h3 className={styles.groupName}>{group.group_name}</h3>
-                      <div className={styles.groupTheme}>
-                        Theme: {group.theme_title}
-                      </div>
-                      <div className={styles.groupMeta}>
-                        <span>
-                          Created:{' '}
-                          {new Date(group.created_at).toLocaleDateString()}
-                        </span>
-                        {group.average_rating && (
-                          <span className={styles.rating}>
-                            Rating: {group.average_rating.toFixed(1)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className={styles.groupActions}>
-                    <Button
-                      onClick={() => {
-                        setSelectedGroup(group);
-                        setShowGroupDialog(true);
-                      }}
-                      className={style.fourth}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      onClick={() => toggleGroupExpansion(group.group_id)}
-                      className={style.fourth}
-                    >
-                      {expandedGroups[group.group_id] ? 'Collapse' : 'Expand'}
-                    </Button>
-                  </div>
-                </div>
-                {expandedGroups[group.group_id] && (
-                  <div className={styles.groupContent}>
-                    <div className={styles.teamLeadSection}>
-                      <div>
-                        <div className={styles.label}>Team Lead</div>
-                        <div className={styles.memberName}>
-                          {group.team_lead_details?.name}
-                        </div>
-                        <div className={styles.memberEmail}>
-                          {group.team_lead_details?.email}
-                        </div>
-                      </div>
-                      <Button
-                        onClick={() => {
-                          setSelectedGroup(group);
-                          setShowMemberDialog(true);
-                        }}
-                        className={style.fourth}
-                      >
-                        Manage Members
-                      </Button>
-                    </div>
-                    <div className={styles.themeInfo}>
-                      <div className={styles.label}>Theme Details</div>
-                      <div className={styles.themeDetails}>
-                        {
-                          themes.find((t) => t.theme_id === group.theme_id)
-                            ?.description
-                        }
-                      </div>
-                      <div className={styles.themeDates}>
-                        <span>
-                          Submission:{' '}
-                          {new Date(
-                            themes.find((t) => t.theme_id === group.theme_id)
-                              ?.submission_deadline || ''
-                          ).toLocaleDateString()}
-                        </span>
-                        <span>
-                          Voting:{' '}
-                          {new Date(
-                            themes.find((t) => t.theme_id === group.theme_id)
-                              ?.voting_deadline || ''
-                          ).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                    <div>
-                      <div className={styles.label}>
-                        Members ({group.members?.length || 0})
-                      </div>
-                      <div className={styles.membersList}>
-                        {group.members?.map((member) => (
-                          <div
-                            key={member.user_id}
-                            className={styles.memberCard}
-                          >
-                            <div className={styles.memberName}>
-                              {member.name}
-                            </div>
-                            <div className={styles.memberEmail}>
-                              {member.email}
-                            </div>
-                            <div className={styles.memberRole}>
-                              {member.role}
-                            </div>
-                          </div>
-                        ))}
-                        {(!group.members || group.members.length === 0) && (
-                          <div className={styles.emptyState}>
-                            No members in this group
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <GroupCard
+                key={group.group_id}
+                group={group}
+                isExpanded={expandedGroups[group.group_id]}
+                onExpand={() => toggleGroupExpansion(group.group_id)}
+                onEdit={() => {
+                  setSelectedGroup(group);
+                  setShowGroupDialog(true);
+                }}
+                onManageMembers={() => {
+                  setSelectedGroup(group);
+                  setShowMemberDialog(true);
+                }}
+                className={styles.groupCard}
+              />
             ))}
             {filteredGroups.length === 0 && (
               <div className={styles.noResults}>

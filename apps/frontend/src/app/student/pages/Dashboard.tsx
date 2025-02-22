@@ -6,6 +6,7 @@ import { Theme, Idea, Group, Notification } from '@/app/shared/utils/types';
 import Card from '@/app/shared/components/Card/Card';
 import StatusBadge from '@/app/shared/components/StatusBadge/StatusBadge';
 import NotificationCard from '@/app/shared/components/NotificationCard/NotificationCard';
+import GroupCard from '@/app/shared/components/GroupCard/GroupCard';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -63,7 +64,6 @@ const Dashboard: React.FC = () => {
       message: 'New theme available for idea submission',
       created_at: '2025-02-17T10:00:00Z',
     },
-    
   ]);
 
   const getThemeStatus = (theme: Theme) => {
@@ -219,7 +219,6 @@ const Dashboard: React.FC = () => {
         </div>
 
         <Card title="Notifications">
-          <div className={styles.cardHeader}></div>
           <div className={styles.notificationsContent}>
             {notifications.map((notification) => (
               <NotificationCard
@@ -264,15 +263,11 @@ const Dashboard: React.FC = () => {
           <div className={styles.cardHeader}></div>
           <div className={styles.cardContent}>
             {myGroup ? (
-              <>
-                <h3 className={styles.themeTitle}>{myGroup.group_name}</h3>
-                <p className={styles.cardDescription}>
-                  Theme ID: {myGroup.theme_id}
-                </p>
-                <div className={styles.scrollArea}>
-                  {/* Group members would be fetched and displayed here */}
-                </div>
-              </>
+              <GroupCard
+                group={myGroup}
+                showActions={false}
+                className={styles.dashboardGroupCard}
+              />
             ) : (
               <p>You haven't been assigned to a group yet.</p>
             )}
