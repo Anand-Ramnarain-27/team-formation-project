@@ -14,3 +14,20 @@
 .infoValue {
   color: #666;
 }
+
+.themeDescription {
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+.detailsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.submissionForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}

@@ -1,9 +1,9 @@
+// Review.tsx
 import React, { useState, useEffect } from 'react';
 import styles from './Review.module.css';
-import { User, Theme, Idea } from '@/app/shared/utils/types';
+import { Theme, Idea } from '@/app/shared/utils/types';
 import Card from '@/app/shared/components/Card/Card';
 import Button from '@/app/shared/components/Button/Button';
-import style from '@/app/shared/components/Button/Button.module.css';
 import TextInput from '@/app/shared/components/Form/TextInput';
 import StatusBadge from '@/app/shared/components/StatusBadge/StatusBadge';
 import SelectInput from '@/app/shared/components/SelectInput/SelectInput';
@@ -15,9 +15,7 @@ const Review: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  // Fetch themes and ideas from your API
   useEffect(() => {
-    // Example API calls - replace with your actual API endpoints
     const fetchThemes = async () => {
       try {
         const response = await fetch('/api/themes');
@@ -27,20 +25,17 @@ const Review: React.FC = () => {
         console.error('Error fetching themes:', error);
       }
     };
-
     fetchThemes();
   }, []);
 
   useEffect(() => {
     const fetchIdeas = async () => {
       if (!selectedTheme && selectedTheme !== 'all') return;
-
       try {
         const url =
           selectedTheme === 'all'
             ? '/api/ideas'
             : `/api/ideas?theme_id=${selectedTheme}`;
-
         const response = await fetch(url);
         const data = await response.json();
         setIdeas(data);
@@ -48,7 +43,6 @@ const Review: React.FC = () => {
         console.error('Error fetching ideas:', error);
       }
     };
-
     fetchIdeas();
   }, [selectedTheme]);
 
@@ -57,18 +51,12 @@ const Review: React.FC = () => {
     status: 'Approved' | 'Rejected'
   ) => {
     try {
-      // Update in database
       const response = await fetch(`/api/ideas/${ideaId}/status`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
       });
-
       if (!response.ok) throw new Error('Failed to update status');
-
-      // Update local state
       setIdeas(
         ideas.map((idea) =>
           idea.idea_id === ideaId ? { ...idea, status } : idea
@@ -76,7 +64,6 @@ const Review: React.FC = () => {
       );
     } catch (error) {
       console.error('Error updating idea status:', error);
-      // Add error handling UI feedback here
     }
   };
 
@@ -107,9 +94,9 @@ const Review: React.FC = () => {
   ];
 
   return (
-    <div className={styles.container}>
+    <main className={styles.container}>
       <Card title="Idea Review Dashboard">
-        <div className={styles.filters}>
+        <form className={styles.filters} onSubmit={(e) => e.preventDefault()}>
           <SelectInput
             value={selectedTheme}
             onChange={(value) => setSelectedTheme(value)}
@@ -117,7 +104,6 @@ const Review: React.FC = () => {
             placeholder="Select Theme"
             className={styles.select}
           />
-
           <SelectInput
             value={statusFilter}
             onChange={(value) => setStatusFilter(value)}
@@ -125,19 +111,18 @@ const Review: React.FC = () => {
             placeholder="Select Status"
             className={styles.select}
           />
-
           <TextInput
             value={searchTerm}
             onChange={(value) => setSearchTerm(value)}
             placeholder="Search ideas..."
             className={styles.searchInput}
           />
-        </div>
+        </form>
 
-        <div className={styles.ideasList}>
+        <section className={styles.ideasList}>
           {filteredIdeas.map((idea) => (
-            <div key={idea.idea_id} className={styles.ideaCard}>
-              <div className={styles.ideaContent}>
+            <article key={idea.idea_id} className={styles.ideaCard}>
+              <header className={styles.ideaContent}>
                 <div className={styles.ideaHeader}>
                   <h3 className={styles.ideaName}>{idea.idea_name}</h3>
                   <StatusBadge
@@ -145,22 +130,20 @@ const Review: React.FC = () => {
                     label={idea.status}
                   />
                 </div>
-
                 <p className={styles.ideaDescription}>{idea.description}</p>
-
-                <div className={styles.ideaMeta}>
+                <footer className={styles.ideaMeta}>
                   <span>By: {idea.submitter_name}</span>
                   {idea.votes_count !== undefined && (
                     <span>👍 {idea.votes_count} votes</span>
                   )}
-                  <span>
+                  <time dateTime={idea.created_at}>
                     Submitted: {new Date(idea.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
+                  </time>
+                </footer>
+              </header>
 
               {idea.status === 'Pending' && (
-                <div className={styles.actions}>
+                <aside className={styles.actions}>
                   <Button
                     onClick={() => updateIdeaStatus(idea.idea_id, 'Approved')}
                     className={`${styles.button} ${styles.approveButton}`}
@@ -173,25 +156,23 @@ const Review: React.FC = () => {
                   >
                     ✕ Reject
                   </Button>
-                </div>
+                </aside>
               )}
-            </div>
+            </article>
           ))}
 
           {filteredIdeas.length === 0 && selectedTheme && (
-            <div className={styles.emptyState}>
+            <p className={styles.emptyState}>
               No ideas found matching your criteria
-            </div>
+            </p>
           )}
 
           {!selectedTheme && (
-            <div className={styles.emptyState}>
-              Select a theme to view ideas
-            </div>
+            <p className={styles.emptyState}>Select a theme to view ideas</p>
           )}
-        </div>
+        </section>
       </Card>
-    </div>
+    </main>
   );
 };
 

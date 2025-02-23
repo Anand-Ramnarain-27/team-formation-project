@@ -1,3 +1,4 @@
+// Review.tsx
 import React, { useState, useEffect } from 'react';
 import styles from './Review.module.css';
 import { User, Group, GroupMember, Review } from '@/app/shared/utils/types';
@@ -7,38 +8,32 @@ import TextArea from '@/app/shared/components/Form/TextArea';
 import Tabs from '@/app/shared/components/Tabs/Tabs';
 import ReviewCard from '@/app/shared/components/ReviewCard/ReviewCard';
 
-// Define the tab type
 type TabType = 'ratings' | 'feedback';
 
 const Reviews: React.FC = () => {
-  const currentUserId = 1; // This should be dynamic
+  const currentUserId = 1;
   const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
   const [currentGroup, setCurrentGroup] = useState<Group | null>(null);
   const [reviews, setReviews] = useState<{ [key: number]: Review }>({});
   const [submitted, setSubmitted] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('ratings');
-  const [feedback, setFeedback] = useState('');
 
-  // Define tabs with explicit typing
   const tabs: Array<{ id: TabType; label: string }> = [
     { id: 'ratings', label: 'Ratings' },
     { id: 'feedback', label: 'Feedback' },
   ];
 
-  // Type-safe tab change handler
   const handleTabChange = (tabId: string) => {
     if (isValidTab(tabId)) {
       setActiveTab(tabId);
     }
   };
 
-  // Type guard to ensure tab is valid
   const isValidTab = (tab: string): tab is TabType => {
     return ['ratings', 'feedback'].includes(tab);
   };
 
   useEffect(() => {
-    // Rest of the code remains the same...
     setCurrentGroup({
       group_id: 1,
       theme_id: 1,
@@ -47,7 +42,7 @@ const Reviews: React.FC = () => {
       created_at: '12:00:00',
     });
 
-    const fetchedMembers: GroupMember[] = [
+    setGroupMembers([
       {
         group_member_id: 1,
         group_id: 1,
@@ -84,18 +79,14 @@ const Reviews: React.FC = () => {
           created_at: '12:00:00',
         },
       },
-    ];
-
-    setGroupMembers(fetchedMembers);
+    ]);
   }, []);
 
-  // Rest of the component code remains the same...
   const handleRatingChange = (
     revieweeId: number,
     rating: '1' | '2' | '3' | '4' | '5'
   ) => {
     if (!currentGroup) return;
-
     setReviews((prev) => ({
       ...prev,
       [revieweeId]: {
@@ -103,7 +94,7 @@ const Reviews: React.FC = () => {
         reviewer_id: currentUserId,
         reviewee_id: revieweeId,
         group_id: currentGroup.group_id,
-        rating: rating,
+        rating,
         feedback: prev[revieweeId]?.feedback || '',
       },
     }));
@@ -111,7 +102,6 @@ const Reviews: React.FC = () => {
 
   const handleFeedbackChange = (revieweeId: number, feedback: string) => {
     if (!currentGroup) return;
-
     setReviews((prev) => ({
       ...prev,
       [revieweeId]: {
@@ -120,14 +110,13 @@ const Reviews: React.FC = () => {
         reviewee_id: revieweeId,
         group_id: currentGroup.group_id,
         rating: prev[revieweeId]?.rating || '1',
-        feedback: feedback,
+        feedback,
       },
     }));
   };
 
   const handleSubmit = async () => {
-    const reviewsToSubmit = Object.values(reviews);
-    console.log('Submitting reviews:', reviewsToSubmit);
+    console.log('Submitting reviews:', Object.values(reviews));
     setSubmitted(true);
   };
 
@@ -135,17 +124,13 @@ const Reviews: React.FC = () => {
     (member) => member.user.user_id !== currentUserId
   );
 
-  const isAllRatingsProvided = () => {
-    return membersToReview.every(
-      (member) => reviews[member.user.user_id]?.rating
-    );
-  };
+  const isAllRatingsProvided = () =>
+    membersToReview.every((member) => reviews[member.user.user_id]?.rating);
 
-  const isAllFeedbackProvided = () => {
-    return membersToReview.every(
-      (member) => reviews[member.user.user_id]?.feedback?.length >= 10
+  const isAllFeedbackProvided = () =>
+    membersToReview.every(
+      (member) => (reviews[member.user.user_id]?.feedback?.length || 0) >= 10
     );
-  };
 
   const StarRating: React.FC<{ revieweeId: number }> = ({ revieweeId }) => {
     const currentRating = Number(reviews[revieweeId]?.rating || 0);
@@ -162,12 +147,15 @@ const Reviews: React.FC = () => {
               )
             }
             className={styles.starButton}
+            aria-label={`Rate ${rating} stars`}
           >
             <svg
               viewBox="0 0 24 24"
               className={`${styles.star} ${
                 rating <= currentRating ? styles.starFilled : ''
               }`}
+              role="img"
+              aria-hidden="true"
             >
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
             </svg>
@@ -179,99 +167,117 @@ const Reviews: React.FC = () => {
 
   if (submitted) {
     return (
-      <div className={styles.container}>
-        <div className={styles.successContainer}>
-          <div className={styles.successMessage}>
+      <main className={styles.container}>
+        <section className={styles.successContainer}>
+          <p className={styles.successMessage}>
             Thank you for submitting your reviews! Your feedback helps improve
             team collaboration.
-          </div>
-          <div className={styles.reviewSummary}>
+          </p>
+          <ul className={styles.reviewSummary}>
             {Object.values(reviews).map((review) => (
-              <ReviewCard
-                key={review.reviewee_id}
-                {...review}
-                showGroupName={false}
-                created_at={new Date().toISOString()}
-              />
+              <li key={review.reviewee_id}>
+                <ReviewCard
+                  {...review}
+                  showGroupName={false}
+                  created_at={new Date().toISOString()}
+                />
+              </li>
             ))}
-          </div>
-        </div>
-      </div>
+          </ul>
+        </section>
+      </main>
     );
   }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
+    <main className={styles.container}>
+      <header className={styles.header}>
         <h1 className={styles.title}>
           {currentGroup
             ? `${currentGroup.group_name} - Peer Review`
             : 'Team Member Review'}
         </h1>
-      </div>
+      </header>
 
       <Tabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} />
 
-      {activeTab === 'ratings' ? (
-        <div>
-          <div className={styles.questionTitle}>Rate Your Team Members</div>
-          <div className={styles.questionText}>
-            Please rate each team member's overall contribution and performance
-          </div>
+      <section>
+        {activeTab === 'ratings' ? (
+          <form>
+            <h2 className={styles.questionTitle}>Rate Your Team Members</h2>
+            <p className={styles.questionText}>
+              Please rate each team member's overall contribution and
+              performance
+            </p>
 
-          {membersToReview.map((member) => (
-            <div key={member.user.user_id} className={styles.studentCard}>
-              <div className={styles.studentName}>{member.user.name}</div>
-              <StarRating revieweeId={member.user.user_id} />
-            </div>
-          ))}
+            <ul>
+              {membersToReview.map((member) => (
+                <li key={member.user.user_id} className={styles.studentCard}>
+                  <span className={styles.studentName}>{member.user.name}</span>
+                  <StarRating revieweeId={member.user.user_id} />
+                </li>
+              ))}
+            </ul>
 
-          <div className={styles.buttonContainer}>
-            <Button
-              onClick={() => setActiveTab('feedback')}
-              disabled={!isAllRatingsProvided()}
-            >
-              Next: Written Feedback
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div>
-          <div className={styles.questionTitle}>Provide Written Feedback</div>
-          <div className={styles.questionText}>
-            Please provide detailed feedback for each team member (minimum 10
-            characters).
-          </div>
+            <nav className={styles.buttonContainer}>
+              <Button
+                onClick={() => setActiveTab('feedback')}
+                disabled={!isAllRatingsProvided()}
+              >
+                Next: Written Feedback
+              </Button>
+            </nav>
+          </form>
+        ) : (
+          <form>
+            <h2 className={styles.questionTitle}>Provide Written Feedback</h2>
+            <p className={styles.questionText}>
+              Please provide detailed feedback for each team member (minimum 10
+              characters).
+            </p>
 
-          {membersToReview.map((member) => (
-            <div key={member.user.user_id} className={styles.feedbackContainer}>
-              <FormGroup label={`Feedback for ${member.user.name}`}>
-                <TextArea
-                  value={reviews[member.user.user_id]?.feedback || ''}
-                  onChange={(e) => handleFeedbackChange(member.user.user_id, e)}
-                  placeholder="Provide constructive feedback..."
-                  rows={5}
-                />
-              </FormGroup>
-              {reviews[member.user.user_id]?.feedback?.length < 10 && (
-                <div className={styles.error}>
-                  Please provide more detailed feedback (minimum 10 characters)
-                </div>
-              )}
-            </div>
-          ))}
+            <ul>
+              {membersToReview.map((member) => (
+                <li
+                  key={member.user.user_id}
+                  className={styles.feedbackContainer}
+                >
+                  <FormGroup label={`Feedback for ${member.user.name}`}>
+                    <TextArea
+                      value={reviews[member.user.user_id]?.feedback || ''}
+                      onChange={(e) =>
+                        handleFeedbackChange(member.user.user_id, e)
+                      }
+                      placeholder="Provide constructive feedback..."
+                      rows={5}
+                    />
+                  </FormGroup>
+                  {(reviews[member.user.user_id]?.feedback?.length || 0) <
+                    10 && (
+                    <p className={styles.error}>
+                      Please provide more detailed feedback (minimum 10
+                      characters)
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
 
-          <div className={styles.buttonContainer}>
-            <Button onClick={() => setActiveTab('ratings')}>
-              Back to Ratings
-            </Button>
-            <Button onClick={handleSubmit} disabled={!isAllFeedbackProvided()}>
-              Submit Review
-            </Button>
-          </div>
-        </div>
-      )}
-    </div>
+            <nav className={styles.buttonContainer}>
+              <Button onClick={() => setActiveTab('ratings')}>
+                Back to Ratings
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                disabled={!isAllFeedbackProvided()}
+              >
+                Submit Review
+              </Button>
+            </nav>
+          </form>
+        )}
+      </section>
+    </main>
   );
 };
 

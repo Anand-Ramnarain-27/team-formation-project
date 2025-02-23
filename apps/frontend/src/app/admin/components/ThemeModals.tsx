@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import styles from './ThemeModals.module.css';
-import { Theme, BaseTheme } from '@/app/shared/utils/types';
+import { Theme, BaseTheme, ReviewDeadline } from '@/app/shared/utils/types';
 import { SharedModal } from '@/app/shared/components/Modal/Modal';
 import Button from '@/app/shared/components/Button/Button';
-import style from '@/app/shared/components/Button/Button.module.css';
-import FormGroup from '@/app/shared/components/Form/FormGroup'; 
+import buttonStyles from '@/app/shared/components/Button/Button.module.css';
+import FormGroup from '@/app/shared/components/Form/FormGroup';
 import TextInput from '@/app/shared/components/Form/TextInput';
 import TextArea from '@/app/shared/components/Form/TextArea';
 
@@ -14,6 +14,33 @@ interface ThemeModalProps {
   theme?: Theme;
   onSubmit: (theme: BaseTheme) => void;
 }
+
+interface DeadlineInputsProps {
+  deadline: ReviewDeadline;
+  onUpdate: (field: 'start' | 'end', value: string) => void;
+}
+
+const DeadlineInputs: React.FC<DeadlineInputsProps> = ({
+  deadline,
+  onUpdate,
+}) => (
+  <fieldset className={styles.reviewDeadlineInputs}>
+    <TextInput
+      type="datetime-local"
+      value={deadline.start}
+      onChange={(value) => onUpdate('start', value)}
+      placeholder="Start Date"
+      aria-label="Review period start date"
+    />
+    <TextInput
+      type="datetime-local"
+      value={deadline.end}
+      onChange={(value) => onUpdate('end', value)}
+      placeholder="End Date"
+      aria-label="Review period end date"
+    />
+  </fieldset>
+);
 
 export const ThemeModal: React.FC<ThemeModalProps> = ({
   isOpen,
@@ -49,25 +76,29 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
   };
 
   const addReviewDeadline = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      review_deadline: [...prev.review_deadline, { start: '', end: '' }]
+      review_deadline: [...prev.review_deadline, { start: '', end: '' }],
     }));
   };
 
   const removeReviewDeadline = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      review_deadline: prev.review_deadline.filter((_, i) => i !== index)
+      review_deadline: prev.review_deadline.filter((_, i) => i !== index),
     }));
   };
 
-  const updateReviewDeadline = (index: number, field: 'start' | 'end', value: string) => {
-    setFormData(prev => ({
+  const updateReviewDeadline = (
+    index: number,
+    field: 'start' | 'end',
+    value: string
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      review_deadline: prev.review_deadline.map((deadline, i) => 
+      review_deadline: prev.review_deadline.map((deadline, i) =>
         i === index ? { ...deadline, [field]: value } : deadline
-      )
+      ),
     }));
   };
 
@@ -79,40 +110,59 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
       size="medium"
       showFooter={true}
       footerContent={
-        <>
-          <Button onClick={onClose} className={style.third}>
+        <nav className={styles.modalActions}>
+          <Button onClick={onClose} className={buttonStyles.third}>
             Cancel
           </Button>
-          <button type="submit" form="modalForm" className={styles.submitButton}>
+          <button
+            type="submit"
+            form="themeForm"
+            className={styles.submitButton}
+            aria-label={theme ? 'Save theme changes' : 'Create new theme'}
+          >
             {theme ? 'Save Changes' : 'Create Theme'}
           </button>
-        </>
+        </nav>
       }
     >
-      <form id="modalForm" onSubmit={handleSubmit} className={styles.form}>
+      <form
+        id="themeForm"
+        onSubmit={handleSubmit}
+        className={styles.form}
+        aria-label="Theme configuration form"
+      >
         <FormGroup label="Title">
           <TextInput
             value={formData.title}
-            onChange={(value) => setFormData(prev => ({ ...prev, title: value }))}
+            onChange={(value) =>
+              setFormData((prev) => ({ ...prev, title: value }))
+            }
             placeholder="Enter theme title"
+            aria-label="Theme title"
           />
         </FormGroup>
 
         <FormGroup label="Description">
           <TextArea
             value={formData.description}
-            onChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
+            onChange={(value) =>
+              setFormData((prev) => ({ ...prev, description: value }))
+            }
             placeholder="Enter theme description"
             rows={4}
+            aria-label="Theme description"
           />
         </FormGroup>
 
-        <div className={styles.formRow}>
+        <section className={styles.formRow}>
           <FormGroup label="Submission Deadline">
             <TextInput
               type="datetime-local"
               value={formData.submission_deadline}
-              onChange={(value) => setFormData(prev => ({ ...prev, submission_deadline: value }))}
+              onChange={(value) =>
+                setFormData((prev) => ({ ...prev, submission_deadline: value }))
+              }
+              aria-label="Submission deadline"
             />
           </FormGroup>
 
@@ -120,49 +170,54 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
             <TextInput
               type="datetime-local"
               value={formData.voting_deadline}
-              onChange={(value) => setFormData(prev => ({ ...prev, voting_deadline: value }))}
+              onChange={(value) =>
+                setFormData((prev) => ({ ...prev, voting_deadline: value }))
+              }
+              aria-label="Voting deadline"
             />
           </FormGroup>
-        </div>
+        </section>
 
         <FormGroup label="Review Deadlines">
           {formData.review_deadline.map((deadline, index) => (
-            <div key={index} className={styles.reviewDeadlineRow}>
-              <div className={styles.reviewDeadlineInputs}>
-                <TextInput
-                  type="datetime-local"
-                  value={deadline.start}
-                  onChange={(value) => updateReviewDeadline(index, 'start', value)}
-                  placeholder="Start Date"
-                />
-                <TextInput
-                  type="datetime-local"
-                  value={deadline.end}
-                  onChange={(value) => updateReviewDeadline(index, 'end', value)}
-                  placeholder="End Date"
-                />
-              </div>
+            <article key={index} className={styles.reviewDeadlineRow}>
+              <DeadlineInputs
+                deadline={deadline}
+                onUpdate={(field, value) =>
+                  updateReviewDeadline(index, field, value)
+                }
+              />
               {formData.review_deadline.length > 1 && (
                 <Button
                   onClick={() => removeReviewDeadline(index)}
-                  className={style.danger}
+                  className={buttonStyles.danger}
+                  aria-label={`Remove review period ${index + 1}`}
                 >
                   Remove
                 </Button>
               )}
-            </div>
+            </article>
           ))}
-          <Button onClick={addReviewDeadline}>
+          <Button
+            onClick={addReviewDeadline}
+            aria-label="Add new review period"
+          >
             + Add Review Period
           </Button>
         </FormGroup>
 
-        <div className={styles.formRow}>
+        <section className={styles.formRow}>
           <FormGroup label="Number of Groups">
             <TextInput
               type="number"
               value={formData.number_of_groups.toString()}
-              onChange={(value) => setFormData(prev => ({ ...prev, number_of_groups: parseInt(value) || 1 }))}
+              onChange={(value) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  number_of_groups: parseInt(value) || 1,
+                }))
+              }
+              aria-label="Number of groups"
             />
           </FormGroup>
 
@@ -171,11 +226,18 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
               <input
                 type="checkbox"
                 checked={formData.auto_assign_group}
-                onChange={(e) => setFormData(prev => ({ ...prev, auto_assign_group: e.target.checked }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    auto_assign_group: e.target.checked,
+                  }))
+                }
+                aria-label="Enable auto-assign groups"
               />
+              <span className={styles.checkboxText}></span>
             </label>
           </FormGroup>
-        </div>
+        </section>
       </form>
     </SharedModal>
   );

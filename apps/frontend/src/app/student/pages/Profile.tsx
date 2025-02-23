@@ -8,19 +8,16 @@ import {
   ParticipationStats,
 } from '@/app/shared/utils/types';
 import Card from '@/app/shared/components/Card/Card';
-import StatusBadge from '@/app/shared/components/StatusBadge/StatusBadge';
 import Tabs from '@/app/shared/components/Tabs/Tabs';
 import GroupCard from '@/app/shared/components/GroupCard/GroupCard';
 import ReviewCard from '@/app/shared/components/ReviewCard/ReviewCard';
 import IdeaCard from '@/app/shared/components/IdeaCard/IdeaCard';
 
-// Define the tab type to ensure type safety
 type TabType = 'participation' | 'ideas' | 'groups' | 'reviews';
 
 const Profile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('participation');
 
-  // Sample data structured according to the database schema
   const [profile] = useState<User>({
     user_id: 1,
     name: 'John Doe',
@@ -51,17 +48,6 @@ const Profile: React.FC = () => {
       theme_title: 'Educational Technology',
       votes_count: 25,
     },
-    {
-      idea_id: 2,
-      theme_id: 2,
-      submitted_by: 2,
-      idea_name: 'Sustainable Campus Initiative',
-      description: 'Making our campus more sustainable',
-      status: 'Pending',
-      created_at: '2024-02-15T00:00:00Z',
-      theme_title: 'Green Technology',
-      votes_count: 18,
-    },
   ]);
 
   const [groups] = useState<Group[]>([
@@ -73,15 +59,6 @@ const Profile: React.FC = () => {
       created_at: '2024-02-01T00:00:00Z',
       theme_title: 'Educational Technology',
       average_rating: 4.5,
-    },
-    {
-      group_id: 2,
-      theme_id: 2,
-      group_name: 'Sustainable Campus Initiative',
-      team_lead: 2,
-      created_at: '2024-02-15T00:00:00Z',
-      theme_title: 'Green Technology',
-      average_rating: 4.2,
     },
   ]);
 
@@ -109,142 +86,144 @@ const Profile: React.FC = () => {
     { id: 'reviews', label: 'Reviews' },
   ];
 
-  // Type-safe tab change handler
   const handleTabChange = (tabId: string) => {
     if (isValidTab(tabId)) {
       setActiveTab(tabId);
     }
   };
 
-  // Type guard to ensure tab is valid
   const isValidTab = (tab: string): tab is TabType => {
     return tabs.map((t) => t.id).includes(tab as TabType);
   };
 
-  const renderParticipationStats = () => (
-    <div className={styles.participationStats}>
-      <div className={styles.statBar}>
-        <div className={styles.statLabel}>Ideas</div>
-        <div className={styles.statBarContainer}>
-          <div
-            className={styles.statBarFill}
-            style={{ width: `${(participationStats.totalIdeas / 20) * 100}%` }}
-          />
-          <span>{participationStats.totalIdeas}</span>
-        </div>
+  const ParticipationStat: React.FC<{
+    label: string;
+    value: number;
+    total: number;
+  }> = ({ label, value, total }) => (
+    <article className={styles.statBar}>
+      <h3 className={styles.statLabel}>{label}</h3>
+      <div
+        className={styles.statBarContainer}
+        role="progressbar"
+        aria-valuenow={value}
+        aria-valuemax={total}
+      >
+        <div
+          className={styles.statBarFill}
+          style={{ width: `${(value / total) * 100}%` }}
+        />
+        <span>{value}</span>
       </div>
-      <div className={styles.statBar}>
-        <div className={styles.statLabel}>Votes</div>
-        <div className={styles.statBarContainer}>
-          <div
-            className={styles.statBarFill}
-            style={{ width: `${(participationStats.totalVotes / 20) * 100}%` }}
-          />
-          <span>{participationStats.totalVotes}</span>
-        </div>
-      </div>
-      <div className={styles.statBar}>
-        <div className={styles.statLabel}>Reviews</div>
-        <div className={styles.statBarContainer}>
-          <div
-            className={styles.statBarFill}
-            style={{
-              width: `${(participationStats.totalReviews / 20) * 100}%`,
-            }}
-          />
-          <span>{participationStats.totalReviews}</span>
-        </div>
-      </div>
-    </div>
+    </article>
   );
 
   return (
-    <div className={styles.container}>
-      {/* Profile Header */}
-      <div className={styles.profileHeader}>
-        <div className={styles.profileAvatar}>
-          <svg viewBox="0 0 24 24" className={styles.avatarIcon}>
+    <main className={styles.container}>
+      <article className={styles.profileHeader}>
+        <figure className={styles.profileAvatar}>
+          <svg
+            viewBox="0 0 24 24"
+            className={styles.avatarIcon}
+            role="img"
+            aria-label="Profile avatar"
+          >
             <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
           </svg>
-        </div>
-        <div className={styles.profileInfo}>
+        </figure>
+
+        <section className={styles.profileInfo}>
           <h1 className={styles.profileName}>{profile.name}</h1>
-          <p className={styles.profileEmail}>{profile.email}</p>
-          <p className={styles.profileDate}>
+          <address className={styles.profileEmail}>{profile.email}</address>
+          <time className={styles.profileDate} dateTime={profile.created_at}>
             Member since {formatDate(profile.created_at)}
-          </p>
-        </div>
-        <div className={styles.profileRating}>
-          <div className={styles.ratingValue}>
+          </time>
+        </section>
+
+        <aside className={styles.profileRating}>
+          <p className={styles.ratingValue} aria-label="Average rating">
             {participationStats.averageRating}/5
-          </div>
-          <div className={styles.ratingLabel}>Average Rating</div>
-        </div>
-      </div>
+          </p>
+          <p className={styles.ratingLabel}>Average Rating</p>
+        </aside>
+      </article>
 
-      {/* Tab Navigation */}
-      <Tabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} />
+      <nav>
+        <Tabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} />
+      </nav>
 
-      {/* Tab Content */}
-      <div className={styles.tabContent}>
+      <section
+        className={styles.tabContent}
+        role="tabpanel"
+        aria-label={`${activeTab} content`}
+      >
         {activeTab === 'participation' && (
           <Card title="Participation Overview">
-            {renderParticipationStats()}
+            <section className={styles.participationStats}>
+              <ParticipationStat
+                label="Ideas"
+                value={participationStats.totalIdeas}
+                total={20}
+              />
+              <ParticipationStat
+                label="Votes"
+                value={participationStats.totalVotes}
+                total={20}
+              />
+              <ParticipationStat
+                label="Reviews"
+                value={participationStats.totalReviews}
+                total={20}
+              />
+            </section>
           </Card>
         )}
 
         {activeTab === 'ideas' && (
           <Card title="Submitted Ideas">
-            <div className={styles.ideaList}>
+            <ul className={styles.ideaList}>
               {ideas.map((idea) => (
-                <IdeaCard
-                  key={idea.idea_id}
-                  idea_name={idea.idea_name}
-                  description={idea.description}
-                  submitter_name={profile.name}
-                  vote_count={idea.votes_count}
-                  status={idea.status}
-                  idea_id={idea.idea_id}
-                  theme_id={idea.theme_id}
-                  submitted_by={idea.submitted_by}
-                  created_at={idea.created_at}
-                />
+                <li key={idea.idea_id}>
+                  <IdeaCard {...idea} />
+                </li>
               ))}
-            </div>
+            </ul>
           </Card>
         )}
 
         {activeTab === 'groups' && (
           <Card title="Group History">
-            <div className={styles.groupList}>
+            <ul className={styles.groupList}>
               {groups.map((group) => (
-                <GroupCard
-                  key={group.group_id}
-                  group={group}
-                  showActions={false}
-                  className={styles.groupItem}
-                />
+                <li key={group.group_id}>
+                  <GroupCard
+                    group={group}
+                    showActions={false}
+                    className={styles.groupItem}
+                  />
+                </li>
               ))}
-            </div>
+            </ul>
           </Card>
         )}
 
         {activeTab === 'reviews' && (
           <Card title="Reviews Received">
-            <div className={styles.reviewList}>
+            <ul className={styles.reviewList}>
               {reviews.map((review) => (
-                <ReviewCard
-                  key={review.review_id}
-                  {...review}
-                  showGroupName={true}
-                  className={styles.reviewItem}
-                />
+                <li key={review.review_id}>
+                  <ReviewCard
+                    {...review}
+                    showGroupName={true}
+                    className={styles.reviewItem}
+                  />
+                </li>
               ))}
-            </div>
+            </ul>
           </Card>
         )}
-      </div>
-    </div>
+      </section>
+    </main>
   );
 };
 

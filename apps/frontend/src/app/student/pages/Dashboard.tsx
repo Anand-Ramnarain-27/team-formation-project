@@ -19,10 +19,8 @@ const Dashboard: React.FC = () => {
     styles.orangeTheme,
   ];
 
-  const getRandomThemeColor = () => {
-    const randomIndex = Math.floor(Math.random() * themeColors.length);
-    return themeColors[randomIndex];
-  };
+  const getRandomThemeColor = () =>
+    themeColors[Math.floor(Math.random() * themeColors.length)];
 
   const [themes] = useState<Theme[]>([
     {
@@ -32,25 +30,7 @@ const Dashboard: React.FC = () => {
       submission_deadline: '2025-03-01T00:00:00Z',
       voting_deadline: '2025-03-15T00:00:00Z',
       review_deadline: [
-        {
-          start: '2025-03-16T00:00:00Z',
-          end: '2025-03-30T00:00:00Z',
-        },
-      ],
-      number_of_groups: 4,
-      auto_assign_group: true,
-    },
-    {
-      theme_id: 2,
-      title: 'Innovation in EdTech',
-      description: 'Exploring new technologies in education',
-      submission_deadline: '2025-02-01T00:00:00Z',
-      voting_deadline: '2025-02-20T00:00:00Z',
-      review_deadline: [
-        {
-          start: '2025-03-16T00:00:00Z',
-          end: '2025-03-30T00:00:00Z',
-        },
+        { start: '2025-03-16T00:00:00Z', end: '2025-03-30T00:00:00Z' },
       ],
       number_of_groups: 4,
       auto_assign_group: true,
@@ -65,6 +45,30 @@ const Dashboard: React.FC = () => {
       created_at: '2025-02-17T10:00:00Z',
     },
   ]);
+
+  const [myIdeas] = useState<Idea[]>([
+    {
+      idea_id: 1,
+      theme_id: 1,
+      submitted_by: 1,
+      idea_name: 'AI-Powered Study Assistant',
+      description: 'An AI tool to help students organize their study materials',
+      status: 'Pending',
+      created_at: '2025-02-16T15:30:00Z',
+    },
+  ]);
+
+  const [myGroup] = useState<Group | null>({
+    group_id: 1,
+    theme_id: 1,
+    group_name: 'Innovation Team Alpha',
+    team_lead: 123,
+    created_at: '2025-02-16T15:30:00Z',
+    updated_at: null,
+  });
+
+  const [selectedTheme, setSelectedTheme] = useState<Theme | null>(null);
+  const [modalType, setModalType] = useState<'view' | 'submit' | null>(null);
 
   const getThemeStatus = (theme: Theme) => {
     const now = new Date();
@@ -81,60 +85,16 @@ const Dashboard: React.FC = () => {
         isActive: true,
       };
     } else if (now < votingDeadline) {
-      return {
-        phase: 'voting',
-        actionButton: 'Vote Now',
-        isActive: true,
-      };
+      return { phase: 'voting', actionButton: 'Vote Now', isActive: true };
     } else if (
       reviewStart &&
       reviewEnd &&
       now >= reviewStart &&
       now <= reviewEnd
     ) {
-      return {
-        phase: 'review',
-        actionButton: 'Review',
-        isActive: true,
-      };
-    } else {
-      return {
-        phase: 'completed',
-        actionButton: 'Completed',
-        isActive: false,
-      };
+      return { phase: 'review', actionButton: 'Review', isActive: true };
     }
-  };
-
-  const [myIdeas] = useState<Idea[]>([
-    {
-      idea_id: 1,
-      theme_id: 1,
-      submitted_by: 1,
-      idea_name: 'AI-Powered Study Assistant',
-      description: 'An AI tool to help students organize their study materials',
-      status: 'Pending',
-      created_at: '2025-02-16T15:30:00Z',
-    },
-    // ... more ideas
-  ]);
-
-  const [myGroup] = useState<Group | null>({
-    group_id: 1,
-    theme_id: 1,
-    group_name: 'Innovation Team Alpha',
-    team_lead: 123,
-    created_at: '2025-02-16T15:30:00Z',
-    updated_at: null,
-  });
-
-  const getStatusColor = (deadline: string): string => {
-    const now = new Date();
-    const deadlineDate = new Date(deadline);
-    if (deadlineDate < now) return styles.greenTheme;
-    if (deadlineDate.getTime() - now.getTime() < 7 * 24 * 60 * 60 * 1000)
-      return styles.yellowTheme;
-    return styles.blueTheme;
+    return { phase: 'completed', actionButton: 'Completed', isActive: false };
   };
 
   const handleThemeAction = (themeId: number, action: string) => {
@@ -152,12 +112,9 @@ const Dashboard: React.FC = () => {
       case 'Review':
         navigate('/student/review');
         break;
-      default:
-        break;
     }
   };
 
-  // Add a new function to handle the View Theme button
   const handleViewTheme = (themeId: number) => {
     const theme = themes.find((t) => t.theme_id === themeId);
     if (theme) {
@@ -166,20 +123,17 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const [selectedTheme, setSelectedTheme] = useState<Theme | null>(null);
-  const [modalType, setModalType] = useState<'view' | 'submit' | null>(null);
-
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Active Themes</h1>
-        <div className={styles.dateNav}>
-          <span>{new Date().toLocaleDateString()}</span>
-        </div>
-      </div>
+    <main className={styles.container}>
+      <header className={styles.header}>
+        <h1>Active Themes</h1>
+        <time className={styles.dateNav} dateTime={new Date().toISOString()}>
+          {new Date().toLocaleDateString()}
+        </time>
+      </header>
 
-      <div className={styles.topSection}>
-        <div className={styles.themesGrid}>
+      <section className={styles.topSection}>
+        <section className={styles.themesGrid}>
           {themes.map((theme) => {
             const status = getThemeStatus(theme);
             const themeColor = getRandomThemeColor();
@@ -190,7 +144,7 @@ const Dashboard: React.FC = () => {
                 className={`${styles.themeCard} ${themeColor}`}
               >
                 <p className={styles.themeInfo}>{theme.description}</p>
-                <div className={styles.themeFooter}>
+                <footer className={styles.themeFooter}>
                   <div className={styles.themeButtons}>
                     <button
                       className={styles.viewButton}
@@ -199,9 +153,7 @@ const Dashboard: React.FC = () => {
                       View Theme
                     </button>
                     <button
-                      className={`${styles.viewButton} ${
-                        !status.isActive ? 'opacity-50 cursor-not-allowed' : ''
-                      }`}
+                      className={styles.viewButton}
                       onClick={() =>
                         status.isActive &&
                         handleThemeAction(theme.theme_id, status.actionButton)
@@ -212,36 +164,33 @@ const Dashboard: React.FC = () => {
                     </button>
                   </div>
                   <span className={styles.status}>Phase: {status.phase}</span>
-                </div>
+                </footer>
               </Card>
             );
           })}
-        </div>
+        </section>
 
-        <Card title="Notifications">
-          <div className={styles.notificationsContent}>
-            {notifications.map((notification) => (
-              <NotificationCard
-                key={notification.notification_id}
-                message={notification.message}
-                created_at={notification.created_at}
-                status={notification.status}
-                notification_id={notification.notification_id}
-                recipient_role={notification.recipient_role}
-              />
-            ))}
-          </div>
-        </Card>
-      </div>
+        <aside>
+          <Card title="Notifications">
+            <ul className={styles.notificationsContent}>
+              {notifications.map((notification) => (
+                <li key={notification.notification_id}>
+                  <NotificationCard {...notification} />
+                </li>
+              ))}
+            </ul>
+          </Card>
+        </aside>
+      </section>
 
-      <div className={styles.bottomSection}>
-        <Card title="My Ideas">
-          <div className={styles.cardHeader}></div>
-          <div className={styles.cardContent}>
-            <div className={styles.scrollArea}>
+      <section className={styles.bottomSection}>
+        <article>
+          <Card title="My Ideas">
+            <header className={styles.cardHeader} />
+            <ul className={styles.scrollArea}>
               {myIdeas.map((idea) => (
-                <div key={idea.idea_id} className={styles.notification}>
-                  <div className={styles.notificationContent}>
+                <li key={idea.idea_id} className={styles.notification}>
+                  <article className={styles.notificationContent}>
                     <h4 className={styles.notificationTitle}>
                       {idea.idea_name}
                     </h4>
@@ -252,16 +201,16 @@ const Dashboard: React.FC = () => {
                       status={idea.status.toLowerCase()}
                       label={idea.status}
                     />
-                  </div>
-                </div>
+                  </article>
+                </li>
               ))}
-            </div>
-          </div>
-        </Card>
+            </ul>
+          </Card>
+        </article>
 
-        <Card title="My Group">
-          <div className={styles.cardHeader}></div>
-          <div className={styles.cardContent}>
+        <article>
+          <Card title="My Group">
+            <header className={styles.cardHeader} />
             {myGroup ? (
               <GroupCard
                 group={myGroup}
@@ -271,9 +220,10 @@ const Dashboard: React.FC = () => {
             ) : (
               <p>You haven't been assigned to a group yet.</p>
             )}
-          </div>
-        </Card>
-      </div>
+          </Card>
+        </article>
+      </section>
+
       {selectedTheme && modalType && (
         <ThemeModals
           theme={selectedTheme}
@@ -285,7 +235,7 @@ const Dashboard: React.FC = () => {
           modalType={modalType}
         />
       )}
-    </div>
+    </main>
   );
 };
 

@@ -1,12 +1,6 @@
-import React, { useState, ReactNode, ChangeEvent, FormEvent } from 'react';
+import React, { useState, FormEvent } from 'react';
 import styles from './StudentManagement.module.css';
-import {
-  User,
-  GroupMember,
-  Group,
-  Review,
-  StudentWithDetails,
-} from '@/app/shared/utils/types';
+import { StudentWithDetails, User } from '@/app/shared/utils/types';
 import { SharedModal } from '@/app/shared/components/Modal/Modal';
 import Button from '@/app/shared/components/Button/Button';
 import FormGroup from '@/app/shared/components/Form/FormGroup';
@@ -18,13 +12,54 @@ interface StudentFormProps {
   onSubmit: (data: Partial<User>) => void;
 }
 
+const StudentForm: React.FC<StudentFormProps> = ({ student, onSubmit }) => {
+  const [formData, setFormData] = useState({
+    name: student?.name || '',
+    email: student?.email || '',
+    role: student?.role || 'student',
+  });
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className={styles.form}>
+      <FormGroup label="Name:">
+        <TextInput
+          value={formData.name}
+          onChange={(value) => setFormData({ ...formData, name: value })}
+          placeholder="Enter full name"
+        />
+      </FormGroup>
+      <FormGroup label="Email:">
+        <TextInput
+          type="email"
+          value={formData.email}
+          onChange={(value) => setFormData({ ...formData, email: value })}
+          placeholder="Enter email address"
+        />
+      </FormGroup>
+      <FormGroup label="Role:">
+        <SelectInput
+          value={formData.role}
+          onChange={(value) => setFormData({ ...formData, role: value })}
+          options={[
+            { value: 'student', label: 'Student' },
+            { value: 'admin', label: 'Admin' },
+          ]}
+          placeholder="Select role"
+        />
+      </FormGroup>
+      <Button type="submit">
+        {student ? 'Update Student' : 'Add Student'}
+      </Button>
+    </form>
+  );
+};
+
 const StudentManagement: React.FC = () => {
-  // const [formData, setFormData] = useState({
-  //   name: student?.name || '',
-  //   email: student?.email || '',
-  //   role: student?.role || 'student',
-  // });
-  // Mock data based on database schema
   const [students, setStudents] = useState<StudentWithDetails[]>([
     {
       user_id: 1,
@@ -54,28 +89,11 @@ const StudentManagement: React.FC = () => {
     },
   ]);
 
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [filterRole, setFilterRole] = useState<string>('all');
-  const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterRole, setFilterRole] = useState('all');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] =
     useState<StudentWithDetails | null>(null);
-
-  const handleSearch = (event: ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
-  };
-
-  const handleFilterChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    setFilterRole(event.target.value);
-  };
-
-  const handleEdit = (student: StudentWithDetails) => {
-    setEditingStudent(student);
-  };
-
-  const closeModal = () => {
-    setIsAddModalOpen(false);
-    setEditingStudent(null);
-  };
 
   const filteredStudents = students.filter((student) => {
     const matchesSearch =
@@ -85,92 +103,35 @@ const StudentManagement: React.FC = () => {
     return matchesSearch && matchesFilter;
   });
 
-  const StudentForm: React.FC<StudentFormProps> = ({ student, onSubmit }) => {
-    const [formData, setFormData] = useState({
-      name: student?.name || '',
-      email: student?.email || '',
-      role: student?.role || 'student',
-    });
-
-    const handleSubmit = (e: FormEvent) => {
-      e.preventDefault();
-      onSubmit(formData);
-      closeModal();
-    };
-
-    const roleOptions = [
-      { value: 'student', label: 'Student' },
-      { value: 'admin', label: 'Admin' },
-    ];
-
-    return (
-      <form onSubmit={handleSubmit} className={styles.form}>
-        <FormGroup label="Name:">
-          <TextInput
-            value={formData.name}
-            onChange={(value) => setFormData({ ...formData, name: value })}
-            placeholder="Enter full name"
-          />
-        </FormGroup>
-        <FormGroup label="Email:">
-          <TextInput
-            type="email"
-            value={formData.email}
-            onChange={(value) => setFormData({ ...formData, email: value })}
-            placeholder="Enter email address"
-          />
-        </FormGroup>
-        <FormGroup label="Role:">
-          <SelectInput
-            value={formData.role}
-            onChange={(value) => setFormData({ ...formData, role: value })}
-            options={roleOptions}
-            placeholder="Select role"
-            className={styles.select}
-          />
-        </FormGroup>
-        <Button type="submit">
-          {student ? 'Update Student' : 'Add Student'}
-        </Button>
-      </form>
-    );
-  };
-
-  const roleFilterOptions = [
-    { value: 'all', label: 'All Roles' },
-    { value: 'student', label: 'Students' },
-    { value: 'admin', label: 'Admins' },
-  ];
-
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
+    <main className={styles.container}>
+      <header className={styles.header}>
         <h1>Student Management</h1>
         <Button onClick={() => setIsAddModalOpen(true)}>Add Student</Button>
-      </div>
+      </header>
 
-      <div className={styles.controls}>
-        <div className={styles.searchContainer}>
-          <TextInput
-            value={searchTerm}
-            onChange={(value) => setSearchTerm(value)}
-            placeholder="Search by name or email..."
-            className={styles.searchInput}
-          />
-        </div>
+      <section className={styles.controls}>
+        <TextInput
+          value={searchTerm}
+          onChange={setSearchTerm}
+          placeholder="Search by name or email..."
+          className={styles.searchInput}
+        />
         <SelectInput
           value={filterRole}
-          onChange={(value) => setFilterRole(value)}
-          options={roleFilterOptions}
+          onChange={setFilterRole}
+          options={[
+            { value: 'all', label: 'All Roles' },
+            { value: 'student', label: 'Students' },
+            { value: 'admin', label: 'Admins' },
+          ]}
           placeholder="Select role"
           className={styles.filterSelect}
         />
-        <div className={styles.totalStudents}>
-          Total Users: {students.length}
-        </div>
-      </div>
+        <p className={styles.totalStudents}>Total Users: {students.length}</p>
+      </section>
 
-      <div className={styles.tableContainer}>
+      <section className={styles.tableContainer}>
         <table className={styles.table}>
           <thead>
             <tr>
@@ -199,20 +160,22 @@ const StudentManagement: React.FC = () => {
                     : 'N/A'}
                 </td>
                 <td className={styles.actions}>
-                  <Button onClick={() => handleEdit(student)}>Edit</Button>
+                  <Button onClick={() => setEditingStudent(student)}>
+                    Edit
+                  </Button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
+      </section>
 
       <SharedModal
         isOpen={isAddModalOpen}
-        onClose={closeModal}
+        onClose={() => setIsAddModalOpen(false)}
         title="Add New Student"
         size="small"
-        showFooter={false} // Since StudentForm has its own submit button
+        showFooter={false}
       >
         <StudentForm
           onSubmit={(data) => {
@@ -225,14 +188,14 @@ const StudentManagement: React.FC = () => {
               updated_at: null,
             };
             setStudents([...students, newStudent]);
-            closeModal();
+            setIsAddModalOpen(false);
           }}
         />
       </SharedModal>
 
       <SharedModal
         isOpen={!!editingStudent}
-        onClose={closeModal}
+        onClose={() => setEditingStudent(null)}
         title="Edit Student"
         size="small"
         showFooter={false}
@@ -252,12 +215,12 @@ const StudentManagement: React.FC = () => {
                     : s
                 )
               );
-              closeModal();
+              setEditingStudent(null);
             }}
           />
         )}
       </SharedModal>
-    </div>
+    </main>
   );
 };
 

@@ -1,4 +1,3 @@
-/* Profile.module.css */
 .container {
   max-width: var(--breakpoint-xl);
   margin: 0 auto;
@@ -23,6 +22,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: 0;
 }
 
 .avatarIcon {
@@ -44,12 +44,14 @@
 .profileEmail {
   color: var(--grey-color);
   margin: var(--spacing-xs) 0;
+  font-style: normal;
 }
 
 .profileDate {
   font-size: 14px;
   color: #9ca3af;
   margin: 0;
+  display: block;
 }
 
 .profileRating {
@@ -59,41 +61,12 @@
 .ratingValue {
   font-size: 24px;
   font-weight: bold;
+  margin: 0;
 }
 
 .ratingLabel {
   color: #6b7280;
-}
-
-/* Tabs */
-.tabs {
-  display: flex;
-  gap: 2px;
-  margin-bottom: 24px;
-  background: #f3f4f6;
-  padding: 4px;
-  border-radius: 8px;
-}
-
-.tabButton {
-  padding: 12px 24px;
-  border: none;
-  background: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  color: #6b7280;
-  transition: all 0.2s;
-}
-
-.tabButton:hover {
-  color: #111827;
-}
-
-.activeTab {
-  background: white;
-  color: #111827;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin: 0;
 }
 
 /* Participation Stats */
@@ -112,6 +85,7 @@
 .statLabel {
   width: 80px;
   font-weight: 500;
+  margin: 0;
 }
 
 .statBarContainer {
@@ -141,170 +115,41 @@
   z-index: 1;
 }
 
-/* Ideas List */
-.ideaList {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.ideaItem {
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 16px;
-  transition: all 0.2s;
-}
-
-.ideaItem:hover {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.ideaHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.ideaTitle {
-  font-weight: 600;
-  margin: 0;
-}
-
-.ideaTheme {
-  color: #6b7280;
-  font-size: 14px;
-  margin: 4px 0;
-}
-
-.ideaMeta {
-  display: flex;
-  gap: 16px;
-  margin-top: 12px;
-  color: #6b7280;
-  font-size: 14px;
-}
-
-/* Status Badges */
-.status {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.approved {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.pending {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.rejected {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-/* Groups List */
-.groupList {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.groupItem {
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 16px;
-  transition: all 0.2s;
-}
-
-.groupItem:hover {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.groupHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.groupTitle {
-  font-weight: 600;
-  margin: 0;
-}
-
-.groupTheme {
-  color: #6b7280;
-  font-size: 14px;
-  margin: 4px 0;
-}
-
-.groupMeta {
-  margin-top: 12px;
-  color: #6b7280;
-  font-size: 14px;
-}
-
-.teamLeadBadge {
-  background: #dbeafe;
-  color: #1e40af;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-/* Reviews List */
+/* Lists */
+.ideaList,
+.groupList,
 .reviewList {
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.reviewItem {
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 16px;
-  transition: all 0.2s;
-}
-
-.reviewItem:hover {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.reviewHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.reviewTitle {
-  font-weight: 600;
+  list-style: none;
+  padding: 0;
   margin: 0;
 }
 
-.reviewDate {
-  color: #6b7280;
-  font-size: 14px;
-  margin: 4px 0;
+/* Tab Content Animation */
+.tabContent {
+  animation: fadeIn 0.3s ease-in-out;
 }
 
-.reviewRating {
-  background: #f3e8ff;
-  color: #6b21a8;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.reviewFeedback {
-  margin: 12px 0 0 0;
-  color: #374151;
-  line-height: 1.5;
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .tabContent,
+  .statBarFill {
+    animation: none;
+    transition: none;
+  }
 }
 
 /* Responsive Design */
@@ -327,16 +172,6 @@
     text-align: center;
   }
 
-  .tabs {
-    flex-wrap: wrap;
-  }
-
-  .tabButton {
-    flex: 1;
-    min-width: 120px;
-    text-align: center;
-  }
-
   .statBar {
     flex-direction: column;
     align-items: flex-start;
@@ -345,58 +180,6 @@
   .statLabel {
     width: 100%;
   }
-
-  .ideaHeader,
-  .groupHeader,
-  .reviewHeader {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .status,
-  .teamLeadBadge,
-  .reviewRating {
-    align-self: flex-start;
-  }
-
-  .ideaMeta {
-    flex-direction: column;
-    gap: 8px;
-  }
-}
-
-/* Tab Content Animation */
-.tabContent {
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Interactive Elements */
-.tabButton:focus,
-.ideaItem:focus-within,
-.groupItem:focus-within,
-.reviewItem:focus-within {
-  outline: 2px solid #4f46e5;
-  outline-offset: 2px;
-}
-
-/* Accessibility */
-@media (prefers-reduced-motion: reduce) {
-  .tabContent,
-  .statBarFill {
-    animation: none;
-    transition: none;
-  }
 }
 
 /* Print Styles */
@@ -404,16 +187,6 @@
   .container {
     padding: 0;
     max-width: none;
-  }
-
-  .tabs {
-    display: none;
-  }
-
-  .card {
-    box-shadow: none;
-    border: 1px solid #e5e7eb;
-    break-inside: avoid;
   }
 
   .statBarContainer {

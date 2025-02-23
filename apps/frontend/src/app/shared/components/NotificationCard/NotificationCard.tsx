@@ -1,7 +1,6 @@
 import React from 'react';
 import styles from './NotificationCard.module.css';
 import { Notification } from '@/app/shared/utils/types';
-import Card from '../Card/Card';
 
 const NotificationCard: React.FC<Notification> = ({
   message,
@@ -9,14 +8,12 @@ const NotificationCard: React.FC<Notification> = ({
   status = 'info',
 }) => {
   return (
-    <Card className={`${styles.notificationCard} ${styles[status]}`}>
-      <div className={styles.notificationContent}>
-        <p className={styles.message}>{message}</p>
-        <p className={styles.timestamp}>
-          {new Date(created_at).toLocaleString()}
-        </p>
-      </div>
-    </Card>
+    <article className={`${styles.notificationCard} ${styles[status]}`}>
+      <p className={styles.message}>{message}</p>
+      <time className={styles.timestamp} dateTime={created_at}>
+        {new Date(created_at).toLocaleString()}
+      </time>
+    </article>
   );
 };
 

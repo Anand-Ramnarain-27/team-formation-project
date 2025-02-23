@@ -15,229 +15,177 @@ interface MetricCardProps {
   colorClass: string;
 }
 
+const MetricCard: React.FC<MetricCardProps> = ({
+  icon,
+  label,
+  value,
+  colorClass,
+}) => (
+  <Card>
+    <article className={styles.metricCard}>
+      <span className={`${styles.metricIcon} ${styles[colorClass]}`}>
+        {icon}
+      </span>
+      <section className={styles.metricContent}>
+        <h3 className={styles.metricLabel}>{label}</h3>
+        <p className={styles.metricValue}>{value}</p>
+      </section>
+    </article>
+  </Card>
+);
+
+const StudentCard: React.FC<{
+  student: Student;
+  isSelected: boolean;
+  onSelect: (student: Student) => void;
+}> = ({ student, isSelected, onSelect }) => (
+  <article
+    className={`${styles.studentCard} ${isSelected ? styles.selected : ''}`}
+    onClick={() => onSelect(student)}
+  >
+    <header className={styles.studentHeader}>
+      <span className={styles.avatar}>
+        {student.name
+          .split(' ')
+          .map((n) => n[0])
+          .join('')}
+      </span>
+      <section className={styles.studentInfo}>
+        <h3 className={styles.studentName}>{student.name}</h3>
+        <p className={styles.studentEmail}>{student.email}</p>
+      </section>
+    </header>
+  </article>
+);
+
+const StudentMetric: React.FC<{ title: string; value: string | number }> = ({
+  title,
+  value,
+}) => (
+  <article className={styles.metricBox}>
+    <h4 className={styles.metricTitle}>{title}</h4>
+    <p className={styles.metricNumber}>{value}</p>
+  </article>
+);
+
 const Analytics: React.FC = () => {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [isStudentsLoading, setIsStudentsLoading] = useState(true);
   const [analyticsData, setAnalyticsData] = useState<AnalyticsReport | null>(
     null
   );
   const [students, setStudents] = useState<Student[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isStudentsLoading, setIsStudentsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchAnalyticsData = async () => {
+    const fetchData = async () => {
       try {
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        // Simulated API calls
+        const mockAnalyticsData: AnalyticsReport = {
+          report_id: 1,
+          theme_id: 1,
+          total_students: 150,
+          total_reports: 450,
+          average_rating: 4.2,
+          participation_stats: {
+            ideas_submitted: 125,
+            votes_cast: 1200,
+            reviews_completed: 300,
+            totalIdeas: 5,
+            totalVotes: 15,
+            totalReviews: 12,
+            averageRating: 4.2,
+          },
+        };
+
+        const mockStudents: Student[] = [
+          {
+            user_id: 1,
+            name: 'Alice Johnson',
+            email: 'alice@university.edu',
+            group_name: 'Innovation Team',
+            metrics: {
+              ideas_submitted: 2,
+              votes_given: 15,
+              reviews_given: 8,
+              average_rating_received: 4.5,
+              participation_rate: '95%',
+            },
+          },
+        ];
+
         setAnalyticsData(mockAnalyticsData);
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Error fetching analytics:', error);
-        setIsLoading(false);
-      }
-    };
-
-    const fetchStudents = async () => {
-      try {
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1500));
         setStudents(mockStudents);
+        setIsLoading(false);
         setIsStudentsLoading(false);
       } catch (error) {
-        console.error('Error fetching students:', error);
+        console.error('Error fetching data:', error);
+        setIsLoading(false);
         setIsStudentsLoading(false);
       }
     };
 
-    fetchAnalyticsData();
-    fetchStudents();
+    fetchData();
   }, []);
 
-  // Mock data based on your database schema - replace with actual API calls
-  const mockAnalyticsData: AnalyticsReport = {
-    report_id: 1,
-    theme_id: 1,
-    total_students: 150,
-    total_reports: 450,
-    average_rating: 4.2,
-    participation_stats: {
-      ideas_submitted: 125,
-      votes_cast: 1200,
-      reviews_completed: 300,
-      totalIdeas: 5,
-      totalVotes: 15,
-      totalReviews: 12,
-      averageRating: 4.2,
-    },
-  };
-
-  const mockStudents: Student[] = [
-    {
-      user_id: 1,
-      name: 'Alice Johnson',
-      email: 'alice@university.edu',
-      group_name: 'Innovation Team',
-      metrics: {
-        ideas_submitted: 2,
-        votes_given: 15,
-        reviews_given: 8,
-        average_rating_received: 4.5,
-        participation_rate: '95%',
-      },
-    },
-  ];
-
-  const MetricCard: React.FC<MetricCardProps> = ({
-    icon,
-    label,
-    value,
-    colorClass,
-  }) => (
-    <Card>
-      <div className={styles.metricCard}>
-        <div className={`${styles.metricIcon} ${styles[colorClass]}`}>
-          {icon}
-        </div>
-        <div className={styles.metricContent}>
-          <div className={styles.metricLabel}>{label}</div>
-          <div className={styles.metricValue}>{value}</div>
-        </div>
-      </div>
-    </Card>
-  );
-
-  const StudentSearch: React.FC = () => (
-    <Card title="Student Analytics">
-      <TextInput
-        value={searchQuery}
-        onChange={(value) => setSearchQuery(value)}
-        placeholder="Search students..."
-        className={styles.searchInput}
-      />
-      <div className={styles.studentList}>
-        {filteredStudents.map((student) => (
-          <div
-            key={student.user_id}
-            className={`${styles.studentCard} ${
-              selectedStudent?.user_id === student.user_id
-                ? styles.selected
-                : ''
-            }`}
-            onClick={() => setSelectedStudent(student)}
-          >
-            <div className={styles.studentHeader}>
-              <div className={styles.avatar}>
-                {student.name
-                  .split(' ')
-                  .map((n) => n[0])
-                  .join('')}
-              </div>
-              <div className={styles.studentInfo}>
-                <div className={styles.studentName}>{student.name}</div>
-                <div className={styles.studentEmail}>{student.email}</div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </Card>
-  );
-
-  const StudentDetails: React.FC<{ student: Student }> = ({ student }) => {
-    if (!student) return null;
-
-    return (
-      <Card title="Student Details">
-        <div className={styles.studentMetrics}>
-          <div className={styles.metricBox}>
-            <div className={styles.metricTitle}>Ideas Submitted</div>
-            <div className={styles.metricNumber}>
-              {student.metrics.ideas_submitted}
-            </div>
-          </div>
-          <div className={styles.metricBox}>
-            <div className={styles.metricTitle}>Votes Given</div>
-            <div className={styles.metricNumber}>
-              {student.metrics.votes_given}
-            </div>
-          </div>
-          <div className={styles.metricBox}>
-            <div className={styles.metricTitle}>Reviews Given</div>
-            <div className={styles.metricNumber}>
-              {student.metrics.reviews_given}
-            </div>
-          </div>
-          <div className={styles.metricBox}>
-            <div className={styles.metricTitle}>Average Rating</div>
-            <div className={styles.metricNumber}>
-              {student.metrics.average_rating_received}
-            </div>
-          </div>
-          <div className={styles.metricBox}>
-            <div className={styles.metricTitle}>Participation Rate</div>
-            <div className={styles.metricNumber}>
-              {student.metrics.participation_rate}
-            </div>
-          </div>
-        </div>
-      </Card>
-    );
-  };
-
-  const filteredStudents = mockStudents.filter(
+  const filteredStudents = students.filter(
     (student) =>
       student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  if (isLoading) {
+    return <LoadingState message="Loading analytics..." />;
+  }
+
   return (
-    <div className={styles.dashboard}>
-      <div className={styles.metricsGrid}>
+    <main className={styles.dashboard}>
+      <section className={styles.metricsGrid}>
         <MetricCard
           icon="👥"
           label="Total Students"
-          value={mockAnalyticsData.total_students}
+          value={analyticsData?.total_students || 0}
           colorClass="metricBlue"
         />
         <MetricCard
           icon="💡"
           label="Ideas Submitted"
-          value={mockAnalyticsData.participation_stats.ideas_submitted}
+          value={analyticsData?.participation_stats.ideas_submitted || 0}
           colorClass="metricYellow"
         />
         <MetricCard
           icon="⭐"
           label="Average Rating"
-          value={mockAnalyticsData.average_rating}
+          value={analyticsData?.average_rating || 0}
           colorClass="metricPurple"
         />
-      </div>
+      </section>
 
-      <div className={styles.chartsGrid}>
+      <section className={styles.chartsGrid}>
         <Card title="Ideas Distribution">
-          <div className={styles.chart}>
-            {/* Replace with your own chart implementation */}
-            <div>Chart Placeholder</div>
-          </div>
+          <figure className={styles.chart}>
+            <figcaption>Ideas Distribution Chart</figcaption>
+            {/* Chart implementation here */}
+          </figure>
         </Card>
 
         <Card title="Rating Distribution">
-          <div className={styles.chart}>
-            {/* Replace with your own chart implementation */}
-            <div>Chart Placeholder</div>
-          </div>
+          <figure className={styles.chart}>
+            <figcaption>Rating Distribution Chart</figcaption>
+            {/* Chart implementation here */}
+          </figure>
         </Card>
 
         <Card title="Activity Overview" className={styles.fullWidth}>
-          <div className={styles.chart}>
-            {/* Replace with your own chart implementation */}
-            <div>Chart Placeholder</div>
-          </div>
+          <figure className={styles.chart}>
+            <figcaption>Activity Overview Chart</figcaption>
+            {/* Chart implementation here */}
+          </figure>
         </Card>
-      </div>
+      </section>
 
-      <div className={styles.studentSection}>
+      <section className={styles.studentSection}>
         {isStudentsLoading ? (
           <LoadingState message="Loading students..." />
         ) : students.length === 0 ? (
@@ -246,11 +194,54 @@ const Analytics: React.FC = () => {
             description="There are no students to display at this time."
           />
         ) : (
-          <StudentSearch />
+          <Card title="Student Analytics">
+            <TextInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search students..."
+              className={styles.searchInput}
+            />
+            <section className={styles.studentList}>
+              {filteredStudents.map((student) => (
+                <StudentCard
+                  key={student.user_id}
+                  student={student}
+                  isSelected={selectedStudent?.user_id === student.user_id}
+                  onSelect={setSelectedStudent}
+                />
+              ))}
+            </section>
+          </Card>
         )}
-        {selectedStudent && <StudentDetails student={selectedStudent} />}
-      </div>
-    </div>
+
+        {selectedStudent && (
+          <Card title="Student Details">
+            <section className={styles.studentMetrics}>
+              <StudentMetric
+                title="Ideas Submitted"
+                value={selectedStudent.metrics.ideas_submitted}
+              />
+              <StudentMetric
+                title="Votes Given"
+                value={selectedStudent.metrics.votes_given}
+              />
+              <StudentMetric
+                title="Reviews Given"
+                value={selectedStudent.metrics.reviews_given}
+              />
+              <StudentMetric
+                title="Average Rating"
+                value={selectedStudent.metrics.average_rating_received}
+              />
+              <StudentMetric
+                title="Participation Rate"
+                value={selectedStudent.metrics.participation_rate}
+              />
+            </section>
+          </Card>
+        )}
+      </section>
+    </main>
   );
 };
 

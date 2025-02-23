@@ -16,7 +16,6 @@ const Voting: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // Mock data based on your database schema
   const mockIdeas: Idea[] = [
     {
       idea_id: 1,
@@ -47,28 +46,10 @@ const Voting: React.FC = () => {
   useEffect(() => {
     const fetchIdeasAndVotes = async () => {
       try {
-        // Replace with actual API calls
-        // Example SQL query:
-        // SELECT i.*, u.name as submitter_name, COUNT(v.vote_id) as vote_count
-        // FROM ideas i
-        // JOIN users u ON i.submitted_by = u.user_id
-        // LEFT JOIN votes v ON i.idea_id = v.idea_id
-        // WHERE i.theme_id = [current_theme_id] AND i.status = 'Approved'
-        // GROUP BY i.idea_id, u.name
-
         setIdeas(mockIdeas);
-
-        // Fetch user's existing votes
-        // Example SQL query:
-        // SELECT idea_id FROM votes
-        // WHERE voted_by = [current_user_id] AND idea_id IN (SELECT idea_id FROM ideas WHERE theme_id = [current_theme_id])
-
-        const userVotes = new Set([
-          /* existing votes */
-        ]);
+        const userVotes = new Set<number>();
         setVotedIdeas(userVotes);
         setRemainingVotes(3 - userVotes.size);
-
         setLoading(false);
       } catch (err) {
         setError('Failed to load ideas. Please try again.');
@@ -91,19 +72,15 @@ const Voting: React.FC = () => {
         return;
       }
 
-      // Example SQL insert:
-      // INSERT INTO votes (idea_id, voted_by, created_at)
-      // VALUES ([ideaId], [current_user_id], CURRENT_TIMESTAMP)
-
-      setIdeas(
-        ideas.map((idea) =>
+      setIdeas((prevIdeas) =>
+        prevIdeas.map((idea) =>
           idea.idea_id === ideaId
             ? { ...idea, vote_count: (idea.vote_count || 0) + 1 }
             : idea
         )
       );
 
-      setVotedIdeas(new Set([...votedIdeas, ideaId]));
+      setVotedIdeas((prevVotes) => new Set([...prevVotes, ideaId]));
       setRemainingVotes((prev) => prev - 1);
       setError('');
     } catch (err) {
@@ -111,22 +88,17 @@ const Voting: React.FC = () => {
     }
   };
 
-  return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1>Vote for Project Ideas</h1>
-        <p>
-          Choose your favorite ideas for the upcoming project. You have{' '}
-          <span className={styles.voteCount}>{remainingVotes}</span> votes
-          remaining.
-        </p>
-      </div>
-
-      {error && <div className={styles.error}>{error}</div>}
-
-      {loading ? (
+  if (loading) {
+    return (
+      <main className={styles.container}>
         <LoadingState message="Loading ideas..." />
-      ) : ideas.length === 0 ? (
+      </main>
+    );
+  }
+
+  if (ideas.length === 0) {
+    return (
+      <main className={styles.container}>
         <EmptyState
           title="No ideas available"
           description="There are no ideas available for voting at this time."
@@ -136,28 +108,40 @@ const Voting: React.FC = () => {
             </Button>
           }
         />
-      ) : (
-        <div className={styles.ideaGrid}>
-          {ideas.map((idea) => (
+      </main>
+    );
+  }
+
+  return (
+    <main className={styles.container}>
+      <header className={styles.header}>
+        <h1>Vote for Project Ideas</h1>
+        <p>
+          Choose your favorite ideas for the upcoming project. You have{' '}
+          <strong className={styles.votesRemaining}>{remainingVotes}</strong>{' '}
+          votes remaining.
+        </p>
+      </header>
+
+      {error && (
+        <aside role="alert" className={styles.error}>
+          {error}
+        </aside>
+      )}
+
+      <section className={styles.ideaGrid} aria-label="Project ideas">
+        {ideas.map((idea) => (
+          <article key={idea.idea_id}>
             <IdeaCard
-              key={idea.idea_id}
-              idea_name={idea.idea_name}
-              description={idea.description}
-              submitter_name={idea.submitter_name || 'Unknown'}
-              vote_count={idea.vote_count || 0}
-              status={idea.status}
+              {...idea}
               onVote={() => handleVote(idea.idea_id)}
               isVoted={votedIdeas.has(idea.idea_id)}
               remainingVotes={remainingVotes}
-              idea_id={idea.idea_id}
-              theme_id={idea.theme_id}
-              submitted_by={idea.submitted_by}
-              created_at={idea.created_at}
             />
-          ))}
-        </div>
-      )}
-    </div>
+          </article>
+        ))}
+      </section>
+    </main>
   );
 };
 

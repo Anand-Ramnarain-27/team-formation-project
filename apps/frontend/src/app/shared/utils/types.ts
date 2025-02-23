@@ -159,3 +159,27 @@ export interface EmptyStateProps {
   description?: string;
   action?: React.ReactNode;
 }
+
+export interface GroupDialogProp {
+  group: Group | null;
+  isOpen: boolean;
+  onClose: () => void;
+  themes: Theme[];
+  users: User[];
+  onSave: (formData: GroupFormData) => void;
+}
+
+export interface GroupFormData {
+  group_name: string;
+  theme_id: string;
+  team_lead: string;
+}
+
+export interface MemberManagementDialogProps {
+  group: Group;
+  isOpen: boolean;
+  onClose: () => void;
+  availableUsers: User[];
+  onAddMember: (user: User) => void;
+  onRemoveMember: (userId: number) => void;
+}

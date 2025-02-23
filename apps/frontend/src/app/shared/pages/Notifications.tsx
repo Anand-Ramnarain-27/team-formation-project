@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
 import styles from './Notifications.module.css';
 import { User, Notification } from '@/app/shared/utils/types';
 import Button from '@/app/shared/components/Button/Button';
@@ -7,19 +6,18 @@ import FormGroup from '@/app/shared/components/Form/FormGroup';
 import TextArea from '@/app/shared/components/Form/TextArea';
 import SelectInput from '@/app/shared/components/SelectInput/SelectInput';
 import NotificationCard from '@/app/shared/components/NotificationCard/NotificationCard';
-import {
-  LoadingState,
-  EmptyState,
-} from '@/app/shared/components/States/States';
 
-const CreateNotification = ({
-  onNotificationCreate,
-  currentUser,
+const recipientOptions = [
+  { value: 'all', label: 'All Users' },
+  { value: 'student', label: 'Students' },
+  { value: 'team_lead', label: 'Team Leads' },
+  { value: 'admin', label: 'Administrators' },
+];
+
+const CreateNotificationForm = ({
+  onSubmit,
 }: {
-  onNotificationCreate: (
-    notification: Omit<Notification, 'notification_id' | 'created_at'>
-  ) => void;
-  currentUser: User;
+  onSubmit: (message: string, role: string) => void;
 }) => {
   const [message, setMessage] = useState('');
   const [recipientRole, setRecipientRole] = useState('all');
@@ -27,56 +25,43 @@ const CreateNotification = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim()) {
-      onNotificationCreate({
-        recipient_role: recipientRole,
-        message: message.trim(),
-        created_by: currentUser.user_id,
-      });
+      onSubmit(message.trim(), recipientRole);
       setMessage('');
     }
   };
 
-  const recipientOptions = [
-    { value: 'all', label: 'All Users' },
-    { value: 'student', label: 'Students' },
-    { value: 'team_lead', label: 'Team Leads' },
-    { value: 'admin', label: 'Administrators' },
-  ];
-
   return (
-    <form onSubmit={handleSubmit} className={styles.createForm}>
-      <h2 className={styles.formTitle}>Create New Notification</h2>
-      <FormGroup label="Send to:">
-        <SelectInput
-          value={recipientRole}
-          onChange={setRecipientRole}
-          options={recipientOptions}
-          placeholder="Select recipient"
-        />
-      </FormGroup>
-      <FormGroup label="Message:">
-        <TextArea
-          value={message}
-          onChange={setMessage}
-          placeholder="Enter notification message..."
-          rows={3}
-        />
-      </FormGroup>
-      <Button
-        type="submit"
-        disabled={!message.trim()}
-        className={styles.submitButton}
-      >
-        Send Notification
-      </Button>
-    </form>
+    <section className={styles.createSection}>
+      <form onSubmit={handleSubmit} className={styles.createForm}>
+        <h2 className={styles.formTitle}>Create New Notification</h2>
+        <FormGroup label="Send to:">
+          <SelectInput
+            value={recipientRole}
+            onChange={setRecipientRole}
+            options={recipientOptions}
+            placeholder="Select recipient"
+          />
+        </FormGroup>
+        <FormGroup label="Message:">
+          <TextArea
+            value={message}
+            onChange={setMessage}
+            placeholder="Enter notification message..."
+            rows={3}
+          />
+        </FormGroup>
+        <Button type="submit" disabled={!message.trim()}>
+          Send Notification
+        </Button>
+      </form>
+    </section>
   );
 };
 
 const NotificationsPage = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<User>({
+  const [currentUser] = useState<User>({
     user_id: 1,
     name: 'Admin User',
     email: 'admin@example.com',
@@ -85,31 +70,11 @@ const NotificationsPage = () => {
     updated_at: null,
   });
 
-  const location = useLocation();
   const isAdmin = currentUser.role === 'admin';
 
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        // In a real implementation, this would be an API call to your database
-        // Example SQL query for reference:
-        /*
-        SELECT n.*, u.name as creator_name, u.email as creator_email
-        FROM notifications n
-        LEFT JOIN users u ON n.created_by = u.user_id
-        WHERE n.recipient_role = $1 OR n.recipient_role = 'all'
-        ORDER BY n.created_at DESC
-        */
-
-        const mockUser: User = {
-          user_id: 2,
-          name: 'Jane Smith',
-          email: 'jane@example.com',
-          role: 'admin',
-          created_at: '12:00:00',
-          updated_at: null,
-        };
-
         const mockNotifications: Notification[] = [
           {
             notification_id: 1,
@@ -117,8 +82,7 @@ const NotificationsPage = () => {
             message: "New theme 'Web Development' has been created",
             created_by: 2,
             created_at: new Date().toISOString(),
-            creator: mockUser,
-            status: 'info', // Add status to match NotificationCardProps
+            status: 'info',
           },
           {
             notification_id: 2,
@@ -126,8 +90,7 @@ const NotificationsPage = () => {
             message: 'Deadline for idea submission is approaching',
             created_by: 2,
             created_at: new Date(Date.now() - 86400000).toISOString(),
-            creator: mockUser,
-            status: 'warning', // Add status to match NotificationCardProps
+            status: 'warning',
           },
           {
             notification_id: 3,
@@ -135,8 +98,7 @@ const NotificationsPage = () => {
             message: 'New review submitted for your group',
             created_by: 2,
             created_at: new Date(Date.now() - 172800000).toISOString(),
-            creator: mockUser,
-            status: 'success', // Add status to match NotificationCardProps
+            status: 'success',
           },
         ];
 
@@ -149,38 +111,25 @@ const NotificationsPage = () => {
     };
 
     fetchNotifications();
-  }, [currentUser.role]);
+  }, []);
 
-  const handleCreateNotification = async (
-    newNotification: Omit<Notification, 'notification_id' | 'created_at'>
-  ) => {
-    try {
-      // In a real implementation, this would be an API call to your database
-      // Example SQL query for reference:
-      /*
-      INSERT INTO notifications (recipient_role, message, created_by)
-      VALUES ($1, $2, $3)
-      RETURNING notification_id, created_at;
-      */
+  const handleCreateNotification = (message: string, recipientRole: string) => {
+    const newNotification: Notification = {
+      notification_id: Date.now(),
+      recipient_role: recipientRole,
+      message,
+      created_by: currentUser.user_id,
+      created_at: new Date().toISOString(),
+      status: 'info',
+    };
 
-      const createdNotification: Notification = {
-        notification_id: Date.now(),
-        ...newNotification,
-        created_at: new Date().toISOString(),
-        creator: currentUser,
-        status: 'info', // Default status for new notifications
-      };
-
-      setNotifications([createdNotification, ...notifications]);
-    } catch (error) {
-      console.error('Error creating notification:', error);
-    }
+    setNotifications([newNotification, ...notifications]);
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <div className={styles.bellIcon} />
+    <main className={styles.container}>
+      <header className={styles.header}>
+        <span className={styles.bellIcon} aria-hidden="true" />
         <h1 className={styles.title}>
           {isAdmin ? 'System Notifications' : 'Your Notifications'}
         </h1>
@@ -189,44 +138,31 @@ const NotificationsPage = () => {
             ? 'Manage and send notifications to users'
             : 'Stay updated with your team activities and project deadlines'}
         </p>
-      </div>
+      </header>
 
       {isAdmin && (
-        <div className={styles.createSection}>
-          <CreateNotification
-            onNotificationCreate={handleCreateNotification}
-            currentUser={currentUser}
-          />
-        </div>
+        <CreateNotificationForm onSubmit={handleCreateNotification} />
       )}
 
-      <div className={styles.content}>
+      <section className={styles.content}>
         <h2 className={styles.sectionTitle}>
           {isAdmin ? 'Sent Notifications' : 'Notifications'}
         </h2>
         {loading ? (
-          <LoadingState message="Loading notifications..." />
+          <p className={styles.loadingState}>Loading notifications...</p>
         ) : notifications.length === 0 ? (
-          <EmptyState
-            title="No notifications"
-            description="There are no notifications to display at this time."
-          />
+          <p className={styles.emptyState}>No notifications to display.</p>
         ) : (
-          <div className={styles.notificationsList}>
+          <ul className={styles.notificationsList}>
             {notifications.map((notification) => (
-              <NotificationCard
-                key={notification.notification_id}
-                message={notification.message}
-                created_at={notification.created_at}
-                status={notification.status}
-                notification_id={notification.notification_id}
-                recipient_role={notification.recipient_role}
-              />
+              <li key={notification.notification_id}>
+                <NotificationCard {...notification} />
+              </li>
             ))}
-          </div>
+          </ul>
         )}
-      </div>
-    </div>
+      </section>
+    </main>
   );
 };
 

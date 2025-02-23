@@ -9,38 +9,36 @@ import {
 } from '@/app/shared/utils/types';
 import Card from '@/app/shared/components/Card/Card';
 import Button from '@/app/shared/components/Button/Button';
-import style from '@/app/shared/components/Button/Button.module.css';
 import NotificationCard from '@/app/shared/components/NotificationCard/NotificationCard';
+
+const initialThemes: Theme[] = [
+  {
+    theme_id: 1,
+    title: 'Innovation in Education',
+    description: 'Exploring new teaching methodologies',
+    submission_deadline: '2025-03-01T00:00',
+    voting_deadline: '2025-03-15T00:00',
+    review_deadline: [{ start: '2025-03-16T00:00', end: '2025-03-30T00:00' }],
+    number_of_groups: 10,
+    auto_assign_group: true,
+  },
+  {
+    theme_id: 2,
+    title: 'Sustainable Development',
+    description: 'Projects focusing on environmental sustainability',
+    submission_deadline: '2025-04-01T00:00',
+    voting_deadline: '2025-04-15T00:00',
+    review_deadline: [{ start: '2025-04-16T00:00', end: '2025-04-30T00:00' }],
+    number_of_groups: 8,
+    auto_assign_group: false,
+  },
+];
 
 const Dashboard: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedTheme, setSelectedTheme] = useState<Theme | undefined>(
-    undefined
-  );
-
-  const [activeThemes, setActiveThemes] = useState<Theme[]>([
-    {
-      theme_id: 1,
-      title: 'Innovation in Education',
-      description: 'Exploring new teaching methodologies',
-      submission_deadline: '2025-03-01T00:00',
-      voting_deadline: '2025-03-15T00:00',
-      review_deadline: [{ start: '2025-03-16T00:00', end: '2025-03-30T00:00' }],
-      number_of_groups: 10,
-      auto_assign_group: true,
-    },
-    {
-      theme_id: 2,
-      title: 'Sustainable Development',
-      description: 'Projects focusing on environmental sustainability',
-      submission_deadline: '2025-04-01T00:00',
-      voting_deadline: '2025-04-15T00:00',
-      review_deadline: [{ start: '2025-04-16T00:00', end: '2025-04-30T00:00' }],
-      number_of_groups: 8,
-      auto_assign_group: false,
-    },
-  ]);
+  const [selectedTheme, setSelectedTheme] = useState<Theme | undefined>();
+  const [activeThemes, setActiveThemes] = useState<Theme[]>(initialThemes);
 
   const [analyticsData] = useState<AnalyticsReport>({
     report_id: 1,
@@ -85,19 +83,19 @@ const Dashboard: React.FC = () => {
       ...newTheme,
       theme_id: Math.max(...activeThemes.map((t) => t.theme_id)) + 1,
     };
-    setActiveThemes((prev) => [...prev, theme]);
+    setActiveThemes((prev: Theme[]) => [...prev, theme]);
   };
 
   const handleEditTheme = (updatedTheme: BaseTheme) => {
     if (!selectedTheme) return;
-
     const theme: Theme = {
       ...updatedTheme,
       theme_id: selectedTheme.theme_id,
     };
-
-    setActiveThemes((prev) =>
-      prev.map((t) => (t.theme_id === selectedTheme.theme_id ? theme : t))
+    setActiveThemes((prev: Theme[]) =>
+      prev.map((t: Theme) =>
+        t.theme_id === selectedTheme.theme_id ? theme : t
+      )
     );
   };
 
@@ -107,65 +105,62 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
+    <main className={styles.container}>
+      <header className={styles.header}>
         <h1>Theme Management Dashboard</h1>
-        <div className={styles.headerActions}></div>
-      </div>
+      </header>
 
-      <div className={styles.statsGrid}>
+      <section className={styles.statsGrid}>
         <Card>
-          <div className={styles.statTitle}>Total Students</div>
-          <div className={styles.statValue}>{analyticsData.total_students}</div>
-          <div className={`${styles.statTrend} ${styles.positive}`}>
+          <h3 className={styles.statTitle}>Total Students</h3>
+          <p className={styles.statValue}>{analyticsData.total_students}</p>
+          <p className={`${styles.statTrend} ${styles.positive}`}>
             Active in current themes
-          </div>
+          </p>
         </Card>
         <Card>
-          <div className={styles.statTitle}>Average Rating</div>
-          <div className={styles.statValue}>
-            {analyticsData.average_rating}/5.0
-          </div>
-          <div className={`${styles.statTrend} ${styles.neutral}`}>
+          <h3 className={styles.statTitle}>Average Rating</h3>
+          <p className={styles.statValue}>{analyticsData.average_rating}/5.0</p>
+          <p className={`${styles.statTrend} ${styles.neutral}`}>
             Based on {analyticsData.total_reports} reviews
-          </div>
+          </p>
         </Card>
         <Card>
-          <div className={styles.statTitle}>Ideas Submitted</div>
-          <div className={styles.statValue}>
+          <h3 className={styles.statTitle}>Ideas Submitted</h3>
+          <p className={styles.statValue}>
             {analyticsData.participation_stats.ideas_submitted}
-          </div>
-          <div className={`${styles.statTrend} ${styles.neutral}`}>
+          </p>
+          <p className={`${styles.statTrend} ${styles.neutral}`}>
             Across all themes
-          </div>
+          </p>
         </Card>
         <Card>
-          <div className={styles.statTitle}>Pending Reviews</div>
-          <div className={styles.statValue}>
+          <h3 className={styles.statTitle}>Pending Reviews</h3>
+          <p className={styles.statValue}>
             {analyticsData.participation_stats.reviews_completed}
-          </div>
-          <div className={`${styles.statTrend} ${styles.warning}`}>
+          </p>
+          <p className={`${styles.statTrend} ${styles.warning}`}>
             Reviews submitted
-          </div>
+          </p>
         </Card>
-      </div>
+      </section>
 
       <section className={styles.themesSection}>
-        <div className={styles.sectionHeader}>
+        <header className={styles.sectionHeader}>
           <h2>Active Themes</h2>
           <Button onClick={() => setIsCreateModalOpen(true)}>
             + Create New Theme
           </Button>
-        </div>
-        <div className={styles.themesGrid}>
+        </header>
+        <ul className={styles.themesGrid}>
           {activeThemes.map((theme) => (
-            <div key={theme.theme_id} className={styles.themeCard}>
-              <div className={`${styles.themeHeader} ${styles.blue}`}>
+            <li key={theme.theme_id} className={styles.themeCard}>
+              <header className={`${styles.themeHeader} ${styles.blue}`}>
                 <h3>{theme.title}</h3>
-              </div>
-              <div className={styles.themeContent}>
+              </header>
+              <article className={styles.themeContent}>
                 <p>{theme.description}</p>
-                <div className={styles.themeFooter}>
+                <footer className={styles.themeFooter}>
                   <span className={styles.themeStatus}>
                     {new Date(theme.voting_deadline) > new Date()
                       ? 'Voting'
@@ -174,17 +169,17 @@ const Dashboard: React.FC = () => {
                   <Button onClick={() => handleManageTheme(theme)}>
                     Manage →
                   </Button>
-                </div>
-              </div>
-            </div>
+                </footer>
+              </article>
+            </li>
           ))}
-        </div>
+        </ul>
       </section>
 
-      <div className={styles.gridContainer}>
+      <section className={styles.gridContainer}>
         <Card title="Activity Overview">
-          <div className={styles.activityGrid}>
-            <div className={styles.activityBox}>
+          <article className={styles.activityGrid}>
+            <section className={styles.activityBox}>
               <h4>Participation Stats</h4>
               <ul>
                 <li>
@@ -199,8 +194,8 @@ const Dashboard: React.FC = () => {
                   completed
                 </li>
               </ul>
-            </div>
-            <div className={styles.activityBox}>
+            </section>
+            <section className={styles.activityBox}>
               <h4>Upcoming Deadlines</h4>
               <ul>
                 {activeThemes.map((theme) => (
@@ -210,26 +205,27 @@ const Dashboard: React.FC = () => {
                   </li>
                 ))}
               </ul>
-            </div>
-          </div>
+            </section>
+          </article>
         </Card>
 
-        <div className={styles.notificationsCard}>
+        <aside className={styles.notificationsCard}>
           <h3>Recent Notifications</h3>
-          <div className={styles.notificationsList}>
+          <ul className={styles.notificationsList}>
             {notifications.map((notification) => (
-              <NotificationCard
-                key={notification.notification_id}
-                message={notification.message}
-                created_at={notification.created_at}
-                status={notification.status}
-                notification_id={notification.notification_id}
-                recipient_role={notification.recipient_role}
-              />
+              <li key={notification.notification_id}>
+                <NotificationCard
+                  message={notification.message}
+                  created_at={notification.created_at}
+                  status={notification.status}
+                  notification_id={notification.notification_id}
+                  recipient_role={notification.recipient_role}
+                />
+              </li>
             ))}
-          </div>
-        </div>
-      </div>
+          </ul>
+        </aside>
+      </section>
 
       <ThemeModal
         isOpen={isCreateModalOpen}
@@ -246,7 +242,7 @@ const Dashboard: React.FC = () => {
         theme={selectedTheme}
         onSubmit={handleEditTheme}
       />
-    </div>
+    </main>
   );
 };
 

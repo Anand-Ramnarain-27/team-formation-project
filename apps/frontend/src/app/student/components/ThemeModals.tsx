@@ -6,12 +6,12 @@ import FormGroup from '@/app/shared/components/Form/FormGroup';
 import TextInput from '@/app/shared/components/Form/TextInput';
 import TextArea from '@/app/shared/components/Form/TextArea';
 
-interface IdeaSubmissionForm {
+interface IdeaSubmission {
   idea_name: string;
   description: string;
 }
 
-export interface ThemeModalsProps {
+interface ThemeModalsProps {
   theme: Theme;
   isOpen: boolean;
   onClose: () => void;
@@ -24,7 +24,7 @@ const ThemeModals: React.FC<ThemeModalsProps> = ({
   onClose,
   modalType,
 }) => {
-  const [ideaSubmission, setIdeaSubmission] = useState<IdeaSubmissionForm>({
+  const [ideaSubmission, setIdeaSubmission] = useState<IdeaSubmission>({
     idea_name: '',
     description: '',
   });
@@ -50,43 +50,48 @@ const ThemeModals: React.FC<ThemeModalsProps> = ({
     onClose();
   };
 
-  const renderThemeDetails = () => (
-    <>
-      <div>
-        <p className={styles.modalDescription}>{theme.description}</p>
-      </div>
-      <div>
+  const ThemeDetails = () => (
+    <section className={styles.detailsSection}>
+      <p className={styles.themeDescription}>{theme.description}</p>
+
+      <dl>
         <div className={styles.infoRow}>
-          <span className={styles.infoLabel}>Submission Deadline:</span>
-          <span className={styles.infoValue}>
+          <dt className={styles.infoLabel}>Submission Deadline:</dt>
+          <dd className={styles.infoValue}>
             {formatDate(theme.submission_deadline)}
-          </span>
+          </dd>
         </div>
+
         <div className={styles.infoRow}>
-          <span className={styles.infoLabel}>Voting Deadline:</span>
-          <span className={styles.infoValue}>
+          <dt className={styles.infoLabel}>Voting Deadline:</dt>
+          <dd className={styles.infoValue}>
             {formatDate(theme.voting_deadline)}
-          </span>
+          </dd>
         </div>
+
         <div className={styles.infoRow}>
-          <span className={styles.infoLabel}>Review Period:</span>
-          <span className={styles.infoValue}>
+          <dt className={styles.infoLabel}>Review Period:</dt>
+          <dd className={styles.infoValue}>
             {formatDate(theme.review_deadline[0].start)} -{' '}
             {formatDate(theme.review_deadline[0].end)}
-          </span>
+          </dd>
         </div>
+
         <div className={styles.infoRow}>
-          <span className={styles.infoLabel}>Number of Groups:</span>
-          <span className={styles.infoValue}>{theme.number_of_groups}</span>
+          <dt className={styles.infoLabel}>Number of Groups:</dt>
+          <dd className={styles.infoValue}>{theme.number_of_groups}</dd>
         </div>
-      </div>
-    </>
+      </dl>
+    </section>
   );
 
-  // Rest of the component remains the same
-  const renderIdeaSubmission = () => (
-    <form id="modalForm" onSubmit={(e) => e.preventDefault()}>
-      <p className={styles.modalDescription}>
+  const IdeaSubmissionForm = () => (
+    <form
+      id="modalForm"
+      onSubmit={(e) => e.preventDefault()}
+      className={styles.submissionForm}
+    >
+      <p className={styles.themeDescription}>
         Submit your idea for the theme: {theme.title}
       </p>
 
@@ -127,7 +132,7 @@ const ThemeModals: React.FC<ThemeModalsProps> = ({
       showFooter={modalType === 'submit'}
       size="medium"
     >
-      {modalType === 'view' ? renderThemeDetails() : renderIdeaSubmission()}
+      {modalType === 'view' ? <ThemeDetails /> : <IdeaSubmissionForm />}
     </SharedModal>
   );
 };
