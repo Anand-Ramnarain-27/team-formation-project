@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import styles from './Modal.module.css';
 import Button from '../Button/Button';
+import buttonStyles from '@/app/shared/components/Button/Button.module.css';
 import style from '@/app/shared/components/Button/Button.module.css'
 
 interface SharedModalProps {
@@ -49,7 +50,7 @@ export const SharedModal: React.FC<SharedModalProps> = ({
           <div className={styles.modalFooter}>
             {footerContent || (
               <>
-                <button className={styles.cancelButton} onClick={onClose}>
+                <button onClick={onClose} className={buttonStyles.third}>
                   Cancel
                 </button>
                 <button

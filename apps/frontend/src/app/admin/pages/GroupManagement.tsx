@@ -11,6 +11,7 @@ import {
 import { SharedModal } from '@/app/shared/components/Modal/Modal';
 import Card from '@/app/shared/components/Card/Card';
 import Button from '@/app/shared/components/Button/Button';
+import buttonStyles from '@/app/shared/components/Button/Button.module.css';
 import FormGroup from '@/app/shared/components/Form/FormGroup';
 import TextInput from '@/app/shared/components/Form/TextInput';
 import SelectInput from '@/app/shared/components/SelectInput/SelectInput';
@@ -117,7 +118,7 @@ const MemberManagementDialog: React.FC<MemberManagementDialogProps> = ({
       size="large"
       showFooter
       footerContent={
-        <Button onClick={onClose} className={styles.secondaryButton}>
+        <Button onClick={onClose} className={buttonStyles.third}>
           Close
         </Button>
       }
@@ -135,7 +136,7 @@ const MemberManagementDialog: React.FC<MemberManagementDialogProps> = ({
                 </div>
                 <Button
                   onClick={() => onRemoveMember(member.user_id)}
-                  className={styles.secondaryButton}
+                  className={buttonStyles.third}
                 >
                   Remove
                 </Button>

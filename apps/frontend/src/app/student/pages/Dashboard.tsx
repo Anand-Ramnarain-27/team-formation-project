@@ -7,6 +7,7 @@ import Card from '@/app/shared/components/Card/Card';
 import StatusBadge from '@/app/shared/components/StatusBadge/StatusBadge';
 import NotificationCard from '@/app/shared/components/NotificationCard/NotificationCard';
 import GroupCard from '@/app/shared/components/GroupCard/GroupCard';
+import IdeaCard from '@/app/shared/components/IdeaCard/IdeaCard';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -189,19 +190,8 @@ const Dashboard: React.FC = () => {
             <header className={styles.cardHeader} />
             <ul className={styles.scrollArea}>
               {myIdeas.map((idea) => (
-                <li key={idea.idea_id} className={styles.notification}>
-                  <article className={styles.notificationContent}>
-                    <h4 className={styles.notificationTitle}>
-                      {idea.idea_name}
-                    </h4>
-                    <p className={styles.notificationDescription}>
-                      {idea.description}
-                    </p>
-                    <StatusBadge
-                      status={idea.status.toLowerCase()}
-                      label={idea.status}
-                    />
-                  </article>
+                <li key={idea.idea_id}>
+                  <IdeaCard {...idea} />
                 </li>
               ))}
             </ul>

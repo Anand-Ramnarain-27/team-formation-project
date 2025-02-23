@@ -2,7 +2,7 @@ import React from 'react';
 import styles from './SelectInput.module.css';
 
 interface SelectInputProps {
-  value: string; // Selected value
+  value: string; 
   onChange: (value: string) => void;
   options: { value: string; label: string }[];
   placeholder?: string; 
