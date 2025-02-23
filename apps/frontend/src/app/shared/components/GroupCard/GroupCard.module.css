@@ -1,4 +1,4 @@
-.groupCard {
+.card {
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   background-color: white;
@@ -6,7 +6,7 @@
   margin-bottom: 1rem;
 }
 
-.groupCard:hover {
+.card:hover {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
@@ -21,20 +21,20 @@
   flex: 1;
 }
 
-.groupName {
+.title {
   font-size: 1.125rem;
   font-weight: 600;
   color: #111827;
   margin: 0 0 0.25rem 0;
 }
 
-.themeTitle {
+.theme {
   font-size: 0.875rem;
   color: #6b7280;
   margin: 0 0 0.5rem 0;
 }
 
-.metaInfo {
+.meta {
   display: flex;
   gap: 1rem;
   font-size: 0.875rem;
@@ -51,16 +51,12 @@
   gap: 0.5rem;
 }
 
-.actionButton {
-  min-width: 80px;
-}
-
-.expandedContent {
+.content {
   padding: 1rem;
   border-top: 1px solid #e5e7eb;
 }
 
-.teamLeadSection {
+.leadContainer {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -74,26 +70,22 @@
   margin: 0 0 0.5rem 0;
 }
 
-.teamLeadInfo {
+.leadInfo {
   margin-top: 0.25rem;
 }
 
-.manageButton {
-  min-width: 120px;
-}
-
-.membersSection {
+.membersList {
   margin-top: 1rem;
 }
 
-.memberGrid {
+.membersGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 1rem;
   margin-top: 0.5rem;
 }
 
-.memberCard {
+.memberItem {
   padding: 0.75rem;
   background-color: #f9fafb;
   border-radius: 6px;
@@ -123,16 +115,16 @@
     justify-content: flex-end;
   }
 
-  .memberGrid {
+  .membersGrid {
     grid-template-columns: 1fr;
   }
 
-  .teamLeadSection {
+  .leadContainer {
     flex-direction: column;
   }
 
-  .manageButton {
-    margin-top: 1rem;
+  .actions button {
     width: 100%;
+    margin-top: 1rem;
   }
 }

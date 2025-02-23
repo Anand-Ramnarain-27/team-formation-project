@@ -46,10 +46,10 @@ const Navbar: React.FC<NavbarProps> = ({ userType, userName }) => {
         {isMobileMenuOpen ? '✕' : '☰'}
       </button>
 
-      <div className={`${styles.navbar} ${styles.desktopNavbar}`}>
-        <div className={styles.header}>
-          <h2>Team Formation</h2>
-        </div>
+      <nav className={`${styles.navbar} ${styles.desktopNavbar}`}>
+        <header className={styles.header}>
+          <h1>Team Formation</h1>
+        </header>
         <nav className={styles.menu}>
           {menuItems.map((item) => (
             <NavLink
@@ -65,18 +65,18 @@ const Navbar: React.FC<NavbarProps> = ({ userType, userName }) => {
             </NavLink>
           ))}
         </nav>
-        <div className={styles.userSection}>
+        <footer className={styles.userSection}>
           <button className={styles.signOutButton} onClick={handleSignOut}>
             Sign Out
           </button>
-        </div>
-      </div>
+        </footer>
+      </nav>
 
       {isMobileMenuOpen && (
-        <div className={`${styles.navbar} ${styles.mobileNavbar}`}>
-          <div className={styles.header}>
+        <nav className={`${styles.navbar} ${styles.mobileNavbar}`}>
+          <header className={styles.header}>
             <h2>Team Formation</h2>
-          </div>
+          </header>
           <nav className={styles.menu}>
             {menuItems.map((item) => (
               <NavLink
@@ -93,12 +93,12 @@ const Navbar: React.FC<NavbarProps> = ({ userType, userName }) => {
               </NavLink>
             ))}
           </nav>
-          <div className={styles.userSection}>
+          <footer className={styles.userSection}>
             <Button onClick={handleSignOut} className={styles.signOutButton}>
               Sign Out
             </Button>
-          </div>
-        </div>
+          </footer>
+        </nav>
       )}
     </>
   );

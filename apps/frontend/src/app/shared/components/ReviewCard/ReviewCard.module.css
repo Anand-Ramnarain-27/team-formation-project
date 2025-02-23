@@ -1,16 +1,6 @@
-/* ReviewCard.module.css */
 .reviewCard {
   padding: 1.5rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  transition: all 0.2s ease;
   background-color: white;
-}
-
-.reviewCard:hover {
-  border-color: #d1d5db;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .cardHeader {
@@ -58,13 +48,11 @@
   color: #6b7280;
   font-size: 0.875rem;
   margin: 0;
-}
-
-.cardContent {
-  color: #4b5563;
+  display: block;
 }
 
 .feedback {
+  color: #4b5563;
   line-height: 1.6;
   margin: 0;
   white-space: pre-wrap;

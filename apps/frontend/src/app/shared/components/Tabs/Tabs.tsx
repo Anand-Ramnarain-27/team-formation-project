@@ -1,33 +1,42 @@
 import React from 'react';
 import styles from './Tabs.module.css';
 
-interface TabsProps {
-  tabs: { id: string; label: string }[];
+type Tab = {
+  id: string;
+  label: string;
+};
+
+type TabsProps = {
+  tabs: Tab[];
   activeTab: string;
   onTabChange: (tabId: string) => void;
   className?: string;
-}
+};
 
-const Tabs: React.FC<TabsProps> = ({
-  tabs,
-  activeTab,
-  onTabChange,
-  className,
-}) => {
+const Tabs = ({ tabs, activeTab, onTabChange, className }: TabsProps) => {
   return (
-    <div className={`${styles.tabsContainer} ${className || ''}`}>
+    <nav
+      className={`${styles.tabsContainer} ${className || ''}`}
+      role="tablist"
+      aria-label="Content tabs"
+    >
       {tabs.map((tab) => (
         <button
           key={tab.id}
+          role="tab"
+          aria-selected={activeTab === tab.id}
+          aria-controls={`panel-${tab.id}`}
+          id={`tab-${tab.id}`}
           className={`${styles.tab} ${
             activeTab === tab.id ? styles.activeTab : ''
           }`}
           onClick={() => onTabChange(tab.id)}
+          tabIndex={activeTab === tab.id ? 0 : -1}
         >
           {tab.label}
         </button>
       ))}
-    </div>
+    </nav>
   );
 };
 

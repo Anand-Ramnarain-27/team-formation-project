@@ -1,10 +1,7 @@
 import React, { ReactNode } from 'react';
 import styles from './Modal.module.css';
-import Button from '../Button/Button';
-import buttonStyles from '@/app/shared/components/Button/Button.module.css';
-import style from '@/app/shared/components/Button/Button.module.css'
 
-interface SharedModalProps {
+interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
@@ -14,7 +11,7 @@ interface SharedModalProps {
   footerContent?: ReactNode;
 }
 
-export const SharedModal: React.FC<SharedModalProps> = ({
+export const SharedModal: React.FC<ModalProps> = ({
   isOpen,
   onClose,
   title,
@@ -32,25 +29,36 @@ export const SharedModal: React.FC<SharedModalProps> = ({
   };
 
   return (
-    <div className={styles.modalOverlay} onClick={onClose}>
-      <div
+    <aside className={styles.modalOverlay} onClick={onClose}>
+      <article
         className={`${styles.modal} ${sizeClasses[size]}`}
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
       >
-        <div className={styles.modalHeader}>
-          <h2>{title}</h2>
-          <button onClick={onClose} className={styles.closeButton}>
+        <header className={styles.modalHeader}>
+          <h2 id="modal-title">{title}</h2>
+          <button
+            onClick={onClose}
+            className={styles.closeButton}
+            aria-label="Close modal"
+          >
             ×
           </button>
-        </div>
+        </header>
 
-        <div className={styles.modalContent}>{children}</div>
+        <main className={styles.modalContent}>{children}</main>
 
         {showFooter && (
-          <div className={styles.modalFooter}>
+          <footer className={styles.modalFooter}>
             {footerContent || (
               <>
-                <button onClick={onClose} className={buttonStyles.third}>
+                <button
+                  onClick={onClose}
+                  className={styles.cancelButton}
+                  type="button"
+                >
                   Cancel
                 </button>
                 <button
@@ -62,9 +70,9 @@ export const SharedModal: React.FC<SharedModalProps> = ({
                 </button>
               </>
             )}
-          </div>
+          </footer>
         )}
-      </div>
-    </div>
+      </article>
+    </aside>
   );
 };

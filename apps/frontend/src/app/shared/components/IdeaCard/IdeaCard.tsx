@@ -1,4 +1,3 @@
-// IdeaCard.tsx
 import React from 'react';
 import styles from './IdeaCard.module.css';
 import StatusBadge from '@/app/shared/components/StatusBadge/StatusBadge';
@@ -16,45 +15,44 @@ const IdeaCard: React.FC<Idea> = ({
   onVote,
   isVoted = false,
   remainingVotes = 0,
-}) => {
-  const cardClassName = `${styles.ideaCard} ${styles[status.toLowerCase()]} ${
-    className || ''
-  }`;
-
-  return (
-    <Card>
-      <div className={styles.cardHeader}>
-        <div className={styles.headerContent}>
+}) => (
+  <Card>
+    <article
+      className={`${styles.ideaCard} ${styles[status.toLowerCase()]} ${
+        className || ''
+      }`}
+    >
+      <header className={styles.cardHeader}>
+        <section className={styles.headerContent}>
           <h2 className={styles.ideaName}>{idea_name}</h2>
-          <p className={styles.submitter}>Submitted by: {submitter_name}</p>
-        </div>
+          <address className={styles.submitter}>
+            Submitted by: {submitter_name}
+          </address>
+        </section>
         <StatusBadge
           status={status.toLowerCase()}
           label={status}
           className={styles.statusBadge}
         />
-      </div>
-      <div className={styles.cardContent}>
+      </header>
+
+      <section className={styles.cardContent}>
         <p className={styles.description}>{description}</p>
-        <div className={styles.cardFooter}>
-          <div className={styles.voteCount}>
-            <span>👍 {vote_count} votes</span>
-          </div>
+        <footer className={styles.cardFooter}>
+          <span className={styles.voteCount}>👍 {vote_count} votes</span>
           {onVote && (
             <Button
               onClick={onVote}
               disabled={isVoted || remainingVotes <= 0}
-              className={`${styles.voteButton} ${
-                isVoted ? styles.votedButton : ''
-              }`}
+              className={isVoted ? styles.votedButton : ''}
             >
               {isVoted ? 'Voted' : 'Vote'}
             </Button>
           )}
-        </div>
-      </div>
-    </Card>
-  );
-};
+        </footer>
+      </section>
+    </article>
+  </Card>
+);
 
 export default IdeaCard;
