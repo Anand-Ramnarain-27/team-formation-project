@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es6",
+    "sourceMap": true,
+    "strict": true,
+    "outDir": "dist",
+    "resolveJsonModule": true,
+    "paths": {
+      "mylib": ["../../libs/mylib/src/index.ts"],
+      "ui": ["../../libs/ui/src/index.ts"]
+    }
+  }
+}
