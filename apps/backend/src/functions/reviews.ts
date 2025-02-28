@@ -6,10 +6,11 @@ import {
 } from '@azure/functions';
 import { PrismaClient, rating_enum } from '@prisma/client';
 import { ReviewRequestBody, ratingEnumMap } from '../utils/types';
+import { corsMiddleware } from '../utils/cors';
 
 const prisma = new PrismaClient();
 
-export async function review(
+export async function reviewHandler(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
@@ -104,8 +105,10 @@ async function getReviews(
   }
 }
 
+const review = corsMiddleware(reviewHandler);
+
 app.http('review', {
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'OPTIONS'],
   authLevel: 'anonymous',
   handler: review,
 });

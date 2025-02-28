@@ -5,11 +5,12 @@ import {
   InvocationContext,
 } from '@azure/functions';
 import { PrismaClient } from '@prisma/client';
-import { NotificationRequestBody } from '../utils/types'; // Import the interface
+import { NotificationRequestBody } from '../utils/types'; 
+import { corsMiddleware } from '../utils/cors';
 
 const prisma = new PrismaClient();
 
-export async function notification(
+export async function notificationHandler(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
@@ -66,22 +67,31 @@ async function sendNotification(
   }
 }
 
-// Get notifications for the logged-in user
+// Get notifications for the logged-in user based on their role
 async function getNotifications(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   try {
     const userId = request.query.get('user_id');
-    if (!userId) {
-      return { status: 400, body: 'User ID is required.' };
+    const userRole = request.query.get('user_role');
+    
+    if (!userId || !userRole) {
+      return { status: 400, body: 'User ID and role are required.' };
     }
 
-    // Fetch all notifications for the specified user
+    // Fetch notifications based on user role
+    // Users should see notifications targeted at their role or 'All'
     const notifications = await prisma.notifications.findMany({
       where: {
-        created_by: parseInt(userId),
+        OR: [
+          { recipient_role: userRole },
+          { recipient_role: 'All' }
+        ]
       },
+      orderBy: {
+        created_at: 'desc'
+      }
     });
 
     return { status: 200, jsonBody: notifications };
@@ -95,8 +105,10 @@ async function getNotifications(
   }
 }
 
+const notification = corsMiddleware(notificationHandler);
+
 app.http('notification', {
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'OPTIONS'],
   authLevel: 'anonymous',
   handler: notification,
 });

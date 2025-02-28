@@ -4,7 +4,7 @@ import Navbar from './Navbar';
 import styles from './Layout.module.css';
 
 interface LayoutProps {
-  userType: 'admin' | 'student';
+  userType: 'Admin' | 'Student';
 }
 
 const Layout: React.FC<LayoutProps> = ({ userType }) => {

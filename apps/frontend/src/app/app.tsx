@@ -17,7 +17,7 @@ export function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route element={<Layout userType="admin" />}>
+      <Route element={<Layout userType="Admin" />}>
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/students" element={<AdminStudentsPage />} />
         <Route path="/admin/review" element={<AdminReviewPage />} />
@@ -25,7 +25,7 @@ export function App() {
         <Route path="/admin/notifications" element={<Notifications />} />
         <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
       </Route>
-      <Route element={<Layout userType="student" />}>
+      <Route element={<Layout userType="Student" />}>
         <Route path="/student" element={<StudentDashboard />} />
         <Route path="/student/vote" element={<StudentVotePage />} />
         <Route path="/student/review" element={<StudentReviewPage />} />

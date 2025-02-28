@@ -5,10 +5,11 @@ import {
   InvocationContext,
 } from '@azure/functions';
 import { PrismaClient } from '@prisma/client';
+import { corsMiddleware } from '../utils/cors';
 
 const prisma = new PrismaClient();
 
-export async function analytics(
+export async function analyticsHandler(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
@@ -105,8 +106,10 @@ async function getGroupAnalytics(
   }
 }
 
+const analytics = corsMiddleware(analyticsHandler);
+
 app.http('analytics', {
-  methods: ['GET'],
+  methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
   handler: analytics,
 });

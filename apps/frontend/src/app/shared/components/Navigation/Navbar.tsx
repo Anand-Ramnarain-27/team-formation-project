@@ -5,7 +5,7 @@ import Button from '@/app/shared/components/Button/Button';
 
 const adminMenuItems = [
   { name: 'Dashboard', path: '/admin' },
-  { name: 'Student Management', path: '/admin/students' },
+  { name: 'User Management', path: '/admin/students' },
   { name: 'Group Management', path: '/admin/groups' },
   { name: 'Review', path: '/admin/review' },
   { name: 'Notifications', path: '/admin/notifications' },
@@ -21,13 +21,13 @@ const studentMenuItems = [
 ];
 
 interface NavbarProps {
-  userType: 'admin' | 'student';
+  userType: 'Admin' | 'Student';
   userName: string;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ userType, userName }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const menuItems = userType === 'admin' ? adminMenuItems : studentMenuItems;
+  const menuItems = userType === 'Admin' ? adminMenuItems : studentMenuItems;
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);

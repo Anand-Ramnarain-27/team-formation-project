@@ -8,10 +8,8 @@ import SelectInput from '@/app/shared/components/SelectInput/SelectInput';
 import NotificationCard from '@/app/shared/components/NotificationCard/NotificationCard';
 
 const recipientOptions = [
-  { value: 'all', label: 'All Users' },
-  { value: 'student', label: 'Students' },
-  { value: 'team_lead', label: 'Team Leads' },
-  { value: 'admin', label: 'Administrators' },
+  { value: 'Student', label: 'Students' },
+  { value: 'Admin', label: 'Administrators' },
 ];
 
 const CreateNotificationForm = ({
@@ -61,48 +59,55 @@ const CreateNotificationForm = ({
 const NotificationsPage = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentUser] = useState<User>({
-    user_id: 1,
-    name: 'Admin User',
-    email: 'admin@example.com',
-    role: 'admin',
-    created_at: '12:00:00',
-    updated_at: null,
-  });
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const isAdmin = currentUser.role === 'admin';
+  // Get the current user from localStorage
+  useEffect(() => {
+    const userJson = localStorage.getItem('currentUser');
+
+    if (!userJson) {
+      setError("You're not logged in. Please log in to view notifications.");
+      return;
+    }
+
+    try {
+      const user = JSON.parse(userJson) as User;
+      setCurrentUser(user);
+    } catch (err) {
+      setError('Invalid user data. Please log in again.');
+      localStorage.removeItem('currentUser');
+    }
+  }, []);
+
+  const isAdmin = currentUser?.role === 'Admin';
+  const userId = currentUser?.user_id;
+  const userRole = currentUser?.role;
 
   useEffect(() => {
     const fetchNotifications = async () => {
+      if (!userId || !userRole) {
+        setLoading(false);
+        return;
+      }
       try {
-        const mockNotifications: Notification[] = [
+        const response = await fetch(
+          `http://localhost:7071/api/notification?user_id=${userId}&user_role=${userRole}`,
           {
-            notification_id: 1,
-            recipient_role: 'all',
-            message: "New theme 'Web Development' has been created",
-            created_by: 2,
-            created_at: new Date().toISOString(),
-            status: 'info',
-          },
-          {
-            notification_id: 2,
-            recipient_role: 'student',
-            message: 'Deadline for idea submission is approaching',
-            created_by: 2,
-            created_at: new Date(Date.now() - 86400000).toISOString(),
-            status: 'warning',
-          },
-          {
-            notification_id: 3,
-            recipient_role: 'team_lead',
-            message: 'New review submitted for your group',
-            created_by: 2,
-            created_at: new Date(Date.now() - 172800000).toISOString(),
-            status: 'success',
-          },
-        ];
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              // 'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            },
+          }
+        );
 
-        setNotifications(mockNotifications);
+        if (!response.ok) {
+          throw new Error('Failed to fetch notifications');
+        }
+
+        const data = await response.json();
+        setNotifications(data);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching notifications:', error);
@@ -111,19 +116,40 @@ const NotificationsPage = () => {
     };
 
     fetchNotifications();
-  }, []);
+  }, [userId, userRole]);
 
-  const handleCreateNotification = (message: string, recipientRole: string) => {
-    const newNotification: Notification = {
-      notification_id: Date.now(),
-      recipient_role: recipientRole,
-      message,
-      created_by: currentUser.user_id,
-      created_at: new Date().toISOString(),
-      status: 'info',
-    };
+  const handleCreateNotification = async (
+    message: string,
+    recipientRole: string
+  ) => {
+    if (!currentUser) return;
+    try {
+      const response = await fetch(`http://localhost:7071/api/notification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // 'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          recipient_role: recipientRole,
+          message,
+          created_by: currentUser?.user_id,
+        }),
+      });
 
-    setNotifications([newNotification, ...notifications]);
+      if (!response.ok) {
+        throw new Error('Failed to send notification');
+      }
+
+      const newNotification = await response.json();
+      if (
+        newNotification.recipient_role === currentUser.role
+      ) {
+        setNotifications([newNotification, ...notifications]);
+      }
+    } catch (error) {
+      console.error('Error sending notification:', error);
+    }
   };
 
   return (

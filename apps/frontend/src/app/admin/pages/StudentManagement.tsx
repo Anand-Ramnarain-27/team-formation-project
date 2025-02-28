@@ -1,4 +1,4 @@
-import React, { useState, FormEvent } from 'react';
+import React, { useState, FormEvent, useEffect } from 'react';
 import styles from './StudentManagement.module.css';
 import { StudentWithDetails, User } from '@/app/shared/utils/types';
 import { SharedModal } from '@/app/shared/components/Modal/Modal';
@@ -60,40 +60,39 @@ const StudentForm: React.FC<StudentFormProps> = ({ student, onSubmit }) => {
 };
 
 const StudentManagement: React.FC = () => {
-  const [students, setStudents] = useState<StudentWithDetails[]>([
-    {
-      user_id: 1,
-      name: 'John Doe',
-      email: 'john@example.com',
-      role: 'student',
-      created_at: '2025-01-15T10:00:00Z',
-      updated_at: null,
-      currentGroup: {
-        group_name: 'Innovation Team A',
-        theme_id: 1,
-      },
-      averageRating: 4.5,
-    },
-    {
-      user_id: 2,
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      role: 'student',
-      created_at: '2025-01-16T11:00:00Z',
-      updated_at: null,
-      currentGroup: {
-        group_name: 'Sustainability Group B',
-        theme_id: 2,
-      },
-      averageRating: 4.8,
-    },
-  ]);
-
+  const [students, setStudents] = useState<StudentWithDetails[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] =
     useState<StudentWithDetails | null>(null);
+
+  useEffect(() => {
+    const fetchStudents = async () =>{
+      try{
+        const response = await fetch(
+          `http://localhost:7071/api/user`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              // 'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch notifications');
+        }
+
+        const data = await response.json();
+        setStudents(data);
+      }catch(error){
+        console.log('Error fetching Students:', error);
+      }
+    }
+    fetchStudents();
+  });
 
   const filteredStudents = students.filter((student) => {
     const matchesSearch =
@@ -106,7 +105,7 @@ const StudentManagement: React.FC = () => {
   return (
     <main className={styles.container}>
       <header className={styles.header}>
-        <h1>Student Management</h1>
+        <h1>User Management</h1>
         <Button onClick={() => setIsAddModalOpen(true)}>Add Student</Button>
       </header>
 
@@ -122,8 +121,8 @@ const StudentManagement: React.FC = () => {
           onChange={setFilterRole}
           options={[
             { value: 'all', label: 'All Roles' },
-            { value: 'student', label: 'Students' },
-            { value: 'admin', label: 'Admins' },
+            { value: 'Student', label: 'Students' },
+            { value: 'Admin', label: 'Admins' },
           ]}
           placeholder="Select role"
           className={styles.filterSelect}

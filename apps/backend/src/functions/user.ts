@@ -5,11 +5,12 @@ import {
   InvocationContext,
 } from '@azure/functions';
 import { PrismaClient } from '@prisma/client';
-import { UserUpdateRequestBody } from '../utils/types'; // Import the interface from types.ts
+import { UserUpdateRequestBody } from '../utils/types'; 
+import { corsMiddleware } from '../utils/cors';
 
 const prisma = new PrismaClient();
 
-export async function user(
+export async function userHandler(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
@@ -117,8 +118,10 @@ async function updateUser(
   }
 }
 
+const user = corsMiddleware(userHandler);
+
 app.http('user', {
-  methods: ['GET', 'PUT'],
+  methods: ['GET', 'PUT', 'OPTIONS'],
   authLevel: 'anonymous',
   handler: user,
 });

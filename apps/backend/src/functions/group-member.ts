@@ -6,10 +6,11 @@ import {
 } from '@azure/functions';
 import { PrismaClient } from '@prisma/client';
 import { AddMemberRequestBody } from '../utils/types';
+import { corsMiddleware } from '../utils/cors';
 
 const prisma = new PrismaClient();
 
-export async function groupMember(
+export async function groupMemberHandler(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
@@ -115,8 +116,10 @@ async function removeMember(
   }
 }
 
+const groupMember = corsMiddleware(groupMemberHandler);
+
 app.http('groupMember', {
-  methods: ['POST', 'DELETE'],
+  methods: ['POST', 'DELETE', 'OPTIONS'],
   authLevel: 'anonymous',
   handler: groupMember,
 });

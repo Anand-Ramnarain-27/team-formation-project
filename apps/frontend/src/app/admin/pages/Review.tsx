@@ -1,4 +1,3 @@
-// Review.tsx
 import React, { useState, useEffect } from 'react';
 import styles from './Review.module.css';
 import { Theme, Idea } from '@/app/shared/utils/types';
@@ -18,7 +17,7 @@ const Review: React.FC = () => {
   useEffect(() => {
     const fetchThemes = async () => {
       try {
-        const response = await fetch('/api/themes');
+        const response = await fetch(`http://localhost:7071/api/theme`);
         const data = await response.json();
         setThemes(data);
       } catch (error) {
@@ -34,8 +33,8 @@ const Review: React.FC = () => {
       try {
         const url =
           selectedTheme === 'all'
-            ? '/api/ideas'
-            : `/api/ideas?theme_id=${selectedTheme}`;
+            ? `http://localhost:7071/api/idea`
+            : `http://localhost:7071/api/idea?theme_id=${selectedTheme}`;
         const response = await fetch(url);
         const data = await response.json();
         setIdeas(data);
@@ -46,20 +45,22 @@ const Review: React.FC = () => {
     fetchIdeas();
   }, [selectedTheme]);
 
-  const updateIdeaStatus = async (
-    ideaId: number,
-    status: 'Approved' | 'Rejected'
-  ) => {
+  const updateIdeaStatus = async (ideaId: number, status: string) => {
     try {
-      const response = await fetch(`/api/ideas/${ideaId}/status`, {
+      const response = await fetch(`http://localhost:7071/api/idea/${ideaId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
       });
-      if (!response.ok) throw new Error('Failed to update status');
-      setIdeas(
-        ideas.map((idea) =>
-          idea.idea_id === ideaId ? { ...idea, status } : idea
+  
+      if (!response.ok) {
+        throw new Error(`Failed to update idea status: ${response.statusText}`);
+      }
+  
+      const updatedIdea = await response.json();
+      setIdeas((prevIdeas) =>
+        prevIdeas.map((idea) =>
+          idea.idea_id === ideaId ? { ...idea, status: updatedIdea.status } : idea
         )
       );
     } catch (error) {

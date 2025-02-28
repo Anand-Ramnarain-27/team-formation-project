@@ -6,10 +6,11 @@ import {
 } from '@azure/functions';
 import { PrismaClient } from '@prisma/client';
 import { VoteRequestBody } from '../utils/types'; 
+import { corsMiddleware } from '../utils/cors';
 
 const prisma = new PrismaClient();
 
-export async function vote(
+export async function voteHandler(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
@@ -111,8 +112,10 @@ async function getVotes(
   }
 }
 
+const vote = corsMiddleware(voteHandler);
+
 app.http('vote', {
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'OPTIONS'],
   authLevel: 'anonymous',
   handler: vote,
 });

@@ -5,11 +5,12 @@ import {
   InvocationContext,
 } from '@azure/functions';
 import { PrismaClient } from '@prisma/client';
-import { ThemeRequestBody } from '../utils/types'; // Import the interface from types.ts
+import { ThemeRequestBody } from '../utils/types'; 
+import { corsMiddleware } from '../utils/cors';
 
 const prisma = new PrismaClient();
 
-export async function theme(
+export async function themeHandler(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
@@ -180,8 +181,10 @@ async function deleteTheme(
   }
 }
 
+const theme = corsMiddleware(themeHandler);
+
 app.http('theme', {
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE' , 'OPTIONS'],
   authLevel: 'anonymous',
   handler: theme,
 });

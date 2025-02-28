@@ -1,10 +1,11 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import { PrismaClient } from '@prisma/client';
-import { GroupRequestBody } from '../utils/types'; // Import the interface
+import { GroupRequestBody } from '../utils/types'; 
+import { corsMiddleware } from '../utils/cors';
 
 const prisma = new PrismaClient();
 
-export async function group(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+export async function groupHandler(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`Http function processed request for url "${request.url}"`);
 
     try {
@@ -140,8 +141,10 @@ async function deleteGroup(groupId: string, context: InvocationContext): Promise
     }
 }
 
+const group = corsMiddleware(groupHandler);
+
 app.http('group', {
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     authLevel: 'anonymous',
     handler: group
 });
