@@ -19,49 +19,17 @@ export async function ideaHandler(
   try {
     switch (request.method) {
       case 'GET':
-        const ideaId = request.params.id;
-        if (ideaId) {
-          // Handle GET /ideas/{id}
-          return await getIdeaById(ideaId, context);
-        } else {
-          // Handle GET /ideas
-          return await getIdeas(request, context);
-        }
+        return await getIdeas(request, context);
       case 'POST':
-        // Handle POST /ideas
         return await submitIdea(request, context);
-      case 'PUT':
-        // Handle PUT /ideas/{id}
-        const updateIdeaId = request.params.id;
-        if (updateIdeaId) {
-          return await updateIdea(updateIdeaId, request, context);
-        } else {
-          return { status: 400, body: 'Idea ID is required for update.' };
-        }
       case 'PATCH':
-        // Handle PATCH /ideas/{id}/status
-        const patchIdeaId = request.params.id;
-        if (patchIdeaId) {
-          return await updateIdeaStatus(patchIdeaId, request, context);
-        } else {
-          return {
-            status: 400,
-            body: 'Idea ID is required for status update.',
-          };
-        }
+        return await updateIdeaStatus(request, context);
       case 'DELETE':
-        // Handle DELETE /ideas/{id}
-        const deleteIdeaId = request.params.id;
-        if (deleteIdeaId) {
-          return await deleteIdea(deleteIdeaId, context);
-        } else {
-          return { status: 400, body: 'Idea ID is required for deletion.' };
-        }
+        return await deleteIdea(request, context);
       default:
         return { status: 405, body: 'Method not allowed.' };
     }
   } catch (error) {
-    // Safely handle the error
     if (error instanceof Error) {
       context.error(`Error processing request: ${error.message}`);
     } else {
@@ -71,16 +39,26 @@ export async function ideaHandler(
   }
 }
 
-// Get all ideas (optionally filtered by theme_id)
+// Get all ideas (optionally filtered by theme_id or idea_id)
 async function getIdeas(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   try {
     const themeId = request.query.get('theme_id');
+    const ideaId = request.query.get('idea_id');
+
+    let whereClause = {};
+    if (themeId) {
+      whereClause = { theme_id: parseInt(themeId) };
+    } else if (ideaId) {
+      whereClause = { idea_id: parseInt(ideaId) };
+    }
+
     const ideas = await prisma.ideas.findMany({
-      where: themeId ? { theme_id: parseInt(themeId) } : undefined,
+      where: whereClause,
     });
+
     return { status: 200, jsonBody: ideas };
   } catch (error) {
     if (error instanceof Error) {
@@ -92,38 +70,12 @@ async function getIdeas(
   }
 }
 
-// Get idea by ID
-async function getIdeaById(
-  ideaId: string,
-  context: InvocationContext
-): Promise<HttpResponseInit> {
-  try {
-    const idea = await prisma.ideas.findUnique({
-      where: { idea_id: parseInt(ideaId) },
-    });
-
-    if (!idea) {
-      return { status: 404, body: 'Idea not found.' };
-    }
-
-    return { status: 200, jsonBody: idea };
-  } catch (error) {
-    if (error instanceof Error) {
-      context.error(`Error fetching idea by ID: ${error.message}`);
-    } else {
-      context.error(`Unknown error occurred: ${error}`);
-    }
-    return { status: 500, body: 'Failed to fetch idea.' };
-  }
-}
-
 // Submit a new idea
 async function submitIdea(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   try {
-    // Parse and validate the request body
     const body = (await request.json()) as IdeaRequestBody;
     const newIdea = await prisma.ideas.create({
       data: {
@@ -131,7 +83,7 @@ async function submitIdea(
         submitted_by: body.submitted_by,
         idea_name: body.idea_name,
         description: body.description,
-        status: body.status || status_enum.Pending, // Use the enum value
+        status: body.status || status_enum.Pending,
       },
     });
 
@@ -146,50 +98,19 @@ async function submitIdea(
   }
 }
 
-// Update idea by ID
-async function updateIdea(
-  ideaId: string,
-  request: HttpRequest,
-  context: InvocationContext
-): Promise<HttpResponseInit> {
-  try {
-    // Parse and validate the request body
-    const body = (await request.json()) as Partial<IdeaRequestBody>;
-
-    // Ensure only allowed fields are passed to Prisma
-    const updateData: Partial<IdeaRequestBody> = {
-      idea_name: body.idea_name,
-      description: body.description,
-      status: body.status,
-    };
-
-    const updatedIdea = await prisma.ideas.update({
-      where: { idea_id: parseInt(ideaId) },
-      data: updateData,
-    });
-
-    return { status: 200, jsonBody: updatedIdea };
-  } catch (error) {
-    if (error instanceof Error) {
-      context.error(`Error updating idea: ${error.message}`);
-    } else {
-      context.error(`Unknown error occurred: ${error}`);
-    }
-    return { status: 500, body: 'Failed to update idea.' };
-  }
-}
-
 // Update idea status by ID
 async function updateIdeaStatus(
-  ideaId: string,
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   try {
-    // Parse and validate the request body
+    const ideaId = request.query.get('idea_id');
+    if (!ideaId) {
+      return { status: 400, body: 'Idea ID is required for status update.' };
+    }
+
     const body = (await request.json()) as { status: 'Approved' | 'Rejected' };
 
-    // Update the idea status
     const updatedIdea = await prisma.ideas.update({
       where: { idea_id: parseInt(ideaId) },
       data: { status: body.status },
@@ -208,10 +129,15 @@ async function updateIdeaStatus(
 
 // Delete idea by ID
 async function deleteIdea(
-  ideaId: string,
+  request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   try {
+    const ideaId = request.query.get('idea_id');
+    if (!ideaId) {
+      return { status: 400, body: 'Idea ID is required for deletion.' };
+    }
+
     await prisma.ideas.delete({
       where: { idea_id: parseInt(ideaId) },
     });
@@ -230,7 +156,7 @@ async function deleteIdea(
 const idea = corsMiddleware(ideaHandler);
 
 app.http('idea', {
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  methods: ['GET', 'POST', 'DELETE', 'PATCH', 'OPTIONS'],
   authLevel: 'anonymous',
   handler: idea,
 });

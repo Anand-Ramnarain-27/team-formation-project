@@ -1,16 +1,27 @@
 import { PrismaClient, rating_enum, status_enum } from '@prisma/client';
 
-// Theme
-export interface ThemeRequestBody {
+export interface ThemeCreateRequestBody {
   title: string;
-  description?: string;
-  submission_deadline: string;
-  voting_deadline: string;
-  review_deadline: object;
+  description: string;
+  submission_deadline: Date;
+  voting_deadline: Date;
+  review_deadline: string; // Assuming JSON string
   auto_assign_group: boolean;
-  team_lead_acceptance?: boolean;
+  team_lead_acceptance: boolean | null;
   number_of_groups: number;
   created_by: number;
+}
+
+export interface ThemeUpdateRequestBody {
+  title?: string;
+  description?: string;
+  submission_deadline?: Date;
+  voting_deadline?: Date;
+  review_deadline?: string; // Assuming JSON string
+  auto_assign_group?: boolean;
+  team_lead_acceptance?: boolean | null;
+  number_of_groups?: number;
+  created_by?: number;
 }
 
 // User
@@ -18,6 +29,13 @@ export interface UserUpdateRequestBody {
   name?: string;
   email?: string;
   role?: string;
+  auth_provider?: string;
+}
+
+export interface UserCreateRequestBody {
+  name: string;
+  email: string;
+  role: string;
   auth_provider?: string;
 }
 
@@ -52,8 +70,14 @@ export interface AddMemberRequestBody {
 }
 
 // Groups
-export interface GroupRequestBody {
+export interface GroupCreateRequestBody {
   theme_id: number;
+  group_name: string;
+  team_lead: number;
+}
+
+export interface GroupUpdateRequestBody {
+  theme_id?: number;
   group_name?: string;
   team_lead?: number;
 }

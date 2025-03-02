@@ -5,7 +5,7 @@ import {
   InvocationContext,
 } from '@azure/functions';
 import { PrismaClient } from '@prisma/client';
-import { UserUpdateRequestBody } from '../utils/types'; 
+import { UserCreateRequestBody, UserUpdateRequestBody } from '../utils/types';
 import { corsMiddleware } from '../utils/cors';
 
 const prisma = new PrismaClient();
@@ -19,27 +19,15 @@ export async function userHandler(
   try {
     switch (request.method) {
       case 'GET':
-        const userId = request.params.id;
-        if (userId) {
-          // Handle GET /users/{id}
-          return await getUserById(userId, context);
-        } else {
-          // Handle GET /users
-          return await getUsers(context);
-        }
-      case 'PUT':
-        // Handle PUT /users/{id}
-        const updateUserId = request.params.id;
-        if (updateUserId) {
-          return await updateUser(updateUserId, request, context);
-        } else {
-          return { status: 400, body: 'User ID is required for update.' };
-        }
+        return await getUsers(context);
+      case 'POST':
+        return await createUser(request, context);
+      case 'PATCH':
+        return await updateUser(request, context);
       default:
         return { status: 405, body: 'Method not allowed.' };
     }
   } catch (error) {
-    // Safely handle the error object
     if (error instanceof Error) {
       context.error(`Error processing request: ${error.message}`);
     } else {
@@ -64,50 +52,62 @@ async function getUsers(context: InvocationContext): Promise<HttpResponseInit> {
   }
 }
 
-// Get user by ID
-async function getUserById(
-  userId: string,
-  context: InvocationContext
-): Promise<HttpResponseInit> {
-  try {
-    const user = await prisma.users.findUnique({
-      where: { user_id: parseInt(userId) },
-    });
-
-    if (!user) {
-      return { status: 404, body: 'User not found.' };
-    }
-
-    return { status: 200, jsonBody: user };
-  } catch (error) {
-    if (error instanceof Error) {
-      context.error(`Error fetching user by ID: ${error.message}`);
-    } else {
-      context.error(
-        `Unknown error occurred while fetching user by ID: ${error}`
-      );
-    }
-    return { status: 500, body: 'Failed to fetch user.' };
-  }
-}
-
-// Update user by ID
-async function updateUser(
-  userId: string,
+// Create a new user
+async function createUser(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   try {
-    // Parse and validate the request body
-    const body = (await request.json()) as UserUpdateRequestBody;
+    const body = await request.json();
+    const userBody: UserCreateRequestBody = body as UserCreateRequestBody;
+    const user = await prisma.users.create({
+      data: {
+        name: userBody.name,
+        email: userBody.email,
+        role: userBody.role,
+        auth_provider: userBody.auth_provider || null,
+      },
+    });
+    return { status: 201, jsonBody: user };
+  } catch (error) {
+    if (error instanceof Error) {
+      context.error(`Error creating user: ${error.message}`);
+    } else {
+      context.error(`Unknown error occurred while creating user: ${error}`);
+    }
+    return { status: 500, body: 'Failed to create user.' };
+  }
+}
 
-    // Update the user
-    const updatedUser = await prisma.users.update({
-      where: { user_id: parseInt(userId) },
-      data: body,
+// Update an existing user
+async function updateUser(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  try {
+    const userId = request.query.get('id');
+    if (!userId) {
+      return { status: 400, body: 'User ID is required.' };
+    }
+
+    const body = await request.json();
+    if (typeof body !== 'object' || body === null) {
+      return { status: 400, body: 'Invalid request body' };
+    }
+
+    const userBody: UserUpdateRequestBody = body as UserUpdateRequestBody;
+
+    const user = await prisma.users.update({
+      where: { user_id: parseInt(userId, 10) },
+      data: {
+        name: userBody.name,
+        email: userBody.email,
+        role: userBody.role,
+        auth_provider: userBody.auth_provider || null,
+      },
     });
 
-    return { status: 200, jsonBody: updatedUser };
+    return { status: 200, jsonBody: user };
   } catch (error) {
     if (error instanceof Error) {
       context.error(`Error updating user: ${error.message}`);
@@ -121,7 +121,7 @@ async function updateUser(
 const user = corsMiddleware(userHandler);
 
 app.http('user', {
-  methods: ['GET', 'PUT', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
   authLevel: 'anonymous',
   handler: user,
 });

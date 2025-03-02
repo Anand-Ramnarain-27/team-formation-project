@@ -5,8 +5,8 @@ import {
   InvocationContext,
 } from '@azure/functions';
 import { PrismaClient } from '@prisma/client';
-import { ThemeRequestBody } from '../utils/types'; 
 import { corsMiddleware } from '../utils/cors';
+import { ThemeCreateRequestBody, ThemeUpdateRequestBody } from '../utils/types';
 
 const prisma = new PrismaClient();
 
@@ -19,38 +19,18 @@ export async function themeHandler(
   try {
     switch (request.method) {
       case 'GET':
-        const themeId = request.params.id;
-        if (themeId) {
-          // Handle GET /themes/{id}
-          return await getThemeById(themeId, context);
-        } else {
-          // Handle GET /themes
-          return await getThemes(context);
+        if (request.query.get('id')) {
+          return await getThemeById(request, context);
         }
+        return await getThemes(context);
       case 'POST':
-        // Handle POST /themes
         return await createTheme(request, context);
       case 'PUT':
-        // Handle PUT /themes/{id}
-        const updateThemeId = request.params.id;
-        if (updateThemeId) {
-          return await updateTheme(updateThemeId, request, context);
-        } else {
-          return { status: 400, body: 'Theme ID is required for update.' };
-        }
-      case 'DELETE':
-        // Handle DELETE /themes/{id}
-        const deleteThemeId = request.params.id;
-        if (deleteThemeId) {
-          return await deleteTheme(deleteThemeId, context);
-        } else {
-          return { status: 400, body: 'Theme ID is required for deletion.' };
-        }
+        return await updateTheme(request, context);
       default:
         return { status: 405, body: 'Method not allowed.' };
     }
   } catch (error) {
-    // Safely handle the error
     if (error instanceof Error) {
       context.error(`Error processing request: ${error.message}`);
     } else {
@@ -61,9 +41,7 @@ export async function themeHandler(
 }
 
 // Get all themes
-async function getThemes(
-  context: InvocationContext
-): Promise<HttpResponseInit> {
+async function getThemes(context: InvocationContext): Promise<HttpResponseInit> {
   try {
     const themes = await prisma.theme.findMany();
     return { status: 200, jsonBody: themes };
@@ -71,20 +49,25 @@ async function getThemes(
     if (error instanceof Error) {
       context.error(`Error fetching themes: ${error.message}`);
     } else {
-      context.error(`Unknown error occurred: ${error}`);
+      context.error(`Unknown error occurred while fetching themes: ${error}`);
     }
     return { status: 500, body: 'Failed to fetch themes.' };
   }
 }
 
-// Get theme by ID
+// Get a theme by ID
 async function getThemeById(
-  themeId: string,
+  request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   try {
+    const themeId = request.query.get('id');
+    if (!themeId) {
+      return { status: 400, body: 'Theme ID is required.' };
+    }
+
     const theme = await prisma.theme.findUnique({
-      where: { theme_id: parseInt(themeId) },
+      where: { theme_id: parseInt(themeId, 10) },
     });
 
     if (!theme) {
@@ -96,7 +79,7 @@ async function getThemeById(
     if (error instanceof Error) {
       context.error(`Error fetching theme by ID: ${error.message}`);
     } else {
-      context.error(`Unknown error occurred: ${error}`);
+      context.error(`Unknown error occurred while fetching theme by ID: ${error}`);
     }
     return { status: 500, body: 'Failed to fetch theme.' };
   }
@@ -108,14 +91,13 @@ async function createTheme(
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   try {
-    // Parse and validate the request body
-    const body = (await request.json()) as ThemeRequestBody;
-    const newTheme = await prisma.theme.create({
+    const body = (await request.json()) as ThemeCreateRequestBody;
+    const newtheme = await prisma.theme.create({
       data: {
         title: body.title,
         description: body.description,
-        submission_deadline: new Date(body.submission_deadline),
-        voting_deadline: new Date(body.voting_deadline),
+        submission_deadline: body.submission_deadline,
+        voting_deadline: body.voting_deadline,
         review_deadline: body.review_deadline,
         auto_assign_group: body.auto_assign_group,
         team_lead_acceptance: body.team_lead_acceptance,
@@ -124,67 +106,63 @@ async function createTheme(
       },
     });
 
-    return { status: 201, jsonBody: newTheme };
+    return { status: 201, jsonBody: newtheme };
   } catch (error) {
     if (error instanceof Error) {
       context.error(`Error creating theme: ${error.message}`);
     } else {
-      context.error(`Unknown error occurred: ${error}`);
+      context.error(`Unknown error occurred while creating theme: ${error}`);
     }
     return { status: 500, body: 'Failed to create theme.' };
   }
 }
 
-// Update theme by ID
+// Update an existing theme
 async function updateTheme(
-  themeId: string,
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   try {
-    // Parse and validate the request body
-    const body = (await request.json()) as Partial<ThemeRequestBody>;
-    const updatedTheme = await prisma.theme.update({
-      where: { theme_id: parseInt(themeId) },
-      data: body,
+    const themeId = request.query.get('id');
+    if (!themeId) {
+      return { status: 400, body: 'Theme ID is required.' };
+    }
+
+    const body = (await request.json()) as ThemeUpdateRequestBody;
+    if (typeof body !== 'object' || body === null) {
+      return { status: 400, body: 'Invalid request body' };
+    }
+
+    const theme = await prisma.theme.update({
+      where: { theme_id: parseInt(themeId, 10) },
+      data: {
+        title: body.title,
+        description: body.description,
+        submission_deadline: body.submission_deadline,
+        voting_deadline: body.voting_deadline,
+        review_deadline: body.review_deadline,
+        auto_assign_group: body.auto_assign_group,
+        team_lead_acceptance: body.team_lead_acceptance,
+        number_of_groups: body.number_of_groups,
+        created_by: body.created_by,
+      },
     });
 
-    return { status: 200, jsonBody: updatedTheme };
+    return { status: 200, jsonBody: theme };
   } catch (error) {
     if (error instanceof Error) {
       context.error(`Error updating theme: ${error.message}`);
     } else {
-      context.error(`Unknown error occurred: ${error}`);
+      context.error(`Unknown error occurred while updating theme: ${error}`);
     }
     return { status: 500, body: 'Failed to update theme.' };
-  }
-}
-
-// Delete theme by ID
-async function deleteTheme(
-  themeId: string,
-  context: InvocationContext
-): Promise<HttpResponseInit> {
-  try {
-    await prisma.theme.delete({
-      where: { theme_id: parseInt(themeId) },
-    });
-
-    return { status: 204, body: 'Theme deleted successfully.' };
-  } catch (error) {
-    if (error instanceof Error) {
-      context.error(`Error deleting theme: ${error.message}`);
-    } else {
-      context.error(`Unknown error occurred: ${error}`);
-    }
-    return { status: 500, body: 'Failed to delete theme.' };
   }
 }
 
 const theme = corsMiddleware(themeHandler);
 
 app.http('theme', {
-  methods: ['GET', 'POST', 'PUT', 'DELETE' , 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'OPTIONS'],
   authLevel: 'anonymous',
   handler: theme,
 });

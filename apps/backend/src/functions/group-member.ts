@@ -5,8 +5,8 @@ import {
   InvocationContext,
 } from '@azure/functions';
 import { PrismaClient } from '@prisma/client';
-import { AddMemberRequestBody } from '../utils/types';
 import { corsMiddleware } from '../utils/cors';
+import { AddMemberRequestBody } from '../utils/types';
 
 const prisma = new PrismaClient();
 
@@ -18,28 +18,16 @@ export async function groupMemberHandler(
 
   try {
     switch (request.method) {
+      case 'GET':
+        return await getGroupMembers(request, context);
       case 'POST':
-        // Handle POST /groups/{id}/members (add a member to a group)
-        const groupId = request.params.id;
-        if (groupId) {
-          return await addMember(groupId, request, context);
-        } else {
-          return { status: 400, body: 'Group ID is required.' };
-        }
+        return await addGroupMember(request, context);
       case 'DELETE':
-        // Handle DELETE /groups/{id}/members/{userId} (remove a member from a group)
-        const deleteGroupId = request.params.id;
-        const userId = request.params.userId;
-        if (deleteGroupId && userId) {
-          return await removeMember(deleteGroupId, userId, context);
-        } else {
-          return { status: 400, body: 'Group ID and User ID are required.' };
-        }
+        return await removeGroupMember(request, context);
       default:
         return { status: 405, body: 'Method not allowed.' };
     }
   } catch (error) {
-    // Safely handle the error
     if (error instanceof Error) {
       context.error(`Error processing request: ${error.message}`);
     } else {
@@ -49,77 +37,104 @@ export async function groupMemberHandler(
   }
 }
 
-// Add a member to a group
-async function addMember(
-  groupId: string,
+// Get all members of a group
+async function getGroupMembers(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   try {
-    // Parse and validate the request body
-    const body = (await request.json()) as AddMemberRequestBody;
-
-    // Check if the user is already a member of the group
-    const existingMember = await prisma.group_members.findFirst({
-      where: {
-        group_id: parseInt(groupId),
-        user_id: body.user_id,
-      },
-    });
-
-    if (existingMember) {
-      return { status: 400, body: 'User is already a member of this group.' };
+    const groupId = request.query.get('id');
+    if (!groupId) {
+      return { status: 400, body: 'Group ID is required.' };
     }
 
-    // Add the user to the group
-    const newMember = await prisma.group_members.create({
-      data: {
-        group_id: parseInt(groupId),
-        user_id: body.user_id,
+    const groupMembers = await prisma.group_members.findMany({
+      where: { group_id: parseInt(groupId, 10) },
+      include: {
+        member: true,
       },
     });
 
-    return { status: 201, jsonBody: newMember };
+    return { status: 200, jsonBody: groupMembers };
   } catch (error) {
     if (error instanceof Error) {
-      context.error(`Error adding member: ${error.message}`);
+      context.error(`Error fetching group members: ${error.message}`);
     } else {
-      context.error(`Unknown error occurred: ${error}`);
+      context.error(`Unknown error occurred while fetching group members: ${error}`);
     }
-    return { status: 500, body: 'Failed to add member.' };
+    return { status: 500, body: 'Failed to fetch group members.' };
+  }
+}
+
+// Add a member to a group
+async function addGroupMember(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  try {
+    const body = await request.json();
+    const groupId = request.query.get('groupId');
+    const userId = request.query.get('userId');
+
+    if (!groupId || !userId) {
+      return { status: 400, body: 'Group ID and User ID are required.' };
+    }
+
+    const groupMember = await prisma.group_members.create({
+      data: {
+        group_id: parseInt(groupId, 10),
+        user_id: parseInt(userId, 10),
+      },
+    });
+
+    return { status: 201, jsonBody: groupMember };
+  } catch (error) {
+    if (error instanceof Error) {
+      context.error(`Error adding group member: ${error.message}`);
+    } else {
+      context.error(`Unknown error occurred while adding group member: ${error}`);
+    }
+    return { status: 500, body: 'Failed to add group member.' };
   }
 }
 
 // Remove a member from a group
-async function removeMember(
-  groupId: string,
-  userId: string,
+async function removeGroupMember(
+  request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   try {
-    // Delete the group member
-    await prisma.group_members.deleteMany({
+    const groupId = request.query.get('groupId');
+    const userId = request.query.get('userId');
+
+    if (!groupId || !userId) {
+      return { status: 400, body: 'Group ID and User ID are required.' };
+    }
+
+    await prisma.group_members.delete({
       where: {
-        group_id: parseInt(groupId),
-        user_id: parseInt(userId),
+        group_members_group_id_user_id_unique: {
+          group_id: parseInt(groupId, 10),
+          user_id: parseInt(userId, 10),
+        },
       },
     });
 
-    return { status: 204, body: 'Member removed successfully.' };
+    return { status: 200, body: 'Group member removed successfully.' };
   } catch (error) {
     if (error instanceof Error) {
-      context.error(`Error removing member: ${error.message}`);
+      context.error(`Error removing group member: ${error.message}`);
     } else {
-      context.error(`Unknown error occurred: ${error}`);
+      context.error(`Unknown error occurred while removing group member: ${error}`);
     }
-    return { status: 500, body: 'Failed to remove member.' };
+    return { status: 500, body: 'Failed to remove group member.' };
   }
 }
 
 const groupMember = corsMiddleware(groupMemberHandler);
 
 app.http('groupMember', {
-  methods: ['POST', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
   authLevel: 'anonymous',
   handler: groupMember,
 });

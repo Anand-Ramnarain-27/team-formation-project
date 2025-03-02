@@ -5,7 +5,7 @@ import {
   InvocationContext,
 } from '@azure/functions';
 import { PrismaClient, rating_enum } from '@prisma/client';
-import { ReviewRequestBody, ratingEnumMap } from '../utils/types';
+import { ReviewRequestBody,ratingEnumMap } from '../utils/types';
 import { corsMiddleware } from '../utils/cors';
 
 const prisma = new PrismaClient();
@@ -18,61 +18,22 @@ export async function reviewHandler(
 
   try {
     switch (request.method) {
-      case 'POST':
-        // Handle POST /reviews (submit a review)
-        return await submitReview(request, context);
       case 'GET':
-        // Handle GET /reviews (get reviews for a specific group)
         return await getReviews(request, context);
+      case 'POST':
+        return await createReview(request, context);
+      case 'DELETE':
+        return await deleteReview(request, context);
       default:
         return { status: 405, body: 'Method not allowed.' };
     }
   } catch (error) {
-    // Safely handle the error
     if (error instanceof Error) {
       context.error(`Error processing request: ${error.message}`);
     } else {
       context.error(`Unknown error occurred: ${error}`);
     }
     return { status: 500, body: 'Internal Server Error' };
-  }
-}
-
-// Submit a review
-async function submitReview(
-  request: HttpRequest,
-  context: InvocationContext
-): Promise<HttpResponseInit> {
-  try {
-    // Parse and validate the request body
-    const body = (await request.json()) as ReviewRequestBody;
-
-    // Validate the rating (should be between 1 and 5)
-    if (body.rating < 1 || body.rating > 5) {
-      return { status: 400, body: 'Rating must be between 1 and 5.' };
-    }
-    
-    const ratingEnum = ratingEnumMap[body.rating];
-
-    // Create a new review
-    const newReview = await prisma.review.create({
-      data: {
-        reviewer_id: body.reviewer_id,
-        reviewee_id: body.reviewee_id,
-        group_id: body.group_id,
-        rating: ratingEnum, // Use the mapped enum value
-        feedback: body.feedback,
-      },
-    });
-
-    return { status: 201, jsonBody: newReview };
-  } catch (error) {
-    if (error instanceof Error) {
-      context.error(`Error submitting review: ${error.message}`);
-    } else {
-      context.error(`Unknown error occurred: ${error}`);
-    }
-    return { status: 500, body: 'Failed to submit review.' };
   }
 }
 
@@ -87,10 +48,11 @@ async function getReviews(
       return { status: 400, body: 'Group ID is required.' };
     }
 
-    // Fetch all reviews for the specified group
     const reviews = await prisma.review.findMany({
-      where: {
-        group_id: parseInt(groupId),
+      where: { group_id: parseInt(groupId, 10) },
+      include: {
+        reviewer: { select: { name: true } },
+        reviewee: { select: { name: true } },
       },
     });
 
@@ -99,16 +61,78 @@ async function getReviews(
     if (error instanceof Error) {
       context.error(`Error fetching reviews: ${error.message}`);
     } else {
-      context.error(`Unknown error occurred: ${error}`);
+      context.error(`Unknown error occurred while fetching reviews: ${error}`);
     }
     return { status: 500, body: 'Failed to fetch reviews.' };
+  }
+}
+
+// Create a new review
+async function createReview(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  try {
+    const body = await request.json();
+    const reviewBody: ReviewRequestBody = body as ReviewRequestBody;
+
+    // Map the numeric rating to the corresponding enum value
+    const ratingEnumValue = ratingEnumMap[reviewBody.rating];
+    if (!ratingEnumValue) {
+      return { status: 400, body: 'Invalid rating value.' };
+    }
+
+    const review = await prisma.review.create({
+      data: {
+        reviewer_id: reviewBody.reviewer_id,
+        reviewee_id: reviewBody.reviewee_id,
+        group_id: reviewBody.group_id,
+        rating: ratingEnumValue, // Use the enum value
+        feedback: reviewBody.feedback,
+      },
+    });
+
+    return { status: 201, jsonBody: review };
+  } catch (error) {
+    if (error instanceof Error) {
+      context.error(`Error creating review: ${error.message}`);
+    } else {
+      context.error(`Unknown error occurred while creating review: ${error}`);
+    }
+    return { status: 500, body: 'Failed to create review.' };
+  }
+}
+ 
+// Delete a review
+async function deleteReview(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  try {
+    const reviewId = request.query.get('id');
+    if (!reviewId) {
+      return { status: 400, body: 'Review ID is required.' };
+    }
+
+    await prisma.review.delete({
+      where: { review_id: parseInt(reviewId, 10) },
+    });
+
+    return { status: 200, body: 'Review deleted successfully.' };
+  } catch (error) {
+    if (error instanceof Error) {
+      context.error(`Error deleting review: ${error.message}`);
+    } else {
+      context.error(`Unknown error occurred while deleting review: ${error}`);
+    }
+    return { status: 500, body: 'Failed to delete review.' };
   }
 }
 
 const review = corsMiddleware(reviewHandler);
 
 app.http('review', {
-  methods: ['GET', 'POST', 'OPTIONS'],
+  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
   authLevel: 'anonymous',
   handler: review,
 });

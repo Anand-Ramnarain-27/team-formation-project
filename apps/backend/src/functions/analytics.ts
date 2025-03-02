@@ -9,7 +9,7 @@ import { corsMiddleware } from '../utils/cors';
 
 const prisma = new PrismaClient();
 
-export async function analyticsHandler(
+export async function analyticsReportHandler(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
@@ -18,23 +18,11 @@ export async function analyticsHandler(
   try {
     switch (request.method) {
       case 'GET':
-        const themeId = request.params.themeId;
-        const groupId = request.params.groupId;
-
-        if (themeId) {
-          // Handle GET /analytics/themes/{themeId} (get analytics for a specific theme)
-          return await getThemeAnalytics(themeId, context);
-        } else if (groupId) {
-          // Handle GET /analytics/groups/{groupId} (get analytics for a specific group)
-          return await getGroupAnalytics(groupId, context);
-        } else {
-          return { status: 400, body: 'Theme ID or Group ID is required.' };
-        }
+        return await getAnalyticsReport(request, context);
       default:
         return { status: 405, body: 'Method not allowed.' };
     }
   } catch (error) {
-    // Safely handle the error
     if (error instanceof Error) {
       context.error(`Error processing request: ${error.message}`);
     } else {
@@ -44,72 +32,41 @@ export async function analyticsHandler(
   }
 }
 
-// Get analytics for a specific theme
-async function getThemeAnalytics(
-  themeId: string,
+// Get analytics report for a specific theme
+async function getAnalyticsReport(
+  request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   try {
-    // Fetch analytics for the specified theme
-    const analytics = await prisma.analytics_reports.findMany({
-      where: {
-        theme_id: parseInt(themeId),
-      },
+    const themeId = request.query.get('id');
+
+    if (!themeId) {
+      return { status: 400, body: 'themeId query parameter is required.' };
+    }
+
+    const report = await prisma.analytics_reports.findFirst({
+      where: { theme_id: parseInt(themeId, 10) },
     });
 
-    if (!analytics || analytics.length === 0) {
-      return {
-        status: 404,
-        body: 'No analytics found for the specified theme.',
-      };
+    if (!report) {
+      return { status: 404, body: 'Analytics report not found.' };
     }
 
-    return { status: 200, jsonBody: analytics };
+    return { status: 200, jsonBody: report };
   } catch (error) {
     if (error instanceof Error) {
-      context.error(`Error fetching theme analytics: ${error.message}`);
+      context.error(`Error fetching analytics report: ${error.message}`);
     } else {
-      context.error(`Unknown error occurred: ${error}`);
+      context.error(`Unknown error occurred while fetching analytics report: ${error}`);
     }
-    return { status: 500, body: 'Failed to fetch theme analytics.' };
+    return { status: 500, body: 'Failed to fetch analytics report.' };
   }
 }
 
-// Get analytics for a specific group
-async function getGroupAnalytics(
-  groupId: string,
-  context: InvocationContext
-): Promise<HttpResponseInit> {
-  try {
-    // Fetch analytics for the specified group
-    const analytics = await prisma.analytics_reports.findMany({
-      where: {
-        theme_id: parseInt(groupId), // Assuming group_id is stored in theme_id for simplicity
-      },
-    });
+const analyticsReport = corsMiddleware(analyticsReportHandler);
 
-    if (!analytics || analytics.length === 0) {
-      return {
-        status: 404,
-        body: 'No analytics found for the specified group.',
-      };
-    }
-
-    return { status: 200, jsonBody: analytics };
-  } catch (error) {
-    if (error instanceof Error) {
-      context.error(`Error fetching group analytics: ${error.message}`);
-    } else {
-      context.error(`Unknown error occurred: ${error}`);
-    }
-    return { status: 500, body: 'Failed to fetch group analytics.' };
-  }
-}
-
-const analytics = corsMiddleware(analyticsHandler);
-
-app.http('analytics', {
+app.http('analyticsReport', {
   methods: ['GET', 'OPTIONS'],
   authLevel: 'anonymous',
-  handler: analytics,
+  handler: analyticsReport,
 });
