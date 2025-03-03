@@ -184,7 +184,14 @@ const Profile: React.FC = () => {
             <ul className={styles.ideaList}>
               {ideas.map((idea) => (
                 <li key={idea.idea_id}>
-                  <IdeaCard {...idea} />
+                  <IdeaCard
+                    key={idea.idea_id}
+                    {...idea}
+                    onVote={() => {}}
+                    isVoted={false}
+                    remainingVotes={0}
+                    votingActive={false}
+                  />
                 </li>
               ))}
             </ul>

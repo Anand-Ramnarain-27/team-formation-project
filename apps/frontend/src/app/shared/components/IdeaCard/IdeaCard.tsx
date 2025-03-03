@@ -1,58 +1,55 @@
 import React from 'react';
 import styles from './IdeaCard.module.css';
-import StatusBadge from '@/app/shared/components/StatusBadge/StatusBadge';
 import { Idea } from '@/app/shared/utils/types';
-import Card from '../Card/Card';
-import Button from '@/app/shared/components/Button/Button';
+import Button from '../Button/Button';
 
-const IdeaCard: React.FC<Idea> = ({
+interface IdeaCardProps extends Idea {
+  onVote: () => void;
+  isVoted: boolean;
+  remainingVotes: number;
+  votingActive: boolean;
+}
+
+const IdeaCard: React.FC<IdeaCardProps> = ({
   idea_name,
   description,
   submitter_name,
-  vote_count,
-  status,
-  className,
+  vote_count = 0,
   onVote,
-  isVoted = false,
-  remainingVotes = 0,
-}) => (
-  <Card>
-    <article
-      className={`${styles.ideaCard} ${styles[status.toLowerCase()]} ${
-        className || ''
-      }`}
-    >
-      <header className={styles.cardHeader}>
-        <section className={styles.headerContent}>
-          <h2 className={styles.ideaName}>{idea_name}</h2>
-          <address className={styles.submitter}>
-            Submitted by: {submitter_name}
-          </address>
-        </section>
-        <StatusBadge
-          status={status.toLowerCase()}
-          label={status}
-          className={styles.statusBadge}
-        />
-      </header>
-
-      <section className={styles.cardContent}>
+  isVoted,
+  remainingVotes,
+  votingActive
+}) => {
+  return (
+    <div className={`${styles.card} ${isVoted ? styles.voted : ''}`}>
+      <div className={styles.content}>
+        <h3 className={styles.title}>{idea_name}</h3>
         <p className={styles.description}>{description}</p>
-        <footer className={styles.cardFooter}>
-          <span className={styles.voteCount}>👍 {vote_count} votes</span>
-          {onVote && (
-            <Button
-              onClick={onVote}
-              disabled={isVoted || remainingVotes <= 0}
-              className={isVoted ? styles.votedButton : ''}
-            >
-              {isVoted ? 'Voted' : 'Vote'}
-            </Button>
-          )}
-        </footer>
-      </section>
-    </article>
-  </Card>
-);
+        <p className={styles.submitter}>Submitted by: {submitter_name}</p>
+      </div>
+      
+      <div className={styles.footer}>
+        <div className={styles.voteCount}>
+          <span className={styles.count}>{vote_count}</span>
+          <span className={styles.label}>votes</span>
+        </div>
+        
+        {votingActive ? (
+          <Button 
+            className={`${styles.voteButton} ${isVoted ? styles.votedButton : ''}`}
+            onClick={onVote}
+            disabled={isVoted || remainingVotes <= 0}
+          >
+            {isVoted ? 'Voted' : 'Vote'}
+          </Button>
+        ) : (
+          <div className={styles.votingClosedInfo}>
+            Voting {new Date() < new Date() ? 'not yet open' : 'closed'}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export default IdeaCard;

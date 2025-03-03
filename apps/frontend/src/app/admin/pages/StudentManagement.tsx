@@ -10,13 +10,18 @@ import SelectInput from '@/app/shared/components/SelectInput/SelectInput';
 interface StudentFormProps {
   student?: StudentWithDetails;
   onSubmit: (data: Partial<User>) => void;
+  isSubmitting: boolean;
 }
 
-const StudentForm: React.FC<StudentFormProps> = ({ student, onSubmit }) => {
+const StudentForm: React.FC<StudentFormProps> = ({ 
+  student, 
+  onSubmit, 
+  isSubmitting 
+}) => {
   const [formData, setFormData] = useState({
     name: student?.name || '',
     email: student?.email || '',
-    role: student?.role || 'student',
+    role: student?.role || 'Student',
   });
 
   const handleSubmit = (e: FormEvent) => {
@@ -46,53 +51,123 @@ const StudentForm: React.FC<StudentFormProps> = ({ student, onSubmit }) => {
           value={formData.role}
           onChange={(value) => setFormData({ ...formData, role: value })}
           options={[
-            { value: 'student', label: 'Student' },
-            { value: 'admin', label: 'Admin' },
+            { value: 'Student', label: 'Student' },
+            { value: 'Admin', label: 'Admin' },
           ]}
           placeholder="Select role"
         />
       </FormGroup>
-      <Button type="submit">
+      <Button type="submit" disabled={isSubmitting}>
         {student ? 'Update Student' : 'Add Student'}
       </Button>
     </form>
   );
 };
 
+const API_BASE_URL = 'http://localhost:7071/api';
+
 const StudentManagement: React.FC = () => {
   const [students, setStudents] = useState<StudentWithDetails[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [editingStudent, setEditingStudent] =
-    useState<StudentWithDetails | null>(null);
+  const [editingStudent, setEditingStudent] = useState<StudentWithDetails | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const fetchStudents = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${API_BASE_URL}/user`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch users: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setStudents(data);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setError(error instanceof Error ? error.message : 'An unknown error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchStudents = async () =>{
-      try{
-        const response = await fetch(
-          `http://localhost:7071/api/user`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              // 'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch notifications');
-        }
-
-        const data = await response.json();
-        setStudents(data);
-      }catch(error){
-        console.log('Error fetching Students:', error);
-      }
-    }
     fetchStudents();
-  });
+  }, []);
+
+  const handleAddStudent = async (userData: Partial<User>) => {
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: userData.name,
+          email: userData.email,
+          role: userData.role,
+          auth_provider: 'local' // Default auth provider
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to add user: ${response.status} ${response.statusText}`);
+      }
+
+      // Refresh the user list
+      await fetchStudents();
+      setIsAddModalOpen(false);
+    } catch (error) {
+      console.error('Error adding user:', error);
+      setError(error instanceof Error ? error.message : 'Failed to add user');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdateStudent = async (userData: Partial<User>) => {
+    if (!editingStudent) return;
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/user?id=${editingStudent.user_id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: userData.name,
+          email: userData.email,
+          role: userData.role,
+          auth_provider: null
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update user: ${response.status} ${response.statusText}`);
+      }
+
+      // Refresh the user list
+      await fetchStudents();
+      setEditingStudent(null);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      setError(error instanceof Error ? error.message : 'Failed to update user');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const filteredStudents = students.filter((student) => {
     const matchesSearch =
@@ -106,8 +181,10 @@ const StudentManagement: React.FC = () => {
     <main className={styles.container}>
       <header className={styles.header}>
         <h1>User Management</h1>
-        <Button onClick={() => setIsAddModalOpen(true)}>Add Student</Button>
+        <Button onClick={() => setIsAddModalOpen(true)}>Add User</Button>
       </header>
+
+      {error && <div className={styles.error}>{error}</div>}
 
       <section className={styles.controls}>
         <TextInput
@@ -127,95 +204,79 @@ const StudentManagement: React.FC = () => {
           placeholder="Select role"
           className={styles.filterSelect}
         />
-        <p className={styles.totalStudents}>Total Users: {students.length}</p>
+        <p className={styles.totalStudents}>
+          Total Users: {students.length}
+        </p>
       </section>
 
       <section className={styles.tableContainer}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Current Group</th>
-              <th>Average Rating</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredStudents.map((student) => (
-              <tr key={student.user_id}>
-                <td>{student.name}</td>
-                <td>{student.email}</td>
-                <td>
-                  <span className={`${styles.status} ${styles.active}`}>
-                    {student.role}
-                  </span>
-                </td>
-                <td>{student.currentGroup?.group_name || 'Not Assigned'}</td>
-                <td>
-                  {student.averageRating
-                    ? `${student.averageRating}/5.0`
-                    : 'N/A'}
-                </td>
-                <td className={styles.actions}>
-                  <Button onClick={() => setEditingStudent(student)}>
-                    Edit
-                  </Button>
-                </td>
+        {isLoading ? (
+          <div className={styles.loading}>Loading users...</div>
+        ) : (
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredStudents.length > 0 ? (
+                filteredStudents.map((student) => (
+                  <tr key={student.user_id}>
+                    <td>{student.name}</td>
+                    <td>{student.email}</td>
+                    <td>
+                      <span className={`${styles.status} ${styles.active}`}>
+                        {student.role}
+                      </span>
+                    </td>
+                    <td className={styles.actions}>
+                      <Button onClick={() => setEditingStudent(student)}>
+                        Edit
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4} className={styles.noData}>
+                    No users found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </section>
 
       <SharedModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        title="Add New Student"
+        title="Add New User"
         size="small"
         showFooter={false}
       >
         <StudentForm
-          onSubmit={(data) => {
-            const newStudent: StudentWithDetails = {
-              user_id: students.length + 1,
-              name: data.name!,
-              email: data.email!,
-              role: data.role!,
-              created_at: new Date().toISOString(),
-              updated_at: null,
-            };
-            setStudents([...students, newStudent]);
-            setIsAddModalOpen(false);
-          }}
+          onSubmit={handleAddStudent}
+          isSubmitting={isSubmitting}
         />
       </SharedModal>
 
       <SharedModal
         isOpen={!!editingStudent}
         onClose={() => setEditingStudent(null)}
-        title="Edit Student"
+        title="Edit User"
         size="small"
         showFooter={false}
       >
         {editingStudent && (
           <StudentForm
             student={editingStudent}
-            onSubmit={(data) => {
-              setStudents(
-                students.map((s) =>
-                  s.user_id === editingStudent.user_id
-                    ? {
-                        ...s,
-                        ...data,
-                        updated_at: new Date().toISOString(),
-                      }
-                    : s
-                )
-              );
-              setEditingStudent(null);
-            }}
+            onSubmit={handleUpdateStudent}
+            isSubmitting={isSubmitting}
           />
         )}
       </SharedModal>

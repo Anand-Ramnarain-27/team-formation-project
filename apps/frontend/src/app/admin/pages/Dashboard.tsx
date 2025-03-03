@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './Dashboard.module.css';
 import { ThemeModal } from '@/app/admin/components/ThemeModals';
 import {
@@ -6,103 +6,188 @@ import {
   BaseTheme,
   AnalyticsReport,
   Notification,
+  User,
 } from '@/app/shared/utils/types';
 import Card from '@/app/shared/components/Card/Card';
 import Button from '@/app/shared/components/Button/Button';
 import NotificationCard from '@/app/shared/components/NotificationCard/NotificationCard';
 
-const initialThemes: Theme[] = [
-  {
-    theme_id: 1,
-    title: 'Innovation in Education',
-    description: 'Exploring new teaching methodologies',
-    submission_deadline: '2025-03-01T00:00',
-    voting_deadline: '2025-03-15T00:00',
-    review_deadline: [{ start: '2025-03-16T00:00', end: '2025-03-30T00:00' }],
-    number_of_groups: 10,
-    auto_assign_group: true,
-  },
-  {
-    theme_id: 2,
-    title: 'Sustainable Development',
-    description: 'Projects focusing on environmental sustainability',
-    submission_deadline: '2025-04-01T00:00',
-    voting_deadline: '2025-04-15T00:00',
-    review_deadline: [{ start: '2025-04-16T00:00', end: '2025-04-30T00:00' }],
-    number_of_groups: 8,
-    auto_assign_group: false,
-  },
-];
-
 const Dashboard: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<Theme | undefined>();
-  const [activeThemes, setActiveThemes] = useState<Theme[]>(initialThemes);
+  const [activeThemes, setActiveThemes] = useState<Theme[]>([]);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsReport | null>(
+    null
+  );
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-  const [analyticsData] = useState<AnalyticsReport>({
-    report_id: 1,
-    theme_id: 1,
-    total_students: 2543,
-    total_reports: 156,
-    average_rating: 4.2,
-    participation_stats: {
-      ideas_submitted: 45,
-      votes_cast: 1200,
-      reviews_completed: 450,
-      totalIdeas: 0,
-      totalVotes: 0,
-      totalReviews: 0,
-      averageRating: 0,
-    },
-  });
+  // Get the current user from localStorage
+  useEffect(() => {
+    const userJson = localStorage.getItem('currentUser');
 
-  const [notifications] = useState<Notification[]>([
-    {
-      notification_id: 1,
-      recipient_role: 'admin',
-      message: 'New theme ideas require review',
-      created_at: '2025-02-17T10:00:00Z',
-    },
-    {
-      notification_id: 2,
-      recipient_role: 'admin',
-      message: 'Voting period ending soon for Theme #1',
-      created_at: '2025-02-17T09:30:00Z',
-    },
-    {
-      notification_id: 3,
-      recipient_role: 'admin',
-      message: 'New peer reviews submitted for Group #5',
-      created_at: '2025-02-17T09:00:00Z',
-    },
-  ]);
+    if (!userJson) {
+      setError("You're not logged in. Please log in to view notifications.");
+      return;
+    }
 
-  const handleCreateTheme = (newTheme: BaseTheme) => {
-    const theme: Theme = {
-      ...newTheme,
-      theme_id: Math.max(...activeThemes.map((t) => t.theme_id)) + 1,
-    };
-    setActiveThemes((prev: Theme[]) => [...prev, theme]);
+    try {
+      const user = JSON.parse(userJson) as User;
+      setCurrentUser(user);
+    } catch (err) {
+      setError('Invalid user data. Please log in again.');
+      localStorage.removeItem('currentUser');
+    }
+  }, []);
+
+  const isAdmin = currentUser?.role === 'Admin';
+  const userId = currentUser?.user_id;
+  const userRole = currentUser?.role;
+
+  // Fetch themes data
+  const fetchThemes = async () => {
+    try {
+      const response = await fetch('http://localhost:7071/api/theme');
+      if (!response.ok) {
+        throw new Error('Failed to fetch themes');
+      }
+      const data = await response.json();
+      setActiveThemes(data);
+    } catch (err) {
+      setError('Error fetching themes data');
+      console.error(err);
+    }
   };
 
-  const handleEditTheme = (updatedTheme: BaseTheme) => {
-    if (!selectedTheme) return;
-    const theme: Theme = {
-      ...updatedTheme,
-      theme_id: selectedTheme.theme_id,
+  // Fetch analytics data
+  const fetchAnalytics = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:7071/api/analyticsReport?id=19`
+      );
+      if (!response.ok) {
+        throw new Error('Failed to fetch analytics');
+      }
+      const data = await response.json();
+      setAnalyticsData(data);
+    } catch (err) {
+      setError('Error fetching analytics data');
+      console.error(err);
+    }
+  };
+
+  // Fetch notifications
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:7071/api/notification?user_id=${userId}&user_role=${userRole}`
+      );
+      if (!response.ok) {
+        throw new Error('Failed to fetch notifications');
+      }
+      const data = await response.json();
+      setNotifications(data);
+    } catch (err) {
+      setError('Error fetching notifications');
+      console.error(err);
+    }
+  };
+
+  // Load all data
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      await Promise.all([
+        fetchThemes(),
+        fetchAnalytics(),
+        fetchNotifications(),
+      ]);
+      setIsLoading(false);
     };
-    setActiveThemes((prev: Theme[]) =>
-      prev.map((t: Theme) =>
-        t.theme_id === selectedTheme.theme_id ? theme : t
-      )
-    );
+
+    loadData();
+  }, [userId, userRole]);
+
+  // Create a new theme
+  const handleCreateTheme = async (newTheme: BaseTheme) => {
+    try {
+      const themeWithCreator = {
+        ...newTheme,
+        created_by: userId,
+      };
+
+      const response = await fetch('http://localhost:7071/api/theme', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(themeWithCreator),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create theme');
+      }
+
+      const createdTheme = await response.json();
+      setActiveThemes((prev) => [...prev, createdTheme]);
+    } catch (err) {
+      setError('Error creating theme');
+      console.error(err);
+    }
+  };
+
+  // Edit an existing theme
+  const handleEditTheme = async (updatedTheme: BaseTheme) => {
+    if (!selectedTheme) return;
+
+    try {
+      const themeWithCreator = {
+        ...updatedTheme,
+        created_by: selectedTheme.created_by,
+      };
+
+      const response = await fetch(
+        `http://localhost:7071/api/theme?id=${selectedTheme.theme_id}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(themeWithCreator),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to update theme');
+      }
+
+      const updatedThemeData = await response.json();
+      setActiveThemes((prev) =>
+        prev.map((t) =>
+          t.theme_id === selectedTheme.theme_id ? updatedThemeData : t
+        )
+      );
+    } catch (err) {
+      setError('Error updating theme');
+      console.error(err);
+    }
   };
 
   const handleManageTheme = (theme: Theme) => {
     setSelectedTheme(theme);
     setIsEditModalOpen(true);
   };
+
+  if (isLoading) {
+    return <div className={styles.loading}>Loading dashboard data...</div>;
+  }
+
+  if (error) {
+    return <div className={styles.error}>{error}</div>;
+  }
 
   return (
     <main className={styles.container}>
@@ -111,38 +196,44 @@ const Dashboard: React.FC = () => {
       </header>
 
       <section className={styles.statsGrid}>
-        <Card>
-          <h3 className={styles.statTitle}>Total Students</h3>
-          <p className={styles.statValue}>{analyticsData.total_students}</p>
-          <p className={`${styles.statTrend} ${styles.positive}`}>
-            Active in current themes
-          </p>
-        </Card>
-        <Card>
-          <h3 className={styles.statTitle}>Average Rating</h3>
-          <p className={styles.statValue}>{analyticsData.average_rating}/5.0</p>
-          <p className={`${styles.statTrend} ${styles.neutral}`}>
-            Based on {analyticsData.total_reports} reviews
-          </p>
-        </Card>
-        <Card>
-          <h3 className={styles.statTitle}>Ideas Submitted</h3>
-          <p className={styles.statValue}>
-            {analyticsData.participation_stats.ideas_submitted}
-          </p>
-          <p className={`${styles.statTrend} ${styles.neutral}`}>
-            Across all themes
-          </p>
-        </Card>
-        <Card>
-          <h3 className={styles.statTitle}>Pending Reviews</h3>
-          <p className={styles.statValue}>
-            {analyticsData.participation_stats.reviews_completed}
-          </p>
-          <p className={`${styles.statTrend} ${styles.warning}`}>
-            Reviews submitted
-          </p>
-        </Card>
+        {analyticsData && (
+          <>
+            <Card>
+              <h3 className={styles.statTitle}>Total Students</h3>
+              <p className={styles.statValue}>{analyticsData.total_students}</p>
+              <p className={`${styles.statTrend} ${styles.positive}`}>
+                Active in current themes
+              </p>
+            </Card>
+            <Card>
+              <h3 className={styles.statTitle}>Average Rating</h3>
+              <p className={styles.statValue}>
+                {analyticsData.average_rating}/5.0
+              </p>
+              <p className={`${styles.statTrend} ${styles.neutral}`}>
+                Based on {analyticsData.total_reports} reviews
+              </p>
+            </Card>
+            <Card>
+              <h3 className={styles.statTitle}>Ideas Submitted</h3>
+              <p className={styles.statValue}>
+                {analyticsData.participation_stats.ideas_submitted}
+              </p>
+              <p className={`${styles.statTrend} ${styles.neutral}`}>
+                Across all themes
+              </p>
+            </Card>
+            <Card>
+              <h3 className={styles.statTitle}>Pending Reviews</h3>
+              <p className={styles.statValue}>
+                {analyticsData.participation_stats.reviews_completed}
+              </p>
+              <p className={`${styles.statTrend} ${styles.warning}`}>
+                Reviews submitted
+              </p>
+            </Card>
+          </>
+        )}
       </section>
 
       <section className={styles.themesSection}>
@@ -177,53 +268,59 @@ const Dashboard: React.FC = () => {
       </section>
 
       <section className={styles.gridContainer}>
-        <Card title="Activity Overview">
-          <article className={styles.activityGrid}>
-            <section className={styles.activityBox}>
-              <h4>Participation Stats</h4>
-              <ul>
-                <li>
-                  {analyticsData.participation_stats.votes_cast} votes cast
-                </li>
-                <li>
-                  {analyticsData.participation_stats.ideas_submitted} ideas
-                  submitted
-                </li>
-                <li>
-                  {analyticsData.participation_stats.reviews_completed} reviews
-                  completed
-                </li>
-              </ul>
-            </section>
-            <section className={styles.activityBox}>
-              <h4>Upcoming Deadlines</h4>
-              <ul>
-                {activeThemes.map((theme) => (
-                  <li key={theme.theme_id}>
-                    {theme.title}: Voting ends{' '}
-                    {new Date(theme.voting_deadline).toLocaleDateString()}
+        {analyticsData && (
+          <Card title="Activity Overview">
+            <article className={styles.activityGrid}>
+              <section className={styles.activityBox}>
+                <h4>Participation Stats</h4>
+                <ul>
+                  <li>
+                    {analyticsData.participation_stats.votes_cast} votes cast
                   </li>
-                ))}
-              </ul>
-            </section>
-          </article>
-        </Card>
+                  <li>
+                    {analyticsData.participation_stats.ideas_submitted} ideas
+                    submitted
+                  </li>
+                  <li>
+                    {analyticsData.participation_stats.reviews_completed}{' '}
+                    reviews completed
+                  </li>
+                </ul>
+              </section>
+              <section className={styles.activityBox}>
+                <h4>Upcoming Deadlines</h4>
+                <ul>
+                  {activeThemes.map((theme) => (
+                    <li key={theme.theme_id}>
+                      {theme.title}: Voting ends{' '}
+                      {new Date(theme.voting_deadline).toLocaleDateString()}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </article>
+          </Card>
+        )}
 
         <aside className={styles.notificationsCard}>
           <h3>Recent Notifications</h3>
-          <ul className={styles.notificationsList}>
-            {notifications.map((notification) => (
-              <li key={notification.notification_id}>
-                <NotificationCard
-                  message={notification.message}
-                  created_at={notification.created_at}
-                  status={notification.status}
-                  notification_id={notification.notification_id}
-                  recipient_role={notification.recipient_role}
-                />
-              </li>
-            ))}
-          </ul>
+          {notifications.length > 0 ? (
+            <ul className={styles.notificationsList}>
+              {notifications.map((notification) => (
+                <li key={notification.notification_id}>
+                  <NotificationCard
+                    message={notification.message}
+                    created_at={notification.created_at}
+                    status={notification.status}
+                    notification_id={notification.notification_id}
+                    recipient_role={notification.recipient_role}
+                  />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className={styles.noData}>No new notifications</p>
+          )}
         </aside>
       </section>
 

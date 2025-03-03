@@ -4,9 +4,9 @@ import {
   HttpResponseInit,
   InvocationContext,
 } from '@azure/functions';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { corsMiddleware } from '../utils/cors';
-import { ThemeCreateRequestBody, ThemeUpdateRequestBody } from '../utils/types';
+import { ThemeCreateRequestBody, ThemeUpdateRequestBody, ReviewDeadline } from '../utils/types';
 
 const prisma = new PrismaClient();
 
@@ -74,7 +74,14 @@ async function getThemeById(
       return { status: 404, body: 'Theme not found.' };
     }
 
-    return { status: 200, jsonBody: theme };
+    const processedTheme = {
+      ...theme,
+      review_deadline: typeof theme.review_deadline === 'string' 
+        ? JSON.parse(theme.review_deadline) 
+        : theme.review_deadline
+    };
+
+    return { status: 200, jsonBody: processedTheme };
   } catch (error) {
     if (error instanceof Error) {
       context.error(`Error fetching theme by ID: ${error.message}`);
@@ -92,13 +99,24 @@ async function createTheme(
 ): Promise<HttpResponseInit> {
   try {
     const body = (await request.json()) as ThemeCreateRequestBody;
+
+    const submission_deadline = new Date(body.submission_deadline);
+    const voting_deadline = new Date(body.voting_deadline);
+
     const newtheme = await prisma.theme.create({
       data: {
         title: body.title,
         description: body.description,
-        submission_deadline: body.submission_deadline,
-        voting_deadline: body.voting_deadline,
-        review_deadline: body.review_deadline,
+        submission_deadline: submission_deadline,
+        voting_deadline: voting_deadline,
+        review_deadline: {
+          createMany: {
+            data: body.review_deadline.map((deadline) => ({
+              start: deadline.start,
+              end: deadline.end,
+            })),
+          },
+        },
         auto_assign_group: body.auto_assign_group,
         team_lead_acceptance: body.team_lead_acceptance,
         number_of_groups: body.number_of_groups,
@@ -140,7 +158,14 @@ async function updateTheme(
         description: body.description,
         submission_deadline: body.submission_deadline,
         voting_deadline: body.voting_deadline,
-        review_deadline: body.review_deadline,
+        review_deadline: {
+          createMany: {
+            data: body.review_deadline?.map((deadline) => ({
+              start: deadline.start,
+              end: deadline.end,
+            })),
+          },
+        },
         auto_assign_group: body.auto_assign_group,
         team_lead_acceptance: body.team_lead_acceptance,
         number_of_groups: body.number_of_groups,

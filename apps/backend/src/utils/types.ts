@@ -3,11 +3,11 @@ import { PrismaClient, rating_enum, status_enum } from '@prisma/client';
 export interface ThemeCreateRequestBody {
   title: string;
   description: string;
-  submission_deadline: Date;
-  voting_deadline: Date;
-  review_deadline: string; // Assuming JSON string
+  submission_deadline: string;
+  voting_deadline: string;
+  review_deadline: ReviewDeadline[]; // Assuming JSON string
   auto_assign_group: boolean;
-  team_lead_acceptance: boolean | null;
+  team_lead_acceptance?: boolean | null;
   number_of_groups: number;
   created_by: number;
 }
@@ -17,11 +17,16 @@ export interface ThemeUpdateRequestBody {
   description?: string;
   submission_deadline?: Date;
   voting_deadline?: Date;
-  review_deadline?: string; // Assuming JSON string
+  review_deadline?: ReviewDeadline[]; // Assuming JSON string
   auto_assign_group?: boolean;
   team_lead_acceptance?: boolean | null;
   number_of_groups?: number;
   created_by?: number;
+}
+
+export interface ReviewDeadline {
+  start: string;
+  end: string;
 }
 
 // User

@@ -50,7 +50,7 @@ export interface BaseTheme {
 
 export interface Theme extends BaseTheme {
   theme_id: number;
-  team_lead_acceptance?: boolean;
+  team_lead_acceptance?: boolean | null;
   created_by?: number;
   color_index?: number;
 }
@@ -94,6 +94,7 @@ export interface Idea {
   created_at: string;
   // Joined/computed fields
   submitter_name?: string;
+  votingActive?: boolean;
   votes_count?: number;
   theme_title?: string;
   vote_count?: number;

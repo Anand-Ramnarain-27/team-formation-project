@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './GroupManagemnt.module.css';
 import {
   User,
@@ -17,6 +17,9 @@ import TextInput from '@/app/shared/components/Form/TextInput';
 import SelectInput from '@/app/shared/components/SelectInput/SelectInput';
 import GroupCard from '@/app/shared/components/GroupCard/GroupCard';
 
+// API base URL - can be updated based on your environment
+const API_BASE_URL = 'http://localhost:7071/api';
+
 const GroupDialog: React.FC<GroupDialogProp> = ({
   group,
   isOpen,
@@ -27,9 +30,26 @@ const GroupDialog: React.FC<GroupDialogProp> = ({
 }) => {
   const [formData, setFormData] = useState<GroupFormData>({
     group_name: group?.group_name || '',
-    theme_id: group?.theme_id.toString() || '',
-    team_lead: group?.team_lead.toString() || '',
+    theme_id: group?.theme_id?.toString() || '',
+    team_lead: group?.team_lead?.toString() || '',
   });
+
+  // Update form data when the group changes
+  useEffect(() => {
+    if (group) {
+      setFormData({
+        group_name: group.group_name || '',
+        theme_id: group.theme_id?.toString() || '',
+        team_lead: group.team_lead?.toString() || '',
+      });
+    } else {
+      setFormData({
+        group_name: '',
+        theme_id: '',
+        team_lead: '',
+      });
+    }
+  }, [group]);
 
   if (!isOpen) return null;
 
@@ -177,127 +197,253 @@ const MemberManagementDialog: React.FC<MemberManagementDialogProps> = ({
 };
 
 const GroupManagement: React.FC = () => {
+  // State for data
   const [groups, setGroups] = useState<Group[]>([]);
   const [filteredGroups, setFilteredGroups] = useState<Group[]>([]);
+  const [themes, setThemes] = useState<Theme[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  
+  // State for UI
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [showGroupDialog, setShowGroupDialog] = useState(false);
   const [showMemberDialog, setShowMemberDialog] = useState(false);
-  const [expandedGroups, setExpandedGroups] = useState<Record<number, boolean>>(
-    {}
-  );
+  const [expandedGroups, setExpandedGroups] = useState<Record<number, boolean>>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock data - in real application, this would come from props or API
-  const themes: Theme[] = [
-    {
-      theme_id: 1,
-      title: 'AI Applications',
-      description: 'Exploring AI applications',
-      submission_deadline: '2025-03-01',
-      voting_deadline: '2025-03-15',
-      review_deadline: [{ start: '2025-03-16T00:00', end: '2025-03-30T00:00' }],
-      number_of_groups: 5,
-      auto_assign_group: true,
-    },
-    // Add more themes as needed
-  ];
+  // Fetch all groups
+  const fetchGroups = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/group`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch groups: ${response.statusText}`);
+      }
+      const data = await response.json();
+      
+      // We need to fetch additional data for each group
+      const groupsWithDetails = await Promise.all(
+        data.map(async (group: Group) => {
+          // Get team lead details
+          const teamLeadDetails = users.find(user => user.user_id === group.team_lead) || null;
+          
+          // Get theme details
+          const themeDetails = themes.find(theme => theme.theme_id === group.theme_id) || null;
+          
+          // Get group members
+          const membersResponse = await fetch(`${API_BASE_URL}/groupMember?id=${group.group_id}`);
+          let members: User[] = [];
+          
+          if (membersResponse.ok) {
+            const membersData = await membersResponse.json();
+            // Map member data to User objects
+            members = membersData
+              .map((memberData: any) => memberData.member)
+              .filter(Boolean);
+          }
+          
+          return {
+            ...group,
+            team_lead_details: teamLeadDetails,
+            theme_title: themeDetails?.title,
+            members
+          };
+        })
+      );
+      
+      setGroups(groupsWithDetails);
+      setFilteredGroups(groupsWithDetails);
+    } catch (error) {
+      console.error('Error fetching groups:', error);
+      setError(error instanceof Error ? error.message : 'Failed to fetch groups');
+    }
+  };
 
-  const users: User[] = [
-    {
-      user_id: 1,
-      name: 'John Doe',
-      email: 'john@example.com',
-      role: 'Student',
-      created_at: '2025-01-01',
-    },
-    // Add more users as needed
-  ];
+  // Fetch all themes
+  const fetchThemes = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/theme`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch themes: ${response.statusText}`);
+      }
+      const data = await response.json();
+      setThemes(data);
+    } catch (error) {
+      console.error('Error fetching themes:', error);
+      setError(error instanceof Error ? error.message : 'Failed to fetch themes');
+    }
+  };
 
+  // Fetch all users (replace with your actual users endpoint)
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/user`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch users: ${response.statusText}`);
+      }
+      const data = await response.json();
+      setUsers(data);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setError(error instanceof Error ? error.message : 'Failed to fetch users');
+    }
+  };
+
+  // Load data on component mount
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        await Promise.all([fetchThemes(), fetchUsers()]);
+        await fetchGroups(); // Fetch groups after themes and users
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  // Search groups by name or theme
   const handleSearch = (query: string) => {
     setSearchQuery(query);
+    if (!query.trim()) {
+      setFilteredGroups(groups);
+      return;
+    }
+    
     const filtered = groups.filter(
       (group) =>
-        group.group_name.toLowerCase().includes(query.toLowerCase()) ||
-        group.theme_title?.toLowerCase().includes(query.toLowerCase())
+        (group.group_name?.toLowerCase() || '').includes(query.toLowerCase()) ||
+        (group.theme_title?.toLowerCase() || '').includes(query.toLowerCase())
     );
     setFilteredGroups(filtered);
   };
 
+  // Create or update a group
   const handleSaveGroup = async (formData: GroupFormData) => {
     try {
-      const theme = themes.find(
-        (t) => t.theme_id.toString() === formData.theme_id
-      );
-      const teamLead = users.find(
-        (u) => u.user_id.toString() === formData.team_lead
-      );
-
-      if (!theme || !teamLead) return;
-
-      const updatedGroup: Group = {
-        ...(selectedGroup || {}),
-        group_id: selectedGroup?.group_id || groups.length + 1,
+      const payload = {
         theme_id: parseInt(formData.theme_id),
         group_name: formData.group_name,
-        team_lead: parseInt(formData.team_lead),
-        created_at: selectedGroup?.created_at || new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        theme_title: theme.title,
-        team_lead_details: teamLead,
-        members: selectedGroup?.members || [],
+        team_lead: parseInt(formData.team_lead)
       };
+      
+      let response;
+      
+      if (selectedGroup) {
+        // Update existing group
+        response = await fetch(`${API_BASE_URL}/group?id=${selectedGroup.group_id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        // Create new group
+        response = await fetch(`${API_BASE_URL}/group`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+      }
 
-      const updatedGroups = selectedGroup
-        ? groups.map((g) =>
-            g.group_id === selectedGroup.group_id ? updatedGroup : g
-          )
-        : [...groups, updatedGroup];
+      if (!response.ok) {
+        throw new Error(`Failed to save group: ${response.statusText}`);
+      }
 
-      setGroups(updatedGroups);
-      setFilteredGroups(updatedGroups);
+      // Refresh the groups list
+      await fetchGroups();
       setShowGroupDialog(false);
     } catch (error) {
       console.error('Error saving group:', error);
     }
   };
 
+  // Add a user to a group
   const handleAddMember = async (user: User) => {
     if (!selectedGroup) return;
 
     try {
+      const response = await fetch(`${API_BASE_URL}/groupMember?groupId=${selectedGroup.group_id}&userId=${user.user_id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to add member: ${response.statusText}`);
+      }
+
+      // Update the selected group and refresh groups list
       const updatedGroup = {
         ...selectedGroup,
         members: [...(selectedGroup.members || []), user],
       };
-
-      const updatedGroups = groups.map((g) =>
+      
+      setSelectedGroup(updatedGroup);
+      
+      // Also update the groups array
+      const updatedGroups = groups.map(g => 
         g.group_id === selectedGroup.group_id ? updatedGroup : g
       );
-
+      
       setGroups(updatedGroups);
-      setFilteredGroups(updatedGroups);
+      setFilteredGroups(
+        searchQuery ? 
+          updatedGroups.filter(g => 
+            (g.group_name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+            (g.theme_title?.toLowerCase() || '').includes(searchQuery.toLowerCase())
+          ) : 
+          updatedGroups
+      );
     } catch (error) {
       console.error('Error adding member:', error);
     }
   };
 
+  // Remove a user from a group
   const handleRemoveMember = async (userId: number) => {
     if (!selectedGroup) return;
 
     try {
+      const response = await fetch(`${API_BASE_URL}/groupMember?groupId=${selectedGroup.group_id}&userId=${userId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to remove member: ${response.statusText}`);
+      }
+
+      // Update the selected group and refresh groups list
       const updatedGroup = {
         ...selectedGroup,
-        members: selectedGroup.members?.filter(
-          (member) => member.user_id !== userId
-        ),
+        members: selectedGroup.members?.filter(member => member.user_id !== userId) || [],
       };
-
-      const updatedGroups = groups.map((g) =>
+      
+      setSelectedGroup(updatedGroup);
+      
+      // Also update the groups array
+      const updatedGroups = groups.map(g => 
         g.group_id === selectedGroup.group_id ? updatedGroup : g
       );
-
+      
       setGroups(updatedGroups);
-      setFilteredGroups(updatedGroups);
+      setFilteredGroups(
+        searchQuery ? 
+          updatedGroups.filter(g => 
+            (g.group_name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+            (g.theme_title?.toLowerCase() || '').includes(searchQuery.toLowerCase())
+          ) : 
+          updatedGroups
+      );
     } catch (error) {
       console.error('Error removing member:', error);
     }
@@ -325,35 +471,41 @@ const GroupManagement: React.FC = () => {
             className={styles.searchInput}
           />
 
-          <ul className={styles.groupList}>
-            {filteredGroups.map((group) => (
-              <li key={group.group_id}>
-                <GroupCard
-                  group={group}
-                  isExpanded={expandedGroups[group.group_id]}
-                  onExpand={() =>
-                    setExpandedGroups((prev) => ({
-                      ...prev,
-                      [group.group_id]: !prev[group.group_id],
-                    }))
-                  }
-                  onEdit={() => {
-                    setSelectedGroup(group);
-                    setShowGroupDialog(true);
-                  }}
-                  onManageMembers={() => {
-                    setSelectedGroup(group);
-                    setShowMemberDialog(true);
-                  }}
-                />
-              </li>
-            ))}
-            {!filteredGroups.length && (
-              <li className={styles.noResults}>
-                No groups found matching your search criteria
-              </li>
-            )}
-          </ul>
+          {isLoading ? (
+            <div className={styles.loading}>Loading groups...</div>
+          ) : error ? (
+            <div className={styles.error}>{error}</div>
+          ) : (
+            <ul className={styles.groupList}>
+              {filteredGroups.map((group) => (
+                <li key={group.group_id}>
+                  <GroupCard
+                    group={group}
+                    isExpanded={expandedGroups[group.group_id]}
+                    onExpand={() =>
+                      setExpandedGroups((prev) => ({
+                        ...prev,
+                        [group.group_id]: !prev[group.group_id],
+                      }))
+                    }
+                    onEdit={() => {
+                      setSelectedGroup(group);
+                      setShowGroupDialog(true);
+                    }}
+                    onManageMembers={() => {
+                      setSelectedGroup(group);
+                      setShowMemberDialog(true);
+                    }}
+                  />
+                </li>
+              ))}
+              {!filteredGroups.length && !isLoading && (
+                <li className={styles.noResults}>
+                  {searchQuery ? 'No groups found matching your search criteria' : 'No groups found. Create your first group!'}
+                </li>
+              )}
+            </ul>
+          )}
         </section>
       </Card>
 

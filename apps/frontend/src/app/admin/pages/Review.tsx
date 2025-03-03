@@ -13,15 +13,25 @@ const Review: React.FC = () => {
   const [selectedTheme, setSelectedTheme] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchThemes = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const response = await fetch(`http://localhost:7071/api/theme`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch themes: ${response.statusText}`);
+        }
         const data = await response.json();
         setThemes(data);
       } catch (error) {
         console.error('Error fetching themes:', error);
+        setError('Failed to load themes. Please try again later.');
+      } finally {
+        setLoading(false);
       }
     };
     fetchThemes();
@@ -30,24 +40,38 @@ const Review: React.FC = () => {
   useEffect(() => {
     const fetchIdeas = async () => {
       if (!selectedTheme && selectedTheme !== 'all') return;
+      
+      setLoading(true);
+      setError(null);
       try {
         const url =
           selectedTheme === 'all'
             ? `http://localhost:7071/api/idea`
             : `http://localhost:7071/api/idea?theme_id=${selectedTheme}`;
+            
         const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch ideas: ${response.statusText}`);
+        }
         const data = await response.json();
         setIdeas(data);
       } catch (error) {
         console.error('Error fetching ideas:', error);
+        setError('Failed to load ideas. Please try again later.');
+      } finally {
+        setLoading(false);
       }
     };
-    fetchIdeas();
+    
+    if (selectedTheme) {
+      fetchIdeas();
+    }
   }, [selectedTheme]);
 
   const updateIdeaStatus = async (ideaId: number, status: string) => {
     try {
-      const response = await fetch(`http://localhost:7071/api/idea/${ideaId}/status`, {
+      // The API expects the idea_id in the URL query params, not in the path
+      const response = await fetch(`http://localhost:7071/api/idea?idea_id=${ideaId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
@@ -65,6 +89,7 @@ const Review: React.FC = () => {
       );
     } catch (error) {
       console.error('Error updating idea status:', error);
+      setError('Failed to update idea status. Please try again.');
     }
   };
 
@@ -120,6 +145,10 @@ const Review: React.FC = () => {
           />
         </form>
 
+        {loading && <p className={styles.loadingState}>Loading...</p>}
+        
+        {error && <p className={styles.errorState}>{error}</p>}
+
         <section className={styles.ideasList}>
           {filteredIdeas.map((idea) => (
             <article key={idea.idea_id} className={styles.ideaCard}>
@@ -162,13 +191,13 @@ const Review: React.FC = () => {
             </article>
           ))}
 
-          {filteredIdeas.length === 0 && selectedTheme && (
+          {filteredIdeas.length === 0 && selectedTheme && !loading && (
             <p className={styles.emptyState}>
               No ideas found matching your criteria
             </p>
           )}
 
-          {!selectedTheme && (
+          {!selectedTheme && !loading && (
             <p className={styles.emptyState}>Select a theme to view ideas</p>
           )}
         </section>

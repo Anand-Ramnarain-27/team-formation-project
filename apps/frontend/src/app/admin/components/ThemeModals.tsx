@@ -20,6 +20,24 @@ interface DeadlineInputsProps {
   onUpdate: (field: 'start' | 'end', value: string) => void;
 }
 
+const formatDateForInput = (dateString: string): string => {
+  if (!dateString) return '';
+  
+  try {
+    // Create a Date object from the string
+    const date = new Date(dateString);
+    
+    // Check if it's a valid date
+    if (isNaN(date.getTime())) return '';
+    
+    // Format to YYYY-MM-DDTHH:MM
+    return date.toISOString().substring(0, 16);
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return '';
+  }
+};
+
 const DeadlineInputs: React.FC<DeadlineInputsProps> = ({
   deadline,
   onUpdate,
@@ -27,14 +45,14 @@ const DeadlineInputs: React.FC<DeadlineInputsProps> = ({
   <fieldset className={styles.reviewDeadlineInputs}>
     <TextInput
       type="datetime-local"
-      value={deadline.start}
+      value={formatDateForInput(deadline.start)}
       onChange={(value) => onUpdate('start', value)}
       placeholder="Start Date"
       aria-label="Review period start date"
     />
     <TextInput
       type="datetime-local"
-      value={deadline.end}
+      value={formatDateForInput(deadline.end)}
       onChange={(value) => onUpdate('end', value)}
       placeholder="End Date"
       aria-label="Review period end date"
@@ -63,7 +81,46 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
   useEffect(() => {
     if (theme) {
       const { theme_id, ...baseTheme } = theme;
-      setFormData(baseTheme);
+      
+      // Process the review_deadline data
+      let reviewDeadlines;
+      
+      try {
+        // First check if it's already an array
+        if (Array.isArray(baseTheme.review_deadline)) {
+          reviewDeadlines = baseTheme.review_deadline.map(deadline => ({
+            start: formatDateForInput(deadline.start),
+            end: formatDateForInput(deadline.end)
+          }));
+        } 
+        // Check if it's a string that needs parsing
+        else if (typeof baseTheme.review_deadline === 'string') {
+          const parsedDeadlines = JSON.parse(baseTheme.review_deadline);
+          reviewDeadlines = Array.isArray(parsedDeadlines) 
+            ? parsedDeadlines.map(deadline => ({
+                start: formatDateForInput(deadline.start),
+                end: formatDateForInput(deadline.end)
+              }))
+            : [{ start: '', end: '' }];
+        } 
+        // Default case
+        else {
+          reviewDeadlines = [{ start: '', end: '' }];
+        }
+      } catch (error) {
+        console.error("Error parsing review_deadline:", error);
+        reviewDeadlines = [{ start: '', end: '' }];
+      }
+  
+      const formattedTheme = {
+        ...baseTheme,
+        submission_deadline: formatDateForInput(baseTheme.submission_deadline.toString()),
+        voting_deadline: formatDateForInput(baseTheme.voting_deadline.toString()),
+        review_deadline: reviewDeadlines
+      };
+      
+      console.log("Formatted theme for form:", formattedTheme);
+      setFormData(formattedTheme);
     } else {
       setFormData(initialTheme);
     }
@@ -71,7 +128,31 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // Format dates correctly for the backend
+    const formattedData = {
+      ...formData,
+      submission_deadline: formData.submission_deadline ? new Date(formData.submission_deadline).toISOString() : '',
+      voting_deadline: formData.voting_deadline ? new Date(formData.voting_deadline).toISOString() : '',
+      review_deadline: formData.review_deadline.map(deadline => ({
+        start: deadline.start ? new Date(deadline.start).toISOString() : '',
+        end: deadline.end ? new Date(deadline.end).toISOString() : ''
+      }))
+    };
+    
+    // Filter out any review deadlines with empty dates
+    const validReviewDeadlines = formattedData.review_deadline.filter(
+      deadline => deadline.start && deadline.end
+    );
+    
+    // Only submit if we have valid review deadlines
+    if (validReviewDeadlines.length === 0) {
+      alert('Please add at least one valid review deadline with start and end dates');
+      return;
+    }
+    
+    formattedData.review_deadline = validReviewDeadlines;
+    onSubmit(formattedData);
     onClose();
   };
 
