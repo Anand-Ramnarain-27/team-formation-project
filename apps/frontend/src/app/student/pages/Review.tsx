@@ -1,4 +1,4 @@
-// Review.tsx
+// Reviews.tsx
 import React, { useState, useEffect } from 'react';
 import styles from './Review.module.css';
 import { User, Group, GroupMember, Review } from '@/app/shared/utils/types';
@@ -10,13 +10,18 @@ import ReviewCard from '@/app/shared/components/ReviewCard/ReviewCard';
 
 type TabType = 'ratings' | 'feedback';
 
+// Base API URL - adjust this to your local development environment
+const API_BASE_URL = 'http://localhost:7071/api';
+
 const Reviews: React.FC = () => {
-  const currentUserId = 1;
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
   const [currentGroup, setCurrentGroup] = useState<Group | null>(null);
   const [reviews, setReviews] = useState<{ [key: number]: Review }>({});
   const [submitted, setSubmitted] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('ratings');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const tabs: Array<{ id: TabType; label: string }> = [
     { id: 'ratings', label: 'Ratings' },
@@ -34,59 +39,108 @@ const Reviews: React.FC = () => {
   };
 
   useEffect(() => {
-    setCurrentGroup({
-      group_id: 1,
-      theme_id: 1,
-      group_name: 'Innovation Team Alpha',
-      team_lead: 1,
-      created_at: '12:00:00',
-    });
+      const userJson = localStorage.getItem('currentUser');
+  
+      if (!userJson) {
+        setError("You're not logged in. Please log in to view notifications.");
+        return;
+      }
+  
+      try {
+        const user = JSON.parse(userJson) as User;
+        const userId = user.user_id
+        setCurrentUserId(userId);
+        setLoading(false);
+      } catch (err) {
+        setError('Invalid user data. Please log in again.');
+        localStorage.removeItem('currentUser');
+      }
+    }, []);
 
-    setGroupMembers([
-      {
-        group_member_id: 1,
-        group_id: 1,
-        user_id: 2,
-        user: {
-          user_id: 2,
-          name: 'Jane Smith',
-          email: 'cake@gmail.com',
-          role: 'student',
-          created_at: '12:00:00',
-        },
-      },
-      {
-        group_member_id: 2,
-        group_id: 1,
-        user_id: 3,
-        user: {
-          user_id: 3,
-          name: 'Alex Johnson',
-          email: 'cake@gmail.com',
-          role: 'student',
-          created_at: '12:00:00',
-        },
-      },
-      {
-        group_member_id: 3,
-        group_id: 1,
-        user_id: 4,
-        user: {
-          user_id: 4,
-          name: 'Sarah Wilson',
-          email: 'cake@gmail.com',
-          role: 'student',
-          created_at: '12:00:00',
-        },
-      },
-    ]);
-  }, []);
+  // Fetch group and members data
+  useEffect(() => {
+    const fetchGroupData = async () => {
+      if (!currentUserId) return;
+      
+      setLoading(true);
+      try {
+        // Fetch the user's current group - simulate getting the first available group
+        // In a real app, you would query for the specific user's group
+        const groupResponse = await fetch(`${API_BASE_URL}/group`);
+        if (!groupResponse.ok) {
+          throw new Error('Failed to fetch group data');
+        }
+        
+        const groupsData = await groupResponse.json();
+        // For development, use the first group
+        const userGroup = Array.isArray(groupsData) && groupsData.length > 0 ? groupsData[0] : null;
+        
+        if (!userGroup) {
+          throw new Error('No group found');
+        }
+        
+        setCurrentGroup(userGroup);
+
+        // Fetch group members
+        const membersResponse = await fetch(`${API_BASE_URL}/groupMember?id=${userGroup.group_id}`);
+        if (!membersResponse.ok) {
+          throw new Error('Failed to fetch group members');
+        }
+        const membersData = await membersResponse.json();
+        
+        // Transform the data to match the expected GroupMember structure
+        const transformedMembers = membersData.map((member: any) => ({
+          group_member_id: member.group_member_id,
+          group_id: member.group_id,
+          user_id: member.user_id,
+          user: member.member // Based on the API including member via Prisma
+        }));
+        
+        setGroupMembers(transformedMembers);
+        
+        // Fetch any existing reviews for this group by current user
+        const reviewsResponse = await fetch(`${API_BASE_URL}/review?group_id=${userGroup.group_id}`);
+        if (reviewsResponse.ok) {
+          const reviewsData = await reviewsResponse.json();
+          
+          // Filter reviews by current user as reviewer
+          const userReviews = reviewsData.filter((review: any) => review.reviewer_id === currentUserId);
+          
+          // Convert array to object with reviewee_id as keys
+          const reviewsObject = userReviews.reduce((acc: any, review: any) => {
+            // Convert DB enum rating to string rating (1-5)
+            const ratingValue = review.rating.replace('_', '');
+            const numericRating = ratingValue === 'ONE' ? '1'
+                               : ratingValue === 'TWO' ? '2'
+                               : ratingValue === 'THREE' ? '3'
+                               : ratingValue === 'FOUR' ? '4'
+                               : ratingValue === 'FIVE' ? '5' : '1';
+            
+            acc[review.reviewee_id] = {
+              ...review,
+              rating: numericRating
+            };
+            return acc;
+          }, {});
+          
+          setReviews(reviewsObject);
+        }
+      } catch (err) {
+        setError('Error loading group data. Please try again later.');
+        console.error('Error fetching group data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGroupData();
+  }, [currentUserId]);
 
   const handleRatingChange = (
     revieweeId: number,
     rating: '1' | '2' | '3' | '4' | '5'
   ) => {
-    if (!currentGroup) return;
+    if (!currentGroup || !currentUserId) return;
     setReviews((prev) => ({
       ...prev,
       [revieweeId]: {
@@ -101,7 +155,7 @@ const Reviews: React.FC = () => {
   };
 
   const handleFeedbackChange = (revieweeId: number, feedback: string) => {
-    if (!currentGroup) return;
+    if (!currentGroup || !currentUserId) return;
     setReviews((prev) => ({
       ...prev,
       [revieweeId]: {
@@ -116,8 +170,54 @@ const Reviews: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    console.log('Submitting reviews:', Object.values(reviews));
-    setSubmitted(true);
+    if (!currentGroup || !currentUserId) return;
+    
+    try {
+      // Process reviews to match the expected API format
+      const reviewPromises = Object.values(reviews).map(async (review) => {
+        // Convert string rating to number for the API
+        const numericRating = parseInt(review.rating, 10);
+        
+        const reviewData = {
+          reviewer_id: currentUserId,
+          reviewee_id: review.reviewee_id,
+          group_id: currentGroup.group_id,
+          rating: numericRating, // API expects a number (1-5)
+          feedback: review.feedback
+        };
+        
+        // Check if review exists by querying existing reviews
+        const existingReviews = await fetch(`${API_BASE_URL}/review?group_id=${currentGroup.group_id}`);
+        const existingReviewsData = await existingReviews.json();
+        
+        const existingReview = existingReviewsData.find(
+          (r: any) => r.reviewer_id === currentUserId && r.reviewee_id === review.reviewee_id
+        );
+        
+        if (existingReview) {
+          // Update existing review - No PATCH method in the API, would need to delete and recreate
+          await fetch(`${API_BASE_URL}/review?id=${existingReview.review_id}`, {
+            method: 'DELETE'
+          });
+        }
+        
+        // Create the review
+        return fetch(`${API_BASE_URL}/review`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(reviewData),
+        });
+      });
+      
+      // Wait for all review submissions to complete
+      await Promise.all(reviewPromises);
+      setSubmitted(true);
+    } catch (err) {
+      setError('Error submitting reviews. Please try again.');
+      console.error('Error submitting reviews:', err);
+    }
   };
 
   const membersToReview = groupMembers.filter(
@@ -164,6 +264,23 @@ const Reviews: React.FC = () => {
       </div>
     );
   };
+
+  if (loading) {
+    return (
+      <main className={styles.container}>
+        <p>Loading review data...</p>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className={styles.container}>
+        <p className={styles.error}>{error}</p>
+        <Button onClick={() => window.location.reload()}>Retry</Button>
+      </main>
+    );
+  }
 
   if (submitted) {
     return (

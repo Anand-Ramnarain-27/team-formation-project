@@ -64,19 +64,19 @@ const Dashboard: React.FC = () => {
 
   // Fetch analytics data
   const fetchAnalytics = async () => {
-    try {
-      const response = await fetch(
-        `http://localhost:7071/api/analyticsReport?id=19`
-      );
-      if (!response.ok) {
-        throw new Error('Failed to fetch analytics');
-      }
-      const data = await response.json();
-      setAnalyticsData(data);
-    } catch (err) {
-      setError('Error fetching analytics data');
-      console.error(err);
-    }
+    // try {
+    //   const response = await fetch(
+    //     `http://localhost:7071/api/analyticsReport?id=`
+    //   );
+    //   if (!response.ok) {
+    //     throw new Error('Failed to fetch analytics');
+    //   }
+    //   const data = await response.json();
+    //   setAnalyticsData(data);
+    // } catch (err) {
+    //   setError('Error fetching analytics data');
+    //   console.error(err);
+    // }
   };
 
   // Fetch notifications
@@ -253,9 +253,26 @@ const Dashboard: React.FC = () => {
                 <p>{theme.description}</p>
                 <footer className={styles.themeFooter}>
                   <span className={styles.themeStatus}>
-                    {new Date(theme.voting_deadline) > new Date()
-                      ? 'Voting'
-                      : 'Review Phase'}
+                    {(() => {
+                      const now = new Date();
+                      if (now < new Date(theme.submission_deadline)) {
+                        return 'Submission Phase';
+                      }
+                      if (now < new Date(theme.voting_deadline)) {
+                        return 'Voting Phase';
+                      }
+                      for (const review of theme.review_deadline) {
+                        if (
+                          now >= new Date(review.start) &&
+                          now <= new Date(review.end)
+                        ) {
+                          return `Review Phase (Group ${
+                            theme.review_deadline.indexOf(review) + 1
+                          })`;
+                        }
+                      }
+                      return 'Completed';
+                    })()}
                   </span>
                   <Button onClick={() => handleManageTheme(theme)}>
                     Manage →

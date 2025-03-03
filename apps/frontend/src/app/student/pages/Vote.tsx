@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styles from './Voting.module.css';
 import { Idea, Vote, Theme } from '@/app/shared/utils/types';
 import Button from '@/app/shared/components/Button/Button';
+import SelectInput from '@/app/shared/components/SelectInput/SelectInput';
 import {
   LoadingState,
   EmptyState,
@@ -13,6 +14,8 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7071/a
 const Voting: React.FC = () => {
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [theme, setTheme] = useState<Theme | null>(null);
+  const [themes, setThemes] = useState<Theme[]>([]);
+  const [selectedThemeId, setSelectedThemeId] = useState('');
   const [remainingVotes, setRemainingVotes] = useState(3);
   const [votedIdeas, setVotedIdeas] = useState<Set<number>>(new Set());
   const [error, setError] = useState('');
@@ -24,10 +27,6 @@ const Voting: React.FC = () => {
     // Get the currently logged in user
     const getCurrentUser = async () => {
       try {
-        // In a real app, you'd get this from your auth provider
-        // This is a placeholder for your actual auth implementation
-        // For example, if using Auth0, Microsoft Identity, etc.
-        
         // For demo purposes, we'll use local storage or session
         const userJson = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
         
@@ -46,25 +45,56 @@ const Voting: React.FC = () => {
         return null;
       }
     };
+
+    // Fetch all available themes
+    const fetchThemes = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/theme`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch themes');
+        }
+        
+        const themesData = await response.json();
+        setThemes(themesData);
+        
+        // Get theme ID from URL or use the first theme as default
+        const urlParams = new URLSearchParams(window.location.search);
+        const themeId = urlParams.get('themeId');
+        
+        if (themeId) {
+          setSelectedThemeId(themeId);
+        } else if (themesData.length > 0) {
+          setSelectedThemeId(themesData[0].theme_id.toString());
+        }
+        
+        return themesData;
+      } catch (err) {
+        console.error('Error fetching themes:', err);
+        setError('Failed to load available themes.');
+        return [];
+      }
+    };
+    
+    const initialize = async () => {
+      setLoading(true);
+      await getCurrentUser();
+      await fetchThemes();
+      setLoading(false);
+    };
+
+    initialize();
+  }, []);
+
+  // Effect to load theme and ideas when selectedThemeId changes
+  useEffect(() => {
+    if (!selectedThemeId || !currentUser) return;
     
     const fetchThemeAndIdeas = async () => {
       try {
         setLoading(true);
         
-        // Get the current user
-        const user = await getCurrentUser();
-        if (!user) {
-          setLoading(false);
-          return;
-        }
-        
-        // Get current theme ID (this could come from a route parameter)
-        // For now, let's assume it's in the URL as a query parameter
-        const urlParams = new URLSearchParams(window.location.search);
-        const themeId = urlParams.get('themeId') || '1'; // Default to 1 if not specified
-        
         // Fetch theme details
-        const themeResponse = await fetch(`${API_BASE_URL}/theme?id=${themeId}`);
+        const themeResponse = await fetch(`${API_BASE_URL}/theme?id=${selectedThemeId}`);
         if (!themeResponse.ok) {
           throw new Error('Failed to fetch theme details');
         }
@@ -82,7 +112,7 @@ const Voting: React.FC = () => {
         setIsVotingActive(votingActive);
         
         // Fetch ideas for this theme
-        const ideasResponse = await fetch(`${API_BASE_URL}/idea?theme_id=${themeId}`);
+        const ideasResponse = await fetch(`${API_BASE_URL}/idea?theme_id=${selectedThemeId}`);
         if (!ideasResponse.ok) {
           throw new Error('Failed to fetch ideas');
         }
@@ -119,7 +149,7 @@ const Voting: React.FC = () => {
         const votesData = await votesResponse.json();
         
         // Filter votes by this user
-        const userVotes = votesData.filter((vote: Vote) => vote.voted_by === user.user_id);
+        const userVotes = votesData.filter((vote: Vote) => vote.voted_by === currentUser.user_id);
         
         // More explicit way to ensure type safety
         const userVoteIds: number[] = userVotes.map((vote: Vote) => {
@@ -142,7 +172,15 @@ const Voting: React.FC = () => {
     };
 
     fetchThemeAndIdeas();
-  }, []);
+  }, [selectedThemeId, currentUser]);
+
+  const handleThemeChange = (themeId: string) => {
+    setSelectedThemeId(themeId);
+    // Update URL without page reload
+    const url = new URL(window.location.href);
+    url.searchParams.set('themeId', themeId);
+    window.history.pushState({}, '', url.toString());
+  };
 
   const handleVote = async (ideaId: number) => {
     if (!currentUser) {
@@ -236,26 +274,30 @@ const Voting: React.FC = () => {
     );
   }
 
-  if (ideas.length === 0) {
-    return (
-      <main className={styles.container}>
-        <EmptyState
-          title="No ideas available"
-          description="There are no approved ideas available for voting at this time."
-          action={
-            <Button onClick={() => window.location.reload()}>
-              Refresh Page
-            </Button>
-          }
-        />
-      </main>
-    );
-  }
+  // Prepare theme options for SelectInput
+  const themeOptions = themes.map(themeItem => ({
+    value: themeItem.theme_id.toString(),
+    label: themeItem.title
+  }));
 
   return (
     <main className={styles.container}>
       <header className={styles.header}>
         <h1>Vote for Project Ideas</h1>
+        
+        <div className={styles.themeSelection}>
+          <label htmlFor="theme-select" className={styles.themeSelectLabel}>
+            Select Theme:
+          </label>
+          <SelectInput
+            value={selectedThemeId}
+            onChange={handleThemeChange}
+            options={themeOptions}
+            placeholder="Select a theme"
+            className={styles.themeSelect}
+          />
+        </div>
+        
         {theme && (
           <h2 className={styles.themeTitle}>{theme.title}</h2>
         )}
@@ -283,18 +325,30 @@ const Voting: React.FC = () => {
         </aside>
       )}
 
-      <section className={styles.ideaGrid} aria-label="Project ideas">
-        {ideas.map((idea) => (
-          <IdeaCard
-            key={idea.idea_id}
-            {...idea}
-            onVote={isVotingActive ? () => handleVoteWrapper(idea.idea_id) : () => {}}
-            isVoted={votedIdeas.has(idea.idea_id)}
-            remainingVotes={remainingVotes}
-            votingActive={isVotingActive}
-          />
-        ))}
-      </section>
+      {ideas.length === 0 ? (
+        <EmptyState
+          title="No ideas available"
+          description={`There are no approved ideas available for voting in the selected theme.`}
+          action={
+            <Button onClick={() => window.location.reload()}>
+              Refresh Page
+            </Button>
+          }
+        />
+      ) : (
+        <section className={styles.ideaGrid} aria-label="Project ideas">
+          {ideas.map((idea) => (
+            <IdeaCard
+              key={idea.idea_id}
+              {...idea}
+              onVote={isVotingActive ? () => handleVoteWrapper(idea.idea_id) : () => {}}
+              isVoted={votedIdeas.has(idea.idea_id)}
+              remainingVotes={remainingVotes}
+              votingActive={isVotingActive}
+            />
+          ))}
+        </section>
+      )}
     </main>
   );
 };

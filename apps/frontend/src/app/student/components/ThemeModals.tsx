@@ -16,6 +16,7 @@ interface ThemeModalsProps {
   isOpen: boolean;
   onClose: () => void;
   modalType: 'view' | 'submit';
+  onIdeaSubmit: (ideaSubmission: IdeaSubmission) => void;
 }
 
 const ThemeModals: React.FC<ThemeModalsProps> = ({
@@ -23,6 +24,7 @@ const ThemeModals: React.FC<ThemeModalsProps> = ({
   isOpen,
   onClose,
   modalType,
+  onIdeaSubmit,
 }) => {
   const [ideaSubmission, setIdeaSubmission] = useState<IdeaSubmission>({
     idea_name: '',
@@ -30,30 +32,25 @@ const ThemeModals: React.FC<ThemeModalsProps> = ({
   });
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    const formattedDate = new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     });
+    return formattedDate;
   };
 
   const handleSubmitIdea = () => {
-    const newIdea = {
-      theme_id: theme.theme_id,
-      idea_name: ideaSubmission.idea_name,
-      description: ideaSubmission.description,
-      status: 'Pending' as const,
-    };
-    console.log('Submitting idea:', newIdea);
+    onIdeaSubmit(ideaSubmission);
     onClose();
   };
 
   const ThemeDetails = () => (
     <section className={styles.detailsSection}>
       <p className={styles.themeDescription}>{theme.description}</p>
-
+  
       <dl>
         <div className={styles.infoRow}>
           <dt className={styles.infoLabel}>Submission Deadline:</dt>
@@ -61,22 +58,23 @@ const ThemeModals: React.FC<ThemeModalsProps> = ({
             {formatDate(theme.submission_deadline)}
           </dd>
         </div>
-
+  
         <div className={styles.infoRow}>
           <dt className={styles.infoLabel}>Voting Deadline:</dt>
           <dd className={styles.infoValue}>
             {formatDate(theme.voting_deadline)}
           </dd>
         </div>
-
+  
         <div className={styles.infoRow}>
           <dt className={styles.infoLabel}>Review Period:</dt>
           <dd className={styles.infoValue}>
-            {formatDate(theme.review_deadline[0].start)} -{' '}
-            {formatDate(theme.review_deadline[0].end)}
+            {theme.review_deadline && theme.review_deadline.length > 0
+              ? `${formatDate(theme.review_deadline[0].start)} - ${formatDate(theme.review_deadline[0].end)}`
+              : 'Not specified'}
           </dd>
         </div>
-
+  
         <div className={styles.infoRow}>
           <dt className={styles.infoLabel}>Number of Groups:</dt>
           <dd className={styles.infoValue}>{theme.number_of_groups}</dd>
@@ -88,7 +86,10 @@ const ThemeModals: React.FC<ThemeModalsProps> = ({
   const IdeaSubmissionForm = () => (
     <form
       id="modalForm"
-      onSubmit={(e) => e.preventDefault()}
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleSubmitIdea();
+      }}
       className={styles.submissionForm}
     >
       <p className={styles.themeDescription}>

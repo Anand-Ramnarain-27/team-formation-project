@@ -6,7 +6,11 @@ import {
 } from '@azure/functions';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { corsMiddleware } from '../utils/cors';
-import { ThemeCreateRequestBody, ThemeUpdateRequestBody, ReviewDeadline } from '../utils/types';
+import {
+  ThemeCreateRequestBody,
+  ThemeUpdateRequestBody,
+  ReviewDeadline,
+} from '../utils/types';
 
 const prisma = new PrismaClient();
 
@@ -41,10 +45,22 @@ export async function themeHandler(
 }
 
 // Get all themes
-async function getThemes(context: InvocationContext): Promise<HttpResponseInit> {
+async function getThemes(
+  context: InvocationContext
+): Promise<HttpResponseInit> {
   try {
     const themes = await prisma.theme.findMany();
-    return { status: 200, jsonBody: themes };
+
+    const formattedThemes = themes.map((theme) => ({
+      ...theme,
+      review_deadline: Array.isArray(theme.review_deadline)
+        ? theme.review_deadline
+        : typeof theme.review_deadline === 'string'
+        ? JSON.parse(theme.review_deadline)
+        : [],
+    }));
+
+    return { status: 200, jsonBody: formattedThemes };
   } catch (error) {
     if (error instanceof Error) {
       context.error(`Error fetching themes: ${error.message}`);
@@ -76,9 +92,10 @@ async function getThemeById(
 
     const processedTheme = {
       ...theme,
-      review_deadline: typeof theme.review_deadline === 'string' 
-        ? JSON.parse(theme.review_deadline) 
-        : theme.review_deadline
+      review_deadline:
+        typeof theme.review_deadline === 'string'
+          ? JSON.parse(theme.review_deadline)
+          : theme.review_deadline,
     };
 
     return { status: 200, jsonBody: processedTheme };
@@ -86,7 +103,9 @@ async function getThemeById(
     if (error instanceof Error) {
       context.error(`Error fetching theme by ID: ${error.message}`);
     } else {
-      context.error(`Unknown error occurred while fetching theme by ID: ${error}`);
+      context.error(
+        `Unknown error occurred while fetching theme by ID: ${error}`
+      );
     }
     return { status: 500, body: 'Failed to fetch theme.' };
   }
@@ -109,14 +128,7 @@ async function createTheme(
         description: body.description,
         submission_deadline: submission_deadline,
         voting_deadline: voting_deadline,
-        review_deadline: {
-          createMany: {
-            data: body.review_deadline.map((deadline) => ({
-              start: deadline.start,
-              end: deadline.end,
-            })),
-          },
-        },
+        review_deadline: JSON.stringify(body.review_deadline),
         auto_assign_group: body.auto_assign_group,
         team_lead_acceptance: body.team_lead_acceptance,
         number_of_groups: body.number_of_groups,
@@ -158,14 +170,7 @@ async function updateTheme(
         description: body.description,
         submission_deadline: body.submission_deadline,
         voting_deadline: body.voting_deadline,
-        review_deadline: {
-          createMany: {
-            data: body.review_deadline?.map((deadline) => ({
-              start: deadline.start,
-              end: deadline.end,
-            })),
-          },
-        },
+        review_deadline: JSON.stringify(body.review_deadline),
         auto_assign_group: body.auto_assign_group,
         team_lead_acceptance: body.team_lead_acceptance,
         number_of_groups: body.number_of_groups,

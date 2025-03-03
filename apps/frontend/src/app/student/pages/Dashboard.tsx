@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Dashboard.module.css';
 import ThemeModals from '../components/ThemeModals';
-import { Theme, Idea, Group, Notification } from '@/app/shared/utils/types';
+import { Theme, Idea, Group, Notification, User, IdeaSubmission } from '@/app/shared/utils/types';
 import Card from '@/app/shared/components/Card/Card';
 import StatusBadge from '@/app/shared/components/StatusBadge/StatusBadge';
 import NotificationCard from '@/app/shared/components/NotificationCard/NotificationCard';
@@ -10,7 +10,36 @@ import GroupCard from '@/app/shared/components/GroupCard/GroupCard';
 import IdeaCard from '@/app/shared/components/IdeaCard/IdeaCard';
 
 const Dashboard: React.FC = () => {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [themes, setThemes] = useState<Theme[]>([]);
+  const [myIdeas, setMyIdeas] = useState<Idea[]>([]);
+  const [myGroup, setMyGroup] = useState<Group | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const navigate = useNavigate();
+
+  // Get the current user from localStorage
+  useEffect(() => {
+    const userJson = localStorage.getItem('currentUser');
+
+    if (!userJson) {
+      setError("You're not logged in. Please log in to view notifications.");
+      return;
+    }
+
+    try {
+      const user = JSON.parse(userJson) as User;
+      setCurrentUser(user);
+    } catch (err) {
+      setError('Invalid user data. Please log in again.');
+      localStorage.removeItem('currentUser');
+    }
+  }, []);
+
+  const isAdmin = currentUser?.role === 'Student';
+  const userId = currentUser?.user_id;
+  const userRole = currentUser?.role;
 
   const themeColors = [
     styles.pinkTheme,
@@ -23,50 +52,89 @@ const Dashboard: React.FC = () => {
   const getRandomThemeColor = () =>
     themeColors[Math.floor(Math.random() * themeColors.length)];
 
-  const [themes] = useState<Theme[]>([
-    {
-      theme_id: 1,
-      title: 'Innovation in EdTech',
-      description: 'Exploring new technologies in education',
-      submission_deadline: '2025-03-01T00:00:00Z',
-      voting_deadline: '2025-03-15T00:00:00Z',
-      review_deadline: [
-        { start: '2025-03-16T00:00:00Z', end: '2025-03-30T00:00:00Z' },
-      ],
-      number_of_groups: 4,
-      auto_assign_group: true,
-    },
-  ]);
+  // Fetch themes
+  const fetchThemes = async () => {
+    try {
+      const response = await fetch('http://localhost:7071/api/theme');
+      if (!response.ok) {
+        throw new Error('Failed to fetch themes');
+      }
+      const data = await response.json();
+      setThemes(data);
+    } catch (err) {
+      setError('Error fetching themes');
+      console.error(err);
+    }
+  };
 
-  const [notifications] = useState<Notification[]>([
-    {
-      notification_id: 1,
-      recipient_role: 'student',
-      message: 'New theme available for idea submission',
-      created_at: '2025-02-17T10:00:00Z',
-    },
-  ]);
+  // Fetch notifications
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:7071/api/notification?user_id=${userId}&user_role=${userRole}`
+      );
+      if (!response.ok) {
+        throw new Error('Failed to fetch notifications');
+      }
+      const data = await response.json();
+      setNotifications(data);
+    } catch (err) {
+      setError('Error fetching notifications');
+      console.error(err);
+    }
+  };
 
-  const [myIdeas] = useState<Idea[]>([
-    {
-      idea_id: 1,
-      theme_id: 1,
-      submitted_by: 1,
-      idea_name: 'AI-Powered Study Assistant',
-      description: 'An AI tool to help students organize their study materials',
-      status: 'Pending',
-      created_at: '2025-02-16T15:30:00Z',
-    },
-  ]);
+  // Fetch my ideas
+  const fetchMyIdeas = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:7071/api/idea?submitted_by=${userId}`
+      );
+      if (!response.ok) {
+        throw new Error('Failed to fetch my ideas');
+      }
+      const data = await response.json();
+      setMyIdeas(data);
+    } catch (err) {
+      setError('Error fetching my ideas');
+      console.error(err);
+    }
+  };
 
-  const [myGroup] = useState<Group | null>({
-    group_id: 1,
-    theme_id: 1,
-    group_name: 'Innovation Team Alpha',
-    team_lead: 123,
-    created_at: '2025-02-16T15:30:00Z',
-    updated_at: null,
-  });
+  // Fetch my group
+  const fetchMyGroup = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:7071/api/group?user_id=${userId}`
+      );
+      if (!response.ok) {
+        throw new Error('Failed to fetch my group');
+      }
+      const data = await response.json();
+      setMyGroup(data[0] || null);
+    } catch (err) {
+      setError('Error fetching my group');
+      console.error(err);
+    }
+  };
+
+  // Load all data
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      await Promise.all([
+        fetchThemes(),
+        fetchNotifications(),
+        fetchMyIdeas(),
+        fetchMyGroup(),
+      ]);
+      setIsLoading(false);
+    };
+
+    if (userId && userRole) {
+      loadData();
+    }
+  }, [userId, userRole]);
 
   const [selectedTheme, setSelectedTheme] = useState<Theme | null>(null);
   const [modalType, setModalType] = useState<'view' | 'submit' | null>(null);
@@ -101,7 +169,17 @@ const Dashboard: React.FC = () => {
   const handleThemeAction = (themeId: number, action: string) => {
     const theme = themes.find((t) => t.theme_id === themeId);
     if (!theme) return;
-
+  
+    // Check if the user has already submitted an idea for this theme
+    const existingIdea = myIdeas.find(
+      (idea) => idea.theme_id === theme.theme_id && idea.submitted_by === userId
+    );
+  
+    if (existingIdea) {
+      setError('You have already submitted an idea for this theme.');
+      return;
+    }
+  
     switch (action) {
       case 'Submit Idea':
         setSelectedTheme(theme);
@@ -121,6 +199,53 @@ const Dashboard: React.FC = () => {
     if (theme) {
       setSelectedTheme(theme);
       setModalType('view');
+    }
+  };
+
+  const submitIdea = async (ideaSubmission: IdeaSubmission) => {
+    if (!selectedTheme || !userId) {
+      setError('Theme or user not found');
+      return;
+    }
+  
+    // Check if the user has already submitted an idea for this theme
+    const existingIdea = myIdeas.find(
+      (idea) => idea.theme_id === selectedTheme.theme_id && idea.submitted_by === userId
+    );
+  
+    if (existingIdea) {
+      setError('You have already submitted an idea for this theme.');
+      return;
+    }
+  
+    const newIdea = {
+      theme_id: selectedTheme.theme_id,
+      submitted_by: userId,
+      idea_name: ideaSubmission.idea_name,
+      description: ideaSubmission.description,
+    };
+  
+    try {
+      const response = await fetch('http://localhost:7071/api/idea', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newIdea),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to submit idea');
+      }
+  
+      const data = await response.json();
+      console.log('Idea submitted successfully:', data);
+      setMyIdeas([...myIdeas, data]);
+      setSelectedTheme(null);
+      setModalType(null);
+    } catch (err) {
+      setError('Error submitting idea');
+      console.error(err);
     }
   };
 
@@ -230,6 +355,7 @@ const Dashboard: React.FC = () => {
             setModalType(null);
           }}
           modalType={modalType}
+          onIdeaSubmit={submitIdea}
         />
       )}
     </main>

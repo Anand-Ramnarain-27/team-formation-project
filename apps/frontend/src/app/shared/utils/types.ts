@@ -104,6 +104,11 @@ export interface Idea {
   remainingVotes?: number; // Remaining votes
 }
 
+export interface IdeaSubmission {
+  idea_name: string;
+  description: string;
+}
+
 export interface Vote {
   vote_id: number;
   idea_id: number;

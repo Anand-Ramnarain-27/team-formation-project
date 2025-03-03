@@ -19,10 +19,10 @@ const LoginPage: React.FC = () => {
 
   // Mock user data for the dropdown
   const availableUsers = [
-    { user_id: 10, name: 'Admin User', email: 'admin@example.com', role: 'Admin' },
-    { user_id: 11, name: 'Student One', email: 'student1@example.com', role: 'Student' },
-    { user_id: 12, name: 'Student Two', email: 'student2@example.com', role: 'Student' },
-    { user_id: 13, name: 'Student Three', email: 'student3@example.com', role: 'Student' },
+    { user_id: 1, name: 'Admin', email: 'Admin@gmail.com', role: 'Admin' },
+    { user_id: 2, name: 'Student One', email: 'student_one@gmail.com', role: 'Student' },
+    { user_id: 3, name: 'Student Two', email: 'student_two@gmail.com', role: 'Student' },
+    { user_id: 4, name: 'Student Three', email: 'student_three@gmail.com', role: 'Student' },
   ];
 
   const handleUserChange = (e: React.ChangeEvent<HTMLSelectElement>) => {

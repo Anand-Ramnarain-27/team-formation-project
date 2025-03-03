@@ -21,6 +21,47 @@
   font-size: 1.1rem;
 }
 
+.themeSelection {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 1.5rem auto;
+  max-width: 400px;
+  gap: 0.75rem;
+}
+
+.themeSelectLabel {
+  font-weight: var(--font-weight-medium);
+  color: var(--dark-color);
+  white-space: nowrap;
+}
+
+.themeSelect {
+  min-width: 220px;
+}
+
+.themeTitle {
+  font-size: 1.5rem;
+  margin: 1rem 0;
+  color: #2563eb;
+  font-weight: var(--font-weight-semibold);
+}
+
+.votingStatus {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 4px;
+  background-color: #f3f4f6;
+}
+
+.votingActive {
+  color: #047857;
+}
+
+.votingClosed {
+  color: #b91c1c;
+}
+
 .votesRemaining {
   color: #2563eb;
 }
@@ -47,6 +88,11 @@
 
   .header h1 {
     font-size: 1.5rem;
+  }
+
+  .themeSelection {
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
   .ideaGrid {
