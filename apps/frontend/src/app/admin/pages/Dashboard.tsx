@@ -255,12 +255,18 @@ const Dashboard: React.FC = () => {
                   <span className={styles.themeStatus}>
                     {(() => {
                       const now = new Date();
+
+                      // Check if we're in the submission phase
                       if (now < new Date(theme.submission_deadline)) {
                         return 'Submission Phase';
                       }
+
+                      // Check if we're in the voting phase
                       if (now < new Date(theme.voting_deadline)) {
                         return 'Voting Phase';
                       }
+
+                      // Check if we're in any of the review phases
                       for (const review of theme.review_deadline) {
                         if (
                           now >= new Date(review.start) &&
@@ -271,6 +277,16 @@ const Dashboard: React.FC = () => {
                           })`;
                         }
                       }
+
+                      // Check if the review phase hasn't started yet but there is one scheduled
+                      const nextReview = theme.review_deadline.find(
+                        (review) => now < new Date(review.start)
+                      );
+                      if (nextReview) {
+                        return 'Review Phase is Going to Start';
+                      }
+
+                      // If none of the above, it's completed
                       return 'Completed';
                     })()}
                   </span>

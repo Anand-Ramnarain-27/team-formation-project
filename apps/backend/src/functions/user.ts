@@ -19,6 +19,9 @@ export async function userHandler(
   try {
     switch (request.method) {
       case 'GET':
+        if(request.query.get('id')){
+          return await getUserById(request, context);
+        }
         return await getUsers(context);
       case 'POST':
         return await createUser(request, context);
@@ -49,6 +52,38 @@ async function getUsers(context: InvocationContext): Promise<HttpResponseInit> {
       context.error(`Unknown error occurred while fetching users: ${error}`);
     }
     return { status: 500, body: 'Failed to fetch users.' };
+  }
+}
+
+// Get a user by ID
+async function getUserById(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  try {
+    const userId = request.query.get('id');
+    if (!userId) {
+      return { status: 400, body: 'User ID is required.' };
+    }
+
+    const user = await prisma.users.findUnique({
+      where: { user_id: parseInt(userId, 10) },
+    });
+
+    if (!user) {
+      return { status: 404, body: 'user not found.' };
+    }
+
+    return { status: 200, jsonBody: user };
+  } catch (error) {
+    if (error instanceof Error) {
+      context.error(`Error fetching user by ID: ${error.message}`);
+    } else {
+      context.error(
+        `Unknown error occurred while fetching user by ID: ${error}`
+      );
+    }
+    return { status: 500, body: 'Failed to fetch user.' };
   }
 }
 

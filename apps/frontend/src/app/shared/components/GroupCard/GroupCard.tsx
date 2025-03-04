@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import styles from './GroupCard.module.css';
 import { Group } from '@/app/shared/utils/types';
 import Button from '@/app/shared/components/Button/Button';
@@ -26,13 +27,78 @@ const GroupCard = ({
     new Date(dateString).toLocaleDateString();
 
   const memberCount = group.members?.length ?? 0;
+  const [ThemeName, setThemeName] = useState<string>('Loading...');
+  const [isLoading, setIsLoading] = useState(true);
+  const [teamLeadName, setTeamLeadName] = useState<string>('Loading...');
+  const [teamLeadDetails, setTeamLeadDetails] = useState<string>('Loading...');
+
+  const fetchThemeName = async () => {
+    try {
+      if (group.theme_id) {
+        const response = await fetch(
+          `http://localhost:7071/api/theme?id=${group.theme_id}`
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch theme');
+        }
+
+        const theme = await response.json();
+
+        if (theme) {
+          setThemeName(theme.title); 
+        } else {
+          setThemeName('Unknown Theme');
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching theme name:', error);
+      setThemeName('Unknown Theme'); 
+    }
+  };
+
+      const fetchTeamLead = async () => {
+        try {
+          if (group.team_lead) {
+            const response = await fetch(`http://localhost:7071/api/user?id=${group.team_lead}`);
+            
+            if (!response.ok) {
+              throw new Error('Failed to fetch user');
+            }
+  
+            const lead = await response.json();
+    
+            if (lead) {
+              setTeamLeadName(lead.name);
+              setTeamLeadDetails(lead.email);
+            } else {
+              setTeamLeadName('Unknown User');
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching submitter name:', error);
+          setTeamLeadName('Unknown User'); 
+        }
+      };
+
+  // Load all data
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      await Promise.all([fetchThemeName(),fetchTeamLead()]);
+      setIsLoading(false);
+    };
+    if (group.theme_id && group.team_lead) {
+      loadData();
+    }
+  }, [group.theme_id, group.team_lead]);
 
   return (
     <Card>
       <header className={styles.header}>
         <section className={styles.headerContent}>
           <h3 className={styles.title}>{group.group_name}</h3>
-          <p className={styles.theme}>Theme: {group.theme_title}</p>
+          <p className={styles.theme}>Theme: {ThemeName}</p>
           <div className={styles.meta}>
             <time dateTime={group.created_at}>
               Created: {formatDate(group.created_at)}
@@ -69,13 +135,13 @@ const GroupCard = ({
           <div className={styles.leadContainer}>
             <article>
               <h4 className={styles.sectionTitle}>Team Lead</h4>
-              {group.team_lead_details && (
+              {group.team_lead && (
                 <section className={styles.leadInfo}>
                   <h5 className={styles.memberName}>
-                    {group.team_lead_details.name}
+                    {teamLeadName}
                   </h5>
                   <p className={styles.memberEmail}>
-                    {group.team_lead_details.email}
+                    {teamLeadDetails}
                   </p>
                 </section>
               )}
