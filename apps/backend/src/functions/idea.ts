@@ -39,7 +39,7 @@ export async function ideaHandler(
   }
 }
 
-// Get all ideas (optionally filtered by theme_id or idea_id)
+// Get all ideas (optionally filtered by theme_id, idea_id, or submitted_by)
 async function getIdeas(
   request: HttpRequest,
   context: InvocationContext
@@ -47,12 +47,15 @@ async function getIdeas(
   try {
     const themeId = request.query.get('theme_id');
     const ideaId = request.query.get('idea_id');
+    const submittedBy = request.query.get('submitted_by');
 
     let whereClause = {};
     if (themeId) {
       whereClause = { theme_id: parseInt(themeId) };
     } else if (ideaId) {
       whereClause = { idea_id: parseInt(ideaId) };
+    } else if (submittedBy) {
+      whereClause = { submitted_by: parseInt(submittedBy) };
     }
 
     const ideas = await prisma.ideas.findMany({

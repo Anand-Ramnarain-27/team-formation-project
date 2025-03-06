@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './Profile.module.css';
 import {
   User,
@@ -17,14 +17,33 @@ type TabType = 'participation' | 'ideas' | 'groups' | 'reviews';
 
 const Profile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('participation');
+  const [expandedGroups, setExpandedGroups] = useState<Record<number, boolean>>(
+    {}
+  );
+  const [error, setError] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<User>();
+  const [myIdeas, setMyIdeas] = useState<Idea[]>([]);
+  const [myGroups, setMyGroups] = useState<Group[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [profile] = useState<User>({
-    user_id: 1,
-    name: 'John Doe',
-    email: 'john.doe@university.edu',
-    role: 'student',
-    created_at: '2024-01-15T00:00:00Z',
-  });
+  useEffect(() => {
+    const userJson = localStorage.getItem('currentUser');
+
+    if (!userJson) {
+      setError("You're not logged in. Please log in to view notifications.");
+      return;
+    }
+
+    try {
+      const user = JSON.parse(userJson) as User;
+      setCurrentUser(user);
+    } catch (err) {
+      setError('Invalid user data. Please log in again.');
+      localStorage.removeItem('currentUser');
+    }
+  }, []);
+
+  const userId = currentUser?.user_id;
 
   const [participationStats] = useState<ParticipationStats>({
     ideas_submitted: 1,
@@ -36,31 +55,83 @@ const Profile: React.FC = () => {
     averageRating: 4.2,
   });
 
-  const [ideas] = useState<Idea[]>([
-    {
-      idea_id: 1,
-      theme_id: 1,
-      submitted_by: 1,
-      idea_name: 'AI-Powered Study Assistant',
-      description: 'An AI assistant to help with studying',
-      status: 'Approved',
-      created_at: '2024-02-01T00:00:00Z',
-      theme_title: 'Educational Technology',
-      votes_count: 25,
-    },
-  ]);
+  // Fetch my ideas
+  const fetchMyIdeas = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:7071/api/idea?submitted_by=${userId}`
+      );
+      if (!response.ok) {
+        throw new Error('Failed to fetch my ideas');
+      }
+      const data = await response.json();
+      setMyIdeas(data);
+    } catch (err) {
+      setError('Error fetching my ideas');
+      console.error(err);
+    }
+  };
 
-  const [groups] = useState<Group[]>([
-    {
-      group_id: 1,
-      theme_id: 1,
-      group_name: 'AI-Powered Study Assistant',
-      team_lead: 1,
-      created_at: '2024-02-01T00:00:00Z',
-      theme_title: 'Educational Technology',
-      average_rating: 4.5,
-    },
-  ]);
+  // Fetch groups the user is a member of or is team lead for
+const fetchMyGroups = async () => {
+  try {
+    // First, get groups where user is a member
+    const memberResponse = await fetch(
+      `http://localhost:7071/api/getUserGroups?id=${userId}`
+    );
+    if (!memberResponse.ok) {
+      throw new Error('Failed to fetch member groups');
+    }
+    const memberData = await memberResponse.json();
+    
+    // Then, get groups where user is team lead
+    const leadResponse = await fetch(
+      `http://localhost:7071/api/group?teamLead=${userId}`
+    );
+    if (!leadResponse.ok) {
+      throw new Error('Failed to fetch team lead groups');
+    }
+    const leadData = await leadResponse.json();
+    
+    // Combine the results, ensuring no duplicates
+    let groupsList = [];
+    
+    // Extract the group objects from the member response
+    if (Array.isArray(memberData) && memberData.length > 0) {
+      groupsList = memberData.map(item => item.group);
+    }
+    
+    // Add groups where user is team lead, avoiding duplicates
+    if (Array.isArray(leadData) && leadData.length > 0) {
+      for (const leadGroup of leadData) {
+        const isDuplicate = groupsList.some(group => group.group_id === leadGroup.group_id);
+        if (!isDuplicate) {
+          groupsList.push(leadGroup);
+        }
+      }
+    }
+    
+    setMyGroups(groupsList);
+  } catch (err) {
+    setError('Error fetching my groups');
+    console.error(err);
+  }
+};
+
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      await Promise.all([
+        fetchMyIdeas(),
+        fetchMyGroups()
+      ]);
+      setIsLoading(false);
+    };
+
+    if (userId) {
+      loadData();
+    }
+  }, [userId]);
 
   const [reviews] = useState<Review[]>([
     {
@@ -94,6 +165,13 @@ const Profile: React.FC = () => {
 
   const isValidTab = (tab: string): tab is TabType => {
     return tabs.map((t) => t.id).includes(tab as TabType);
+  };
+
+  const handleToggleExpand = (groupId: number) => {
+    setExpandedGroups((prev) => ({
+      ...prev,
+      [groupId]: !prev[groupId],
+    }));
   };
 
   const ParticipationStat: React.FC<{
@@ -133,11 +211,8 @@ const Profile: React.FC = () => {
         </figure>
 
         <section className={styles.profileInfo}>
-          <h1 className={styles.profileName}>{profile.name}</h1>
-          <address className={styles.profileEmail}>{profile.email}</address>
-          <time className={styles.profileDate} dateTime={profile.created_at}>
-            Member since {formatDate(profile.created_at)}
-          </time>
+          <h1 className={styles.profileName}>{currentUser?.name}</h1>
+          <address className={styles.profileDate}>{currentUser?.email}</address>
         </section>
 
         <aside className={styles.profileRating}>
@@ -182,7 +257,7 @@ const Profile: React.FC = () => {
         {activeTab === 'ideas' && (
           <Card title="Submitted Ideas">
             <ul className={styles.ideaList}>
-              {ideas.map((idea) => (
+              {myIdeas.map((idea) => (
                 <li key={idea.idea_id}>
                   <IdeaCard
                     key={idea.idea_id}
@@ -200,17 +275,29 @@ const Profile: React.FC = () => {
 
         {activeTab === 'groups' && (
           <Card title="Group History">
-            <ul className={styles.groupList}>
-              {groups.map((group) => (
-                <li key={group.group_id}>
-                  <GroupCard
-                    group={group}
-                    showActions={false}
-                    className={styles.groupItem}
-                  />
-                </li>
-              ))}
-            </ul>
+            {isLoading ? (
+              <div className={styles.loading}>Loading groups...</div>
+            ) : (
+              <ul className={styles.groupList}>
+                {myGroups.length > 0 ? (
+                  myGroups.map((group) => (
+                    <li key={group.group_id}>
+                      <GroupCard
+                        group={group}
+                        isExpanded={expandedGroups[group.group_id]}
+                        onExpand={() => handleToggleExpand(group.group_id)}
+                        showActions={true}
+                        className={styles.groupItem}
+                      />
+                    </li>
+                  ))
+                ) : (
+                  <li className={styles.noGroups}>
+                    You are not a member of any groups yet.
+                  </li>
+                )}
+              </ul>
+            )}
           </Card>
         )}
 

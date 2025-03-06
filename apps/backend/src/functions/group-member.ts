@@ -131,10 +131,53 @@ async function removeGroupMember(
   }
 }
 
+// Get group information and members for a specific user
+async function getUserGroups(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  try {
+    const userId = request.query.get('id');
+    if (!userId) {
+      return { status: 400, body: 'User ID is required.' };
+    }
+
+    const userGroups = await prisma.group_members.findMany({
+      where: { user_id: parseInt(userId, 10) },
+      include: {
+        group: {
+          include: {
+            group_members: {
+              include: {
+                member: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return { status: 200, jsonBody: userGroups };
+  } catch (error) {
+    if (error instanceof Error) {
+      context.error(`Error fetching user groups: ${error.message}`);
+    } else {
+      context.error(`Unknown error occurred while fetching user groups: ${error}`);
+    }
+    return { status: 500, body: 'Failed to fetch user groups.' };
+  }
+}
+
 const groupMember = corsMiddleware(groupMemberHandler);
 
 app.http('groupMember', {
   methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
   authLevel: 'anonymous',
   handler: groupMember,
+});
+
+app.http('getUserGroups', {
+  methods: ['GET', 'OPTIONS'],
+  authLevel: 'anonymous',
+  handler: corsMiddleware(getUserGroups),
 });

@@ -39,13 +39,15 @@ export async function groupHandler(
   }
 }
 
-// Get all groups or a specific group by ID
+// Get all groups or a specific group by ID or team lead
 async function getGroups(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   try {
     const groupId = request.query.get('id');
+    const teamLeadId = request.query.get('teamLead');
+    
     if (groupId) {
       const group = await prisma.groups.findUnique({
         where: { group_id: parseInt(groupId, 10) },
@@ -54,6 +56,12 @@ async function getGroups(
         return { status: 404, body: 'Group not found.' };
       }
       return { status: 200, jsonBody: group };
+    } else if (teamLeadId) {
+      // Fetch groups where the user is a team lead
+      const groups = await prisma.groups.findMany({
+        where: { team_lead: parseInt(teamLeadId, 10) },
+      });
+      return { status: 200, jsonBody: groups };
     } else {
       const groups = await prisma.groups.findMany();
       return { status: 200, jsonBody: groups };
@@ -68,7 +76,6 @@ async function getGroups(
   }
 }
 
-// Create a new group
 // Create a new group
 async function createGroup(
   request: HttpRequest,

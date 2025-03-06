@@ -39,90 +39,120 @@ const Reviews: React.FC = () => {
   };
 
   useEffect(() => {
-      const userJson = localStorage.getItem('currentUser');
-  
-      if (!userJson) {
-        setError("You're not logged in. Please log in to view notifications.");
-        return;
-      }
-  
-      try {
-        const user = JSON.parse(userJson) as User;
-        const userId = user.user_id
-        setCurrentUserId(userId);
-        setLoading(false);
-      } catch (err) {
-        setError('Invalid user data. Please log in again.');
-        localStorage.removeItem('currentUser');
-      }
-    }, []);
+    const userJson = localStorage.getItem('currentUser');
+
+    if (!userJson) {
+      setError("You're not logged in. Please log in to view notifications.");
+      return;
+    }
+
+    try {
+      const user = JSON.parse(userJson) as User;
+      const userId = user.user_id;
+      setCurrentUserId(userId);
+      setLoading(false);
+    } catch (err) {
+      setError('Invalid user data. Please log in again.');
+      localStorage.removeItem('currentUser');
+    }
+  }, []);
 
   // Fetch group and members data
   useEffect(() => {
     const fetchGroupData = async () => {
       if (!currentUserId) return;
-      
+
       setLoading(true);
       try {
-        // Fetch the user's current group - simulate getting the first available group
-        // In a real app, you would query for the specific user's group
+        // Fetch the user's current group
         const groupResponse = await fetch(`${API_BASE_URL}/group`);
         if (!groupResponse.ok) {
           throw new Error('Failed to fetch group data');
         }
-        
+
         const groupsData = await groupResponse.json();
-        // For development, use the first group
-        const userGroup = Array.isArray(groupsData) && groupsData.length > 0 ? groupsData[0] : null;
-        
+        const userGroup =
+          Array.isArray(groupsData) && groupsData.length > 0
+            ? groupsData[0]
+            : null;
+
         if (!userGroup) {
           throw new Error('No group found');
         }
-        
+
         setCurrentGroup(userGroup);
 
         // Fetch group members
-        const membersResponse = await fetch(`${API_BASE_URL}/groupMember?id=${userGroup.group_id}`);
+        const membersResponse = await fetch(
+          `${API_BASE_URL}/groupMember?id=${userGroup.group_id}`
+        );
         if (!membersResponse.ok) {
           throw new Error('Failed to fetch group members');
         }
         const membersData = await membersResponse.json();
-        
+
         // Transform the data to match the expected GroupMember structure
         const transformedMembers = membersData.map((member: any) => ({
           group_member_id: member.group_member_id,
           group_id: member.group_id,
           user_id: member.user_id,
-          user: member.member // Based on the API including member via Prisma
+          user: member.member,
         }));
-        
-        setGroupMembers(transformedMembers);
-        
+
+        // Fetch the team lead details
+        const teamLeadResponse = await fetch(
+          `${API_BASE_URL}/user?id=${userGroup.team_lead}`
+        );
+        if (!teamLeadResponse.ok) {
+          throw new Error('Failed to fetch team lead details');
+        }
+        const teamLeadData = await teamLeadResponse.json();
+
+        // Add the team lead to the list of members to be reviewed
+        const teamLeadMember = {
+          group_member_id: -1, // Use a unique identifier for the team lead
+          group_id: userGroup.group_id,
+          user_id: userGroup.team_lead,
+          user: teamLeadData,
+        };
+
+        setGroupMembers([...transformedMembers, teamLeadMember]);
+
         // Fetch any existing reviews for this group by current user
-        const reviewsResponse = await fetch(`${API_BASE_URL}/review?group_id=${userGroup.group_id}`);
+        const reviewsResponse = await fetch(
+          `${API_BASE_URL}/review?group_id=${userGroup.group_id}`
+        );
         if (reviewsResponse.ok) {
           const reviewsData = await reviewsResponse.json();
-          
+
           // Filter reviews by current user as reviewer
-          const userReviews = reviewsData.filter((review: any) => review.reviewer_id === currentUserId);
-          
+          const userReviews = reviewsData.filter(
+            (review: any) => review.reviewer_id === currentUserId
+          );
+
           // Convert array to object with reviewee_id as keys
           const reviewsObject = userReviews.reduce((acc: any, review: any) => {
-            // Convert DB enum rating to string rating (1-5)
             const ratingValue = review.rating.replace('_', '');
-            const numericRating = ratingValue === 'ONE' ? '1'
-                               : ratingValue === 'TWO' ? '2'
-                               : ratingValue === 'THREE' ? '3'
-                               : ratingValue === 'FOUR' ? '4'
-                               : ratingValue === 'FIVE' ? '5' : '1';
-            
+            const numericRating =
+              ratingValue === 'ONE'
+                ? '1'
+                : ratingValue === 'TWO'
+                ? '2'
+                : ratingValue === 'THREE'
+                ? '3'
+                : ratingValue === 'FOUR'
+                ? '4'
+                : ratingValue === 'FIVE'
+                ? '5'
+                : '1';
+
             acc[review.reviewee_id] = {
               ...review,
-              rating: numericRating
+              rating: numericRating,
             };
             return acc;
           }, {});
-          
+
           setReviews(reviewsObject);
         }
       } catch (err) {
@@ -171,36 +201,40 @@ const Reviews: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!currentGroup || !currentUserId) return;
-    
+
     try {
       // Process reviews to match the expected API format
       const reviewPromises = Object.values(reviews).map(async (review) => {
         // Convert string rating to number for the API
         const numericRating = parseInt(review.rating, 10);
-        
+
         const reviewData = {
           reviewer_id: currentUserId,
           reviewee_id: review.reviewee_id,
           group_id: currentGroup.group_id,
           rating: numericRating, // API expects a number (1-5)
-          feedback: review.feedback
+          feedback: review.feedback,
         };
-        
+
         // Check if review exists by querying existing reviews
-        const existingReviews = await fetch(`${API_BASE_URL}/review?group_id=${currentGroup.group_id}`);
-        const existingReviewsData = await existingReviews.json();
-        
-        const existingReview = existingReviewsData.find(
-          (r: any) => r.reviewer_id === currentUserId && r.reviewee_id === review.reviewee_id
+        const existingReviews = await fetch(
+          `${API_BASE_URL}/review?group_id=${currentGroup.group_id}`
         );
-        
+        const existingReviewsData = await existingReviews.json();
+
+        const existingReview = existingReviewsData.find(
+          (r: any) =>
+            r.reviewer_id === currentUserId &&
+            r.reviewee_id === review.reviewee_id
+        );
+
         if (existingReview) {
           // Update existing review - No PATCH method in the API, would need to delete and recreate
           await fetch(`${API_BASE_URL}/review?id=${existingReview.review_id}`, {
-            method: 'DELETE'
+            method: 'DELETE',
           });
         }
-        
+
         // Create the review
         return fetch(`${API_BASE_URL}/review`, {
           method: 'POST',
@@ -210,7 +244,7 @@ const Reviews: React.FC = () => {
           body: JSON.stringify(reviewData),
         });
       });
-      
+
       // Wait for all review submissions to complete
       await Promise.all(reviewPromises);
       setSubmitted(true);
