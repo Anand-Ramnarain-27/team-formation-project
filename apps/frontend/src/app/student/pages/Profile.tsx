@@ -24,6 +24,7 @@ const Profile: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User>();
   const [myIdeas, setMyIdeas] = useState<Idea[]>([]);
   const [myGroups, setMyGroups] = useState<Group[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -72,7 +73,6 @@ const Profile: React.FC = () => {
     }
   };
 
-  // Fetch groups the user is a member of or is team lead for
   // Fetch groups the user is a member of or is team lead for
   const fetchMyGroups = async () => {
     try {
@@ -123,10 +123,29 @@ const Profile: React.FC = () => {
     }
   };
 
+  // Fetch reviews received by the user
+  const fetchReviews = async () => {
+    try {
+      if (!userId) return;
+
+      const response = await fetch(
+        `http://localhost:7071/api/review?reviewee_id=${userId}`
+      );
+      if (!response.ok) {
+        throw new Error('Failed to fetch reviews');
+      }
+      const data = await response.json();
+      setReviews(data);
+    } catch (err) {
+      setError('Error fetching reviews');
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
-      await Promise.all([fetchMyIdeas(), fetchMyGroups()]);
+      await Promise.all([fetchMyIdeas(), fetchMyGroups(), fetchReviews()]);
       setIsLoading(false);
     };
 
@@ -134,19 +153,6 @@ const Profile: React.FC = () => {
       loadData();
     }
   }, [userId]);
-
-  const [reviews] = useState<Review[]>([
-    {
-      review_id: 1,
-      reviewer_id: 2,
-      reviewee_id: 1,
-      group_id: 1,
-      rating: '4',
-      feedback: 'Great team player, always contributes meaningful ideas',
-      created_at: '2024-03-01T00:00:00Z',
-      group_name: 'AI-Powered Study Assistant',
-    },
-  ]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();

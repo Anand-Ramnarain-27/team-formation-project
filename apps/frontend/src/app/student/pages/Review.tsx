@@ -390,7 +390,7 @@ const Reviews: React.FC = () => {
               <li key={review.reviewee_id}>
                 <ReviewCard
                   {...review}
-                  showGroupName={false}
+                  showGroupName={true}
                   created_at={new Date().toISOString()}
                 />
               </li>
