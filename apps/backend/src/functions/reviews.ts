@@ -5,7 +5,7 @@ import {
   InvocationContext,
 } from '@azure/functions';
 import { PrismaClient, rating_enum } from '@prisma/client';
-import { ReviewRequestBody,ratingEnumMap } from '../utils/types';
+import { ReviewRequestBody, ratingEnumMap } from '../utils/types';
 import { corsMiddleware } from '../utils/cors';
 
 const prisma = new PrismaClient();
@@ -19,11 +19,18 @@ export async function reviewHandler(
   try {
     switch (request.method) {
       case 'GET':
-        return await getReviews(request, context);
+        if (request.query.get('id')) {
+          return await getReviewById(request, context);
+        } else if (request.query.get('group_id')) {
+          return await getReviewsByGroupId(request, context);
+        } else if (request.query.get('reviewer_id')) {
+          return await getReviewsByReviewerId(request, context);
+        } else if (request.query.get('reviewee_id')) {
+          return await getReviewsByRevieweeId(request, context);
+        }
+        return await getAllReviews(context);
       case 'POST':
         return await createReview(request, context);
-      case 'DELETE':
-        return await deleteReview(request, context);
       default:
         return { status: 405, body: 'Method not allowed.' };
     }
@@ -37,8 +44,55 @@ export async function reviewHandler(
   }
 }
 
-// Get reviews for a specific group
-async function getReviews(
+// Get all reviews
+async function getAllReviews(context: InvocationContext): Promise<HttpResponseInit> {
+  try {
+    const reviews = await prisma.review.findMany();
+    return { status: 200, jsonBody: reviews };
+  } catch (error) {
+    if (error instanceof Error) {
+      context.error(`Error fetching reviews: ${error.message}`);
+    } else {
+      context.error(`Unknown error occurred while fetching reviews: ${error}`);
+    }
+    return { status: 500, body: 'Failed to fetch reviews.' };
+  }
+}
+
+// Get a review by ID
+async function getReviewById(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  try {
+    const reviewId = request.query.get('id');
+    if (!reviewId) {
+      return { status: 400, body: 'Review ID is required.' };
+    }
+
+    const review = await prisma.review.findUnique({
+      where: { review_id: parseInt(reviewId, 10) },
+    });
+
+    if (!review) {
+      return { status: 404, body: 'Review not found.' };
+    }
+
+    return { status: 200, jsonBody: review };
+  } catch (error) {
+    if (error instanceof Error) {
+      context.error(`Error fetching review by ID: ${error.message}`);
+    } else {
+      context.error(
+        `Unknown error occurred while fetching review by ID: ${error}`
+      );
+    }
+    return { status: 500, body: 'Failed to fetch review.' };
+  }
+}
+
+// Get reviews by group ID
+async function getReviewsByGroupId(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
@@ -50,18 +104,72 @@ async function getReviews(
 
     const reviews = await prisma.review.findMany({
       where: { group_id: parseInt(groupId, 10) },
-      include: {
-        reviewer: { select: { name: true } },
-        reviewee: { select: { name: true } },
-      },
     });
 
     return { status: 200, jsonBody: reviews };
   } catch (error) {
     if (error instanceof Error) {
-      context.error(`Error fetching reviews: ${error.message}`);
+      context.error(`Error fetching reviews by group ID: ${error.message}`);
     } else {
-      context.error(`Unknown error occurred while fetching reviews: ${error}`);
+      context.error(
+        `Unknown error occurred while fetching reviews by group ID: ${error}`
+      );
+    }
+    return { status: 500, body: 'Failed to fetch reviews.' };
+  }
+}
+
+// Get reviews by reviewer ID
+async function getReviewsByReviewerId(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  try {
+    const reviewerId = request.query.get('reviewer_id');
+    if (!reviewerId) {
+      return { status: 400, body: 'Reviewer ID is required.' };
+    }
+
+    const reviews = await prisma.review.findMany({
+      where: { reviewer_id: parseInt(reviewerId, 10) },
+    });
+
+    return { status: 200, jsonBody: reviews };
+  } catch (error) {
+    if (error instanceof Error) {
+      context.error(`Error fetching reviews by reviewer ID: ${error.message}`);
+    } else {
+      context.error(
+        `Unknown error occurred while fetching reviews by reviewer ID: ${error}`
+      );
+    }
+    return { status: 500, body: 'Failed to fetch reviews.' };
+  }
+}
+
+// Get reviews by reviewee ID
+async function getReviewsByRevieweeId(
+  request: HttpRequest,
+  context: InvocationContext
+): Promise<HttpResponseInit> {
+  try {
+    const revieweeId = request.query.get('reviewee_id');
+    if (!revieweeId) {
+      return { status: 400, body: 'Reviewee ID is required.' };
+    }
+
+    const reviews = await prisma.review.findMany({
+      where: { reviewee_id: parseInt(revieweeId, 10) },
+    });
+
+    return { status: 200, jsonBody: reviews };
+  } catch (error) {
+    if (error instanceof Error) {
+      context.error(`Error fetching reviews by reviewee ID: ${error.message}`);
+    } else {
+      context.error(
+        `Unknown error occurred while fetching reviews by reviewee ID: ${error}`
+      );
     }
     return { status: 500, body: 'Failed to fetch reviews.' };
   }
@@ -75,23 +183,30 @@ async function createReview(
   try {
     const body = await request.json();
     const reviewBody: ReviewRequestBody = body as ReviewRequestBody;
+    
+    // Validate rating
+    if (reviewBody.rating < 1 || reviewBody.rating > 5) {
+      return { status: 400, body: 'Invalid rating value. Must be between 1 and 5.' };
+    }
 
-    // Map the numeric rating to the corresponding enum value
-    const ratingEnumValue = ratingEnumMap[reviewBody.rating];
-    if (!ratingEnumValue) {
+    // Check if the rating exists in the map
+    if (!(reviewBody.rating in ratingEnumMap)) {
       return { status: 400, body: 'Invalid rating value.' };
     }
+
+    // Type assertion to tell TypeScript this is a valid key
+    const ratingValue = ratingEnumMap[reviewBody.rating as 1|2|3|4|5];
 
     const review = await prisma.review.create({
       data: {
         reviewer_id: reviewBody.reviewer_id,
         reviewee_id: reviewBody.reviewee_id,
         group_id: reviewBody.group_id,
-        rating: ratingEnumValue, // Use the enum value
+        rating: ratingValue,
         feedback: reviewBody.feedback,
       },
     });
-
+    
     return { status: 201, jsonBody: review };
   } catch (error) {
     if (error instanceof Error) {
@@ -102,37 +217,11 @@ async function createReview(
     return { status: 500, body: 'Failed to create review.' };
   }
 }
- 
-// Delete a review
-async function deleteReview(
-  request: HttpRequest,
-  context: InvocationContext
-): Promise<HttpResponseInit> {
-  try {
-    const reviewId = request.query.get('id');
-    if (!reviewId) {
-      return { status: 400, body: 'Review ID is required.' };
-    }
-
-    await prisma.review.delete({
-      where: { review_id: parseInt(reviewId, 10) },
-    });
-
-    return { status: 200, body: 'Review deleted successfully.' };
-  } catch (error) {
-    if (error instanceof Error) {
-      context.error(`Error deleting review: ${error.message}`);
-    } else {
-      context.error(`Unknown error occurred while deleting review: ${error}`);
-    }
-    return { status: 500, body: 'Failed to delete review.' };
-  }
-}
 
 const review = corsMiddleware(reviewHandler);
 
 app.http('review', {
-  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'OPTIONS'],
   authLevel: 'anonymous',
   handler: review,
 });

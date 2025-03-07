@@ -61,11 +61,11 @@ export interface ReviewRequestBody {
 
 // Mapping for numeric ratings to enum values
 export const ratingEnumMap: { [key: number]: rating_enum } = {
-  1: rating_enum.ONE,
-  2: rating_enum.TWO,
-  3: rating_enum.THREE,
-  4: rating_enum.FOUR,
-  5: rating_enum.FIVE,
+  1: rating_enum.RATING_1,
+  2: rating_enum.RATING_2,
+  3: rating_enum.RATING_3,
+  4: rating_enum.RATING_4,
+  5: rating_enum.RATING_5
 };
 
 // Group Members

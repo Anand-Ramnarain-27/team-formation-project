@@ -65,12 +65,15 @@ const Reviews: React.FC = () => {
       setLoading(true);
       try {
         // Fetch the user's current group
-        const groupResponse = await fetch(`${API_BASE_URL}/group`);
+        const groupResponse = await fetch(
+          `${API_BASE_URL}/group?teamLead=${currentUserId}`
+        );
         if (!groupResponse.ok) {
           throw new Error('Failed to fetch group data');
         }
 
         const groupsData = await groupResponse.json();
+        // Find the group where the user is either a team lead or a member
         const userGroup =
           Array.isArray(groupsData) && groupsData.length > 0
             ? groupsData[0]
@@ -99,52 +102,30 @@ const Reviews: React.FC = () => {
           user: member.member,
         }));
 
-        // Fetch the team lead details
-        const teamLeadResponse = await fetch(
-          `${API_BASE_URL}/user?id=${userGroup.team_lead}`
-        );
-        if (!teamLeadResponse.ok) {
-          throw new Error('Failed to fetch team lead details');
-        }
-        const teamLeadData = await teamLeadResponse.json();
-
-        // Add the team lead to the list of members to be reviewed
-        const teamLeadMember = {
-          group_member_id: -1, // Use a unique identifier for the team lead
-          group_id: userGroup.group_id,
-          user_id: userGroup.team_lead,
-          user: teamLeadData,
-        };
-
-        setGroupMembers([...transformedMembers, teamLeadMember]);
+        setGroupMembers(transformedMembers);
 
         // Fetch any existing reviews for this group by current user
         const reviewsResponse = await fetch(
-          `${API_BASE_URL}/review?group_id=${userGroup.group_id}`
+          `${API_BASE_URL}/review?reviewer_id=${currentUserId}`
         );
         if (reviewsResponse.ok) {
           const reviewsData = await reviewsResponse.json();
 
-          // Filter reviews by current user as reviewer
-          const userReviews = reviewsData.filter(
-            (review: any) => review.reviewer_id === currentUserId
+          // Filter reviews by current group
+          const groupReviews = reviewsData.filter(
+            (review: any) => review.group_id === userGroup.group_id
           );
 
           // Convert array to object with reviewee_id as keys
-          const reviewsObject = userReviews.reduce((acc: any, review: any) => {
-            const ratingValue = review.rating.replace('_', '');
-            const numericRating =
-              ratingValue === 'ONE'
-                ? '1'
-                : ratingValue === 'TWO'
-                ? '2'
-                : ratingValue === 'THREE'
-                ? '3'
-                : ratingValue === 'FOUR'
-                ? '4'
-                : ratingValue === 'FIVE'
-                ? '5'
-                : '1';
+          const reviewsObject = groupReviews.reduce((acc: any, review: any) => {
+            // Parse the rating enum (e.g., RATING_1, RATING_2) to get numeric value
+            let numericRating = '1';
+            if (review.rating) {
+              const ratingMatch = review.rating.match(/RATING_(\d+)/);
+              if (ratingMatch && ratingMatch[1]) {
+                numericRating = ratingMatch[1];
+              }
+            }
 
             acc[review.reviewee_id] = {
               ...review,
@@ -201,6 +182,7 @@ const Reviews: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!currentGroup || !currentUserId) return;
+    setError(null);
 
     try {
       // Process reviews to match the expected API format
@@ -208,6 +190,7 @@ const Reviews: React.FC = () => {
         // Convert string rating to number for the API
         const numericRating = parseInt(review.rating, 10);
 
+        // Prepare the review data according to your API schema
         const reviewData = {
           reviewer_id: currentUserId,
           reviewee_id: review.reviewee_id,
@@ -216,33 +199,20 @@ const Reviews: React.FC = () => {
           feedback: review.feedback,
         };
 
-        // Check if review exists by querying existing reviews
-        const existingReviews = await fetch(
-          `${API_BASE_URL}/review?group_id=${currentGroup.group_id}`
-        );
-        const existingReviewsData = await existingReviews.json();
-
-        const existingReview = existingReviewsData.find(
-          (r: any) =>
-            r.reviewer_id === currentUserId &&
-            r.reviewee_id === review.reviewee_id
-        );
-
-        if (existingReview) {
-          // Update existing review - No PATCH method in the API, would need to delete and recreate
-          await fetch(`${API_BASE_URL}/review?id=${existingReview.review_id}`, {
-            method: 'DELETE',
-          });
-        }
-
         // Create the review
-        return fetch(`${API_BASE_URL}/review`, {
+        const response = await fetch(`${API_BASE_URL}/review`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(reviewData),
         });
+
+        if (!response.ok) {
+          throw new Error(`Error submitting review: ${response.statusText}`);
+        }
+
+        return response.json();
       });
 
       // Wait for all review submissions to complete

@@ -151,9 +151,9 @@ enum status_enum {
 }
 
 enum rating_enum {
-  ONE
-  TWO
-  THREE
-  FOUR
-  FIVE
+  RATING_1 @map("1")
+  RATING_2 @map("2")
+  RATING_3 @map("3")
+  RATING_4 @map("4")
+  RATING_5 @map("5")
 }
