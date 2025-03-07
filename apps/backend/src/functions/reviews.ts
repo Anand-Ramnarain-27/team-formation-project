@@ -175,7 +175,29 @@ async function getReviewsByRevieweeId(
   }
 }
 
-// Create a new review
+// Add this function to check if a review already exists
+async function checkExistingReview(
+  reviewerId: number,
+  revieweeId: number,
+  groupId: number,
+  context: InvocationContext
+): Promise<boolean> {
+  try {
+    const existingReview = await prisma.review.findFirst({
+      where: {
+        reviewer_id: reviewerId,
+        reviewee_id: revieweeId,
+        group_id: groupId,
+      },
+    });
+    return !!existingReview;
+  } catch (error) {
+    context.error(`Error checking existing review: ${error}`);
+    throw error;
+  }
+}
+
+// Modify the createReview function to include the check
 async function createReview(
   request: HttpRequest,
   context: InvocationContext
@@ -183,7 +205,7 @@ async function createReview(
   try {
     const body = await request.json();
     const reviewBody: ReviewRequestBody = body as ReviewRequestBody;
-    
+
     // Validate rating
     if (reviewBody.rating < 1 || reviewBody.rating > 5) {
       return { status: 400, body: 'Invalid rating value. Must be between 1 and 5.' };
@@ -192,6 +214,18 @@ async function createReview(
     // Check if the rating exists in the map
     if (!(reviewBody.rating in ratingEnumMap)) {
       return { status: 400, body: 'Invalid rating value.' };
+    }
+
+    // Check if a review already exists for this reviewer, reviewee, and group
+    const reviewExists = await checkExistingReview(
+      reviewBody.reviewer_id,
+      reviewBody.reviewee_id,
+      reviewBody.group_id,
+      context
+    );
+
+    if (reviewExists) {
+      return { status: 400, body: 'You have already submitted a review for this member in the current review period.' };
     }
 
     // Type assertion to tell TypeScript this is a valid key
@@ -206,7 +240,7 @@ async function createReview(
         feedback: reviewBody.feedback,
       },
     });
-    
+
     return { status: 201, jsonBody: review };
   } catch (error) {
     if (error instanceof Error) {
