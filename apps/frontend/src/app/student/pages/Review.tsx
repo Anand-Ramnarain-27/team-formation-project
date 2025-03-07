@@ -61,61 +61,133 @@ const Reviews: React.FC = () => {
   useEffect(() => {
     const fetchGroupData = async () => {
       if (!currentUserId) return;
-
+  
       setLoading(true);
       try {
-        // Fetch the user's current group
+        let userGroup = null;
+        let teamLeadGroup: Group | null = null; // Explicitly define the type // Declare teamLeadGroup here
+  
+        // Fetch the user's current group based on their membership or team lead role
         const groupResponse = await fetch(
-          `${API_BASE_URL}/group?teamLead=${currentUserId}`
+          `${API_BASE_URL}/groupMember?userId=${currentUserId}`
         );
         if (!groupResponse.ok) {
           throw new Error('Failed to fetch group data');
         }
-
-        const groupsData = await groupResponse.json();
-        // Find the group where the user is either a team lead or a member
-        const userGroup =
-          Array.isArray(groupsData) && groupsData.length > 0
-            ? groupsData[0]
-            : null;
-
+  
+        const userMembershipData = await groupResponse.json();
+  
+        // Find the group where the user is a member or the team lead
+        userGroup = userMembershipData.length > 0 ? userMembershipData[0] : null;
+  
         if (!userGroup) {
-          throw new Error('No group found');
+          // If no group is found, check if the user is a team lead
+          const teamLeadGroupResponse = await fetch(
+            `${API_BASE_URL}/group?teamLead=${currentUserId}`
+          );
+          if (!teamLeadGroupResponse.ok) {
+            throw new Error('Failed to fetch team lead group data');
+          }
+  
+          const teamLeadGroupData = await teamLeadGroupResponse.json();
+          teamLeadGroup = teamLeadGroupData.length > 0 ? teamLeadGroupData[0] : null;
+  
+          if (!teamLeadGroup) {
+            throw new Error('No group found');
+          }
+  
+          setCurrentGroup(teamLeadGroup);
+  
+          // Fetch group members for the team lead's group
+          const membersResponse = await fetch(
+            `${API_BASE_URL}/groupMember?id=${teamLeadGroup.group_id}`
+          );
+          if (!membersResponse.ok) {
+            throw new Error('Failed to fetch group members');
+          }
+          const membersData = await membersResponse.json();
+  
+          // Transform the data to match the expected GroupMember structure
+          const transformedMembers = membersData.map((member: any) => ({
+            group_member_id: member.group_member_id,
+            group_id: member.group_id,
+            user_id: member.user_id,
+            user: member.member,
+            created_at: member.created_at,
+          }));
+  
+          // Add the team lead to the list of members if they are not already included
+          if (teamLeadGroup.team_lead && teamLeadGroup.team_lead) {
+            const teamLeadMember = transformedMembers.find(
+              (member: any) => member.user_id === teamLeadGroup?.team_lead
+            );
+  
+            if (!teamLeadMember) {
+              transformedMembers.push({
+                group_member_id: -1, // Use a placeholder ID for the team lead
+                group_id: teamLeadGroup.group_id,
+                user_id: teamLeadGroup.team_lead,
+                user: teamLeadGroup.team_lead, // Use the `leader` relation to get the team lead's details
+                created_at: teamLeadGroup.created_at, // Use the group's `created_at` as the team lead's `created_at`
+              });
+            }
+          }
+  
+          setGroupMembers(transformedMembers);
+        } else {
+          // If the user is a regular member, proceed as usual
+          setCurrentGroup(userGroup);
+  
+          // Fetch group members
+          const membersResponse = await fetch(
+            `${API_BASE_URL}/groupMember?id=${userGroup.group_id}`
+          );
+          if (!membersResponse.ok) {
+            throw new Error('Failed to fetch group members');
+          }
+          const membersData = await membersResponse.json();
+  
+          // Transform the data to match the expected GroupMember structure
+          const transformedMembers = membersData.map((member: any) => ({
+            group_member_id: member.group_member_id,
+            group_id: member.group_id,
+            user_id: member.user_id,
+            user: member.member,
+            created_at: member.created_at,
+          }));
+  
+          // Add the team lead to the list of members if they are not already included
+          if (userGroup.team_lead && userGroup.leader) {
+            const teamLeadMember = transformedMembers.find(
+              (member: any) => member.user_id === userGroup.team_lead
+            );
+  
+            if (!teamLeadMember) {
+              transformedMembers.push({
+                group_member_id: -1, // Use a placeholder ID for the team lead
+                group_id: userGroup.group_id,
+                user_id: userGroup.team_lead,
+                user: userGroup.leader, // Use the `leader` relation to get the team lead's details
+                created_at: userGroup.created_at, // Use the group's `created_at` as the team lead's `created_at`
+              });
+            }
+          }
+  
+          setGroupMembers(transformedMembers);
         }
-
-        setCurrentGroup(userGroup);
-
-        // Fetch group members
-        const membersResponse = await fetch(
-          `${API_BASE_URL}/groupMember?id=${userGroup.group_id}`
-        );
-        if (!membersResponse.ok) {
-          throw new Error('Failed to fetch group members');
-        }
-        const membersData = await membersResponse.json();
-
-        // Transform the data to match the expected GroupMember structure
-        const transformedMembers = membersData.map((member: any) => ({
-          group_member_id: member.group_member_id,
-          group_id: member.group_id,
-          user_id: member.user_id,
-          user: member.member,
-        }));
-
-        setGroupMembers(transformedMembers);
-
+  
         // Fetch any existing reviews for this group by current user
         const reviewsResponse = await fetch(
           `${API_BASE_URL}/review?reviewer_id=${currentUserId}`
         );
         if (reviewsResponse.ok) {
           const reviewsData = await reviewsResponse.json();
-
+  
           // Filter reviews by current group
           const groupReviews = reviewsData.filter(
-            (review: any) => review.group_id === userGroup.group_id
+            (review: any) => review.group_id === (userGroup?.group_id || teamLeadGroup?.group_id)
           );
-
+  
           // Convert array to object with reviewee_id as keys
           const reviewsObject = groupReviews.reduce((acc: any, review: any) => {
             // Parse the rating enum (e.g., RATING_1, RATING_2) to get numeric value
@@ -126,14 +198,14 @@ const Reviews: React.FC = () => {
                 numericRating = ratingMatch[1];
               }
             }
-
+  
             acc[review.reviewee_id] = {
               ...review,
               rating: numericRating,
             };
             return acc;
           }, {});
-
+  
           setReviews(reviewsObject);
         }
       } catch (err) {
@@ -143,9 +215,17 @@ const Reviews: React.FC = () => {
         setLoading(false);
       }
     };
-
+  
     fetchGroupData();
   }, [currentUserId]);
+  
+  if (!currentGroup) {
+    return (
+      <main className={styles.container}>
+        <p>You are not part of any group.</p>
+      </main>
+    );
+  }
 
   const handleRatingChange = (
     revieweeId: number,

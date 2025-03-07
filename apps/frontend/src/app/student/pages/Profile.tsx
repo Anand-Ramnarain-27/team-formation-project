@@ -73,58 +73,60 @@ const Profile: React.FC = () => {
   };
 
   // Fetch groups the user is a member of or is team lead for
-const fetchMyGroups = async () => {
-  try {
-    // First, get groups where user is a member
-    const memberResponse = await fetch(
-      `http://localhost:7071/api/getUserGroups?id=${userId}`
-    );
-    if (!memberResponse.ok) {
-      throw new Error('Failed to fetch member groups');
-    }
-    const memberData = await memberResponse.json();
-    
-    // Then, get groups where user is team lead
-    const leadResponse = await fetch(
-      `http://localhost:7071/api/group?teamLead=${userId}`
-    );
-    if (!leadResponse.ok) {
-      throw new Error('Failed to fetch team lead groups');
-    }
-    const leadData = await leadResponse.json();
-    
-    // Combine the results, ensuring no duplicates
-    let groupsList = [];
-    
-    // Extract the group objects from the member response
-    if (Array.isArray(memberData) && memberData.length > 0) {
-      groupsList = memberData.map(item => item.group);
-    }
-    
-    // Add groups where user is team lead, avoiding duplicates
-    if (Array.isArray(leadData) && leadData.length > 0) {
-      for (const leadGroup of leadData) {
-        const isDuplicate = groupsList.some(group => group.group_id === leadGroup.group_id);
-        if (!isDuplicate) {
-          groupsList.push(leadGroup);
+  // Fetch groups the user is a member of or is team lead for
+  const fetchMyGroups = async () => {
+    try {
+      if (!userId) return;
+
+      // First, get groups where user is a member
+      const memberResponse = await fetch(
+        `http://localhost:7071/api/groupMember?userId=${userId}`
+      );
+      if (!memberResponse.ok) {
+        throw new Error('Failed to fetch member groups');
+      }
+      const memberData = await memberResponse.json();
+
+      // Then, get groups where user is team lead
+      const leadResponse = await fetch(
+        `http://localhost:7071/api/group?teamLead=${userId}`
+      );
+      if (!leadResponse.ok) {
+        throw new Error('Failed to fetch team lead groups');
+      }
+      const leadData = await leadResponse.json();
+
+      // Combine the results, ensuring no duplicates
+      let groupsList = [];
+
+      // Extract the group objects from the member response
+      if (Array.isArray(memberData) && memberData.length > 0) {
+        groupsList = memberData.map((item) => item.group);
+      }
+
+      // Add groups where user is team lead, avoiding duplicates
+      if (Array.isArray(leadData) && leadData.length > 0) {
+        for (const leadGroup of leadData) {
+          const isDuplicate = groupsList.some(
+            (group) => group.group_id === leadGroup.group_id
+          );
+          if (!isDuplicate) {
+            groupsList.push(leadGroup);
+          }
         }
       }
+
+      setMyGroups(groupsList);
+    } catch (err) {
+      setError('Error fetching my groups');
+      console.error(err);
     }
-    
-    setMyGroups(groupsList);
-  } catch (err) {
-    setError('Error fetching my groups');
-    console.error(err);
-  }
-};
+  };
 
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
-      await Promise.all([
-        fetchMyIdeas(),
-        fetchMyGroups()
-      ]);
+      await Promise.all([fetchMyIdeas(), fetchMyGroups()]);
       setIsLoading(false);
     };
 
@@ -284,7 +286,7 @@ const fetchMyGroups = async () => {
                     <li key={group.group_id}>
                       <GroupCard
                         group={group}
-                        isExpanded={expandedGroups[group.group_id]}
+                        isExpanded={expandedGroups[group.group_id] || false}
                         onExpand={() => handleToggleExpand(group.group_id)}
                         showActions={true}
                         className={styles.groupItem}

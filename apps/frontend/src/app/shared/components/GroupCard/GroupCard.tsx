@@ -57,7 +57,53 @@ const GroupCard = ({
     }
   };
 
-  const fetchTeamLead = async () => {
+  // No need to fetch team lead separately as it's now included in group members API response
+  const fetchGroupData = async () => {
+    try {
+      if (isExpanded && group.group_id) {
+        const response = await fetch(
+          `http://localhost:7071/api/groupMember?id=${group.group_id}`
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch group members');
+        }
+
+        const groupMembersData = await response.json();
+        
+        if (Array.isArray(groupMembersData) && groupMembersData.length > 0) {
+          // Extract all members including team lead
+          const membersList = groupMembersData.map(item => item.member);
+          setMembers(membersList);
+          
+          // Find team lead from the members list
+          if (group.team_lead) {
+            const teamLead = membersList.find(member => member.user_id === group.team_lead);
+            if (teamLead) {
+              setTeamLeadName(teamLead.name);
+              setTeamLeadDetails(teamLead.email);
+            } else {
+              // If team lead is not in members list (though it should be based on updated API)
+              fetchTeamLeadSeparately();
+            }
+          }
+        } else {
+          setMembers([]);
+          fetchTeamLeadSeparately(); // Fallback if no members returned
+        }
+      } else if (group.team_lead) {
+        // If not expanded but we still need team lead info
+        fetchTeamLeadSeparately();
+      }
+    } catch (error) {
+      console.error('Error fetching group data:', error);
+      setMembers([]);
+      fetchTeamLeadSeparately(); // Fallback on error
+    }
+  };
+
+  // Fallback method to fetch team lead separately if needed
+  const fetchTeamLeadSeparately = async () => {
     try {
       if (group.team_lead) {
         const response = await fetch(`http://localhost:7071/api/user?id=${group.team_lead}`);
@@ -81,52 +127,25 @@ const GroupCard = ({
     }
   };
 
-  const fetchGroupMembers = async () => {
-    try {
-      if (isExpanded && group.group_id) {
-        const response = await fetch(
-          `http://localhost:7071/api/groupMember?id=${group.group_id}`
-        );
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch group members');
-        }
-
-        const groupMembersData = await response.json();
-        
-        if (Array.isArray(groupMembersData) && groupMembersData.length > 0) {
-          // The API returns each member with the user data in a 'member' property
-          const membersList = groupMembersData.map(item => item.member);
-          setMembers(membersList);
-        } else {
-          setMembers([]);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching group members:', error);
-      setMembers([]);
-    }
-  };
-
   // Load basic data
   useEffect(() => {
     const loadBasicData = async () => {
       setIsLoading(true);
-      await Promise.all([fetchThemeName(), fetchTeamLead()]);
+      await fetchThemeName();
       setIsLoading(false);
     };
     
     if (group.theme_id) {
       loadBasicData();
     }
-  }, [group.theme_id, group.team_lead]);
+  }, [group.theme_id]);
 
-  // Load members when expanded
+  // Load members and team lead when expanded
   useEffect(() => {
-    if (isExpanded) {
-      fetchGroupMembers();
+    if (isExpanded || group.team_lead) {
+      fetchGroupData();
     }
-  }, [isExpanded, group.group_id]);
+  }, [isExpanded, group.group_id, group.team_lead]);
 
   const memberCount = members.length;
 
@@ -172,7 +191,7 @@ const GroupCard = ({
           <div className={styles.leadContainer}>
             <article>
               <h4 className={styles.sectionTitle}>Team Lead</h4>
-              {group.team_lead && (
+              {group.team_lead ? (
                 <section className={styles.leadInfo}>
                   <h5 className={styles.memberName}>
                     {teamLeadName}
@@ -181,6 +200,8 @@ const GroupCard = ({
                     {teamLeadDetails}
                   </p>
                 </section>
+              ) : (
+                <p>No team lead assigned</p>
               )}
             </article>
             {onManageMembers && (
@@ -204,7 +225,10 @@ const GroupCard = ({
               <ul className={styles.membersGrid}>
                 {members.map((member) => (
                   <li key={member.user_id} className={styles.memberItem}>
-                    <h5 className={styles.memberName}>{member.name}</h5>
+                    <h5 className={styles.memberName}>
+                      {member.name}
+                      {member.user_id === group.team_lead && ' (Team Lead)'}
+                    </h5>
                     <p className={styles.memberEmail}>{member.email}</p>
                   </li>
                 ))}
