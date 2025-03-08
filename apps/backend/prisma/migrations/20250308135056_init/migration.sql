@@ -2,7 +2,7 @@
 CREATE TYPE "status_enum" AS ENUM ('Pending', 'Approved', 'Rejected');
 
 -- CreateEnum
-CREATE TYPE "rating_enum" AS ENUM ('ONE', 'TWO', 'THREE', 'FOUR', 'FIVE');
+CREATE TYPE "rating_enum" AS ENUM ('1', '2', '3', '4', '5');
 
 -- CreateTable
 CREATE TABLE "users" (
@@ -116,6 +116,28 @@ CREATE TABLE "analytics_reports" (
     CONSTRAINT "analytics_reports_pkey" PRIMARY KEY ("report_id")
 );
 
+-- CreateTable
+CREATE TABLE "question" (
+    "question_id" SERIAL NOT NULL,
+    "theme_id" INTEGER NOT NULL,
+    "question_text" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3),
+
+    CONSTRAINT "question_pkey" PRIMARY KEY ("question_id")
+);
+
+-- CreateTable
+CREATE TABLE "question_rating" (
+    "rating_id" SERIAL NOT NULL,
+    "question_id" INTEGER NOT NULL,
+    "review_id" INTEGER NOT NULL,
+    "rating" "rating_enum" NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "question_rating_pkey" PRIMARY KEY ("rating_id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
@@ -172,3 +194,12 @@ ALTER TABLE "notifications" ADD CONSTRAINT "notifications_created_by_fkey" FOREI
 
 -- AddForeignKey
 ALTER TABLE "analytics_reports" ADD CONSTRAINT "analytics_reports_theme_id_fkey" FOREIGN KEY ("theme_id") REFERENCES "theme"("theme_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "question" ADD CONSTRAINT "question_theme_id_fkey" FOREIGN KEY ("theme_id") REFERENCES "theme"("theme_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "question_rating" ADD CONSTRAINT "question_rating_question_id_fkey" FOREIGN KEY ("question_id") REFERENCES "question"("question_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "question_rating" ADD CONSTRAINT "question_rating_review_id_fkey" FOREIGN KEY ("review_id") REFERENCES "review"("review_id") ON DELETE RESTRICT ON UPDATE CASCADE;

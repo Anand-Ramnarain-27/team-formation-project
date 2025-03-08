@@ -17,17 +17,17 @@ model users {
   updated_at     DateTime?
 
   // Relations
-  themes_created Theme[]   @relation("created_by")
+  themes_created theme[]   @relation("created_by")
   ideas_submitted ideas[]  @relation("submitted_by")
   votes          votes[]
   groups_led     groups[]  @relation("team_lead")
   group_members  group_members[]
-  reviews_given  Review[]  @relation("reviewer_id")
-  reviews_received Review[] @relation("reviewee_id")
+  reviews_given  review[]  @relation("reviewer_id")
+  reviews_received review[] @relation("reviewee_id")
   notifications  notifications[]
 }
 
-model Theme {
+model theme {
   theme_id               Int       @id @default(autoincrement())
   title                  String
   description            String?
@@ -46,7 +46,7 @@ model Theme {
   ideas                 ideas[]
   groups                groups[]
   analytics_reports     analytics_reports[]
-  questions             Question[]
+  questions             question[]
 }
 
 model ideas {
@@ -59,7 +59,7 @@ model ideas {
   created_at   DateTime  @default(now())
 
   // Relations
-  theme        Theme     @relation(fields: [theme_id], references: [theme_id])
+  theme        theme     @relation(fields: [theme_id], references: [theme_id])
   submitter    users     @relation("submitted_by", fields: [submitted_by], references: [user_id])
   votes        votes[]
   groups       groups[]  @relation("group_name")
@@ -87,10 +87,10 @@ model groups {
   updated_at   DateTime?
 
   // Relations
-  theme        Theme     @relation(fields: [theme_id], references: [theme_id])
+  theme        theme     @relation(fields: [theme_id], references: [theme_id])
   leader       users?    @relation("team_lead", fields: [team_lead], references: [user_id])
   group_members group_members[]
-  reviews      Review[]
+  reviews      review[]
   idea         ideas?    @relation("group_name", fields: [group_name], references: [idea_name])
 }
 
@@ -107,7 +107,7 @@ model group_members {
   @@unique([group_id, user_id], name: "group_members_group_id_user_id_unique")
 }
 
-model Review {
+model review {
   review_id    Int       @id @default(autoincrement())
   reviewer_id  Int
   reviewee_id  Int
@@ -120,7 +120,7 @@ model Review {
   reviewer     users     @relation("reviewer_id", fields: [reviewer_id], references: [user_id])
   reviewee     users     @relation("reviewee_id", fields: [reviewee_id], references: [user_id])
   group        groups    @relation(fields: [group_id], references: [group_id])
-  question_ratings QuestionRating[]
+  question_ratings question_rating[]
 }
 
 model notifications {
@@ -143,27 +143,27 @@ model analytics_reports {
   participation_stats  Json
 
   // Relations
-  theme                Theme  @relation(fields: [theme_id], references: [theme_id])
+  theme                theme  @relation(fields: [theme_id], references: [theme_id])
 }
 
-model Question {
+model question {
   question_id   Int      @id @default(autoincrement())
   theme_id      Int
   question_text String
   created_at    DateTime @default(now())
   updated_at    DateTime?
-  theme         Theme    @relation(fields: [theme_id], references: [theme_id])
-  ratings       QuestionRating[]
+  theme         theme    @relation(fields: [theme_id], references: [theme_id])
+  ratings       question_rating[]
 }
 
-model QuestionRating {
+model question_rating {
   rating_id    Int      @id @default(autoincrement())
   question_id  Int
   review_id    Int
   rating       rating_enum
   created_at   DateTime @default(now())
-  question     Question @relation(fields: [question_id], references: [question_id])
-  review       Review   @relation(fields: [review_id], references: [review_id])
+  question     question @relation(fields: [question_id], references: [question_id])
+  review       review   @relation(fields: [review_id], references: [review_id])
 }
 
 enum status_enum {
