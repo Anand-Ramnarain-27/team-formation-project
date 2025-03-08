@@ -1,7 +1,7 @@
 // Reviews.tsx
 import React, { useState, useEffect } from 'react';
 import styles from './Review.module.css';
-import { User, Group, GroupMember, Review } from '@/app/shared/utils/types';
+import { User, Group, GroupMember, Review, Question } from '@/app/shared/utils/types';
 import Button from '@/app/shared/components/Button/Button';
 import FormGroup from '@/app/shared/components/Form/FormGroup';
 import TextArea from '@/app/shared/components/Form/TextArea';
@@ -13,16 +13,28 @@ type TabType = 'ratings' | 'feedback';
 // Base API URL - adjust this to your local development environment
 const API_BASE_URL = 'http://localhost:7071/api';
 
+// Extend Review type to support question-based ratings
+interface QuestionRating {
+  question_id: number;
+  rating: '1' | '2' | '3' | '4' | '5';
+}
+
+interface ExtendedReview extends Review {
+  questionRatings?: QuestionRating[];
+  averageRating?: string; // Average calculated from question ratings
+}
+
 const Reviews: React.FC = () => {
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
   const [currentGroup, setCurrentGroup] = useState<Group | null>(null);
-  const [reviews, setReviews] = useState<{ [key: number]: Review }>({});
+  const [reviews, setReviews] = useState<{ [key: number]: ExtendedReview }>({});
   const [submitted, setSubmitted] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('ratings');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasSubmittedReviews, setHasSubmittedReviews] = useState(false);
+  const [questions, setQuestions] = useState<Question[]>([]);
 
   const tabs: Array<{ id: TabType; label: string }> = [
     { id: 'ratings', label: 'Ratings' },
@@ -137,9 +149,16 @@ const Reviews: React.FC = () => {
           }
 
           setGroupMembers(transformedMembers);
+
+          // Fetch questions for this theme
+          if (teamLeadGroup && teamLeadGroup.theme_id) {
+            await fetchQuestions(teamLeadGroup.theme_id);
+          }
         } else {
           // If the user is a regular member, proceed as usual
-          setCurrentGroup(userGroup);
+          setCurrentGroup(userGroup.group);
+
+          console.log('Regular Member Theme ID:', userGroup.group.theme_id);
 
           // Fetch group members
           const membersResponse = await fetch(
@@ -177,6 +196,11 @@ const Reviews: React.FC = () => {
           }
 
           setGroupMembers(transformedMembers);
+
+          // Fetch questions for this theme
+          if (userGroup.group && userGroup.group.theme_id) {
+            await fetchQuestions(userGroup.group.theme_id);
+          }
         }
 
         // Fetch any existing reviews for this group by current user
@@ -228,6 +252,67 @@ const Reviews: React.FC = () => {
     fetchGroupData();
   }, [currentUserId]);
 
+  // Fetch questions for the theme
+  const fetchQuestions = async (themeId: number) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/question?id=${themeId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch questions');
+      }
+      const data = await response.json();
+      setQuestions(data);
+
+      // Initialize reviews with question ratings
+      setReviews((prev) => {
+        const updatedReviews = { ...prev };
+        
+        // For each member to review
+        groupMembers.forEach((member) => {
+          if (member.user.user_id !== currentUserId) {
+            // Skip the current user
+            const revieweeId = member.user.user_id;
+            
+            // If there's no review for this member yet, create one
+            if (!updatedReviews[revieweeId]) {
+              updatedReviews[revieweeId] = {
+                reviewer_id: currentUserId || 0,
+                reviewee_id: revieweeId,
+                group_id: member.group_id,
+                rating: '1', // Default rating
+                feedback: '',
+                created_at: new Date().toISOString(),
+                questionRatings: [],
+              };
+            }
+            
+            // Initialize question ratings if not already present
+            if (!updatedReviews[revieweeId].questionRatings) {
+              updatedReviews[revieweeId].questionRatings = [];
+            }
+            
+            // Make sure each question has a rating
+            data.forEach((question: Question) => {
+              if (question.question_id && 
+                  !updatedReviews[revieweeId].questionRatings?.some(
+                    qr => qr.question_id === question.question_id
+                  )) {
+                updatedReviews[revieweeId].questionRatings?.push({
+                  question_id: question.question_id,
+                  rating: '1', // Default rating
+                });
+              }
+            });
+          }
+        });
+        
+        return updatedReviews;
+      });
+    } catch (err) {
+      console.error('Error fetching questions:', err);
+      setError('Failed to load review questions. Please try again later.');
+    }
+  };
+
   if (!currentGroup) {
     return (
       <main className={styles.container}>
@@ -236,22 +321,51 @@ const Reviews: React.FC = () => {
     );
   }
 
-  const handleRatingChange = (
+  // Handle changing the rating for a specific question for a specific reviewee
+  const handleQuestionRatingChange = (
     revieweeId: number,
+    questionId: number,
     rating: '1' | '2' | '3' | '4' | '5'
   ) => {
     if (!currentGroup || !currentUserId) return;
-    setReviews((prev) => ({
-      ...prev,
-      [revieweeId]: {
-        ...prev[revieweeId],
-        reviewer_id: currentUserId,
-        reviewee_id: revieweeId,
-        group_id: currentGroup.group_id,
-        rating,
-        feedback: prev[revieweeId]?.feedback || '',
-      },
-    }));
+    
+    setReviews((prev) => {
+      const updatedReview = { ...prev[revieweeId] };
+      
+      // Initialize questionRatings if it doesn't exist
+      if (!updatedReview.questionRatings) {
+        updatedReview.questionRatings = [];
+      }
+      
+      // Find the existing question rating or create a new one
+      const existingRatingIndex = updatedReview.questionRatings.findIndex(
+        qr => qr.question_id === questionId
+      );
+      
+      if (existingRatingIndex >= 0) {
+        // Update existing rating
+        updatedReview.questionRatings[existingRatingIndex].rating = rating;
+      } else {
+        // Add new rating
+        updatedReview.questionRatings.push({
+          question_id: questionId,
+          rating,
+        });
+      }
+      
+      // Calculate the average rating
+      const sum = updatedReview.questionRatings.reduce(
+        (acc, qr) => acc + parseInt(qr.rating, 10), 
+        0
+      );
+      const avg = sum / updatedReview.questionRatings.length;
+      updatedReview.averageRating = avg.toFixed(1);
+      
+      return {
+        ...prev,
+        [revieweeId]: updatedReview,
+      };
+    });
   };
 
   const handleFeedbackChange = (revieweeId: number, feedback: string) => {
@@ -263,7 +377,6 @@ const Reviews: React.FC = () => {
         reviewer_id: currentUserId,
         reviewee_id: revieweeId,
         group_id: currentGroup.group_id,
-        rating: prev[revieweeId]?.rating || '1',
         feedback,
       },
     }));
@@ -276,15 +389,23 @@ const Reviews: React.FC = () => {
     try {
       // Process reviews to match the expected API format
       const reviewPromises = Object.values(reviews).map(async (review) => {
-        // Convert string rating to number for the API
-        const numericRating = parseInt(review.rating, 10);
+        // Calculate average rating from question ratings
+        let averageRating = 3; // Default to middle rating
+        
+        if (review.questionRatings && review.questionRatings.length > 0) {
+          const sum = review.questionRatings.reduce(
+            (acc, qr) => acc + parseInt(qr.rating, 10), 
+            0
+          );
+          averageRating = Math.round(sum / review.questionRatings.length);
+        }
 
         // Prepare the review data according to your API schema
         const reviewData = {
           reviewer_id: currentUserId,
           reviewee_id: review.reviewee_id,
           group_id: currentGroup.group_id,
-          rating: numericRating, // API expects a number (1-5)
+          rating: averageRating, // Send the average rating
           feedback: review.feedback,
         };
 
@@ -314,21 +435,48 @@ const Reviews: React.FC = () => {
   };
 
   const membersToReview = groupMembers.filter(
-    (member) => member.user.user_id !== currentUserId
+    (member) => member.user && member.user.user_id !== currentUserId
   );
 
-  const isAllRatingsProvided = () =>
-    membersToReview.every((member) => reviews[member.user.user_id]?.rating);
+  // Check if all questions have been rated for all members
+  const isAllRatingsProvided = () => {
+    if (questions.length === 0) return false;
+    
+    return membersToReview.every((member) => {
+      const review = reviews[member.user.user_id];
+      if (!review || !review.questionRatings) return false;
+      
+      // Check if every question has a rating
+      return questions.every((question) => 
+        question.question_id && review.questionRatings?.some(
+          qr => qr.question_id === question.question_id
+        )
+      );
+    });
+  };
 
   const isAllFeedbackProvided = () =>
     membersToReview.every(
       (member) => (reviews[member.user.user_id]?.feedback?.length || 0) >= 10
     );
 
-    const isSubmitDisabled = hasSubmittedReviews || !isAllFeedbackProvided();
+  const isSubmitDisabled = hasSubmittedReviews || !isAllFeedbackProvided() || !isAllRatingsProvided();
 
-  const StarRating: React.FC<{ revieweeId: number }> = ({ revieweeId }) => {
-    const currentRating = Number(reviews[revieweeId]?.rating || 0);
+  const StarRating: React.FC<{ 
+    revieweeId: number, 
+    questionId: number 
+  }> = ({ revieweeId, questionId }) => {
+    const review = reviews[revieweeId];
+    let currentRating = 0;
+    
+    if (review && review.questionRatings) {
+      const questionRating = review.questionRatings.find(
+        qr => qr.question_id === questionId
+      );
+      if (questionRating) {
+        currentRating = Number(questionRating.rating || 0);
+      }
+    }
 
     return (
       <div className={styles.starContainer}>
@@ -336,8 +484,9 @@ const Reviews: React.FC = () => {
           <button
             key={rating}
             onClick={() =>
-              handleRatingChange(
+              handleQuestionRatingChange(
                 revieweeId,
+                questionId,
                 rating.toString() as '1' | '2' | '3' | '4' | '5'
               )
             }
@@ -390,6 +539,7 @@ const Reviews: React.FC = () => {
               <li key={review.reviewee_id}>
                 <ReviewCard
                   {...review}
+                  rating={review.averageRating || '3'} // Use the calculated average
                   showGroupName={true}
                   created_at={new Date().toISOString()}
                 />
@@ -418,18 +568,33 @@ const Reviews: React.FC = () => {
           <form>
             <h2 className={styles.questionTitle}>Rate Your Team Members</h2>
             <p className={styles.questionText}>
-              Please rate each team member's overall contribution and
-              performance
+              Please rate each team member on the following criteria
             </p>
 
-            <ul>
-              {membersToReview.map((member) => (
-                <li key={member.user.user_id} className={styles.studentCard}>
-                  <span className={styles.studentName}>{member.user.name}</span>
-                  <StarRating revieweeId={member.user.user_id} />
-                </li>
-              ))}
-            </ul>
+            {questions.length === 0 ? (
+              <p>No questions available for this review.</p>
+            ) : (
+              <div className={styles.questionsContainer}>
+                {questions.map((question) => (
+                  <div key={question.question_id} className={styles.questionSection}>
+                    <h3 className={styles.questionText}>{question.question_text}</h3>
+                    <ul>
+                      {membersToReview.map((member) => (
+                        <li key={member.user.user_id} className={styles.studentCard}>
+                          <span className={styles.studentName}>{member.user.name}</span>
+                          {question.question_id && (
+                            <StarRating 
+                              revieweeId={member.user.user_id} 
+                              questionId={question.question_id} 
+                            />
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <nav className={styles.buttonContainer}>
               <Button
