@@ -189,3 +189,22 @@ export interface MemberManagementDialogProps {
   onAddMember: (user: User) => void;
   onRemoveMember: (userId: number) => void;
 }
+
+// Define the Question interface
+export interface Question {
+  question_id?: number;
+  theme_id?: number;
+  question_text: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Extended Theme to include questions
+export interface ThemeWithQuestions extends Theme {
+  questions: Question[];
+}
+
+// Extended BaseTheme to include questions
+export interface BaseThemeWithQuestions extends BaseTheme {
+  questions: Question[];
+}

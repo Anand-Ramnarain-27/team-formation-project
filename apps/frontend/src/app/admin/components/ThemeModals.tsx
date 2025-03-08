@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './ThemeModals.module.css';
-import { Theme, BaseTheme, ReviewDeadline } from '@/app/shared/utils/types';
+import { Theme, BaseTheme, ReviewDeadline, Question, BaseThemeWithQuestions, ThemeWithQuestions } from '@/app/shared/utils/types';
 import { SharedModal } from '@/app/shared/components/Modal/Modal';
 import Button from '@/app/shared/components/Button/Button';
 import buttonStyles from '@/app/shared/components/Button/Button.module.css';
@@ -11,8 +11,8 @@ import TextArea from '@/app/shared/components/Form/TextArea';
 interface ThemeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  theme?: Theme;
-  onSubmit: (theme: BaseTheme) => void;
+  theme?: ThemeWithQuestions;
+  onSubmit: (theme: BaseThemeWithQuestions) => void;
 }
 
 interface DeadlineInputsProps {
@@ -66,7 +66,7 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
   theme,
   onSubmit,
 }) => {
-  const initialTheme: BaseTheme = {
+  const initialTheme: BaseThemeWithQuestions = {
     title: '',
     description: '',
     submission_deadline: '',
@@ -74,9 +74,11 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
     review_deadline: [{ start: '', end: '' }],
     number_of_groups: 1,
     auto_assign_group: false,
+    questions: [{ question_text: '' }]
   };
 
-  const [formData, setFormData] = useState<BaseTheme>(initialTheme);
+  const [formData, setFormData] = useState<BaseThemeWithQuestions>(initialTheme);
+  const [activeTab, setActiveTab] = useState<'general' | 'questions'>('general');
 
   useEffect(() => {
     if (theme) {
@@ -116,7 +118,8 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
         ...baseTheme,
         submission_deadline: formatDateForInput(baseTheme.submission_deadline.toString()),
         voting_deadline: formatDateForInput(baseTheme.voting_deadline.toString()),
-        review_deadline: reviewDeadlines
+        review_deadline: reviewDeadlines,
+        questions: theme.questions || [{ question_text: '' }]
       };
       
       console.log("Formatted theme for form:", formattedTheme);
@@ -137,7 +140,9 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
       review_deadline: formData.review_deadline.map(deadline => ({
         start: deadline.start ? new Date(deadline.start).toISOString() : '',
         end: deadline.end ? new Date(deadline.end).toISOString() : ''
-      }))
+      })),
+      // Filter out empty questions
+      questions: formData.questions.filter(q => q.question_text.trim() !== '')
     };
     
     // Filter out any review deadlines with empty dates
@@ -183,6 +188,29 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
     }));
   };
 
+  const addQuestion = () => {
+    setFormData((prev) => ({
+      ...prev,
+      questions: [...prev.questions, { question_text: '' }]
+    }));
+  };
+
+  const removeQuestion = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      questions: prev.questions.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateQuestion = (index: number, questionText: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      questions: prev.questions.map((q, i) => 
+        i === index ? { ...q, question_text: questionText } : q
+      )
+    }));
+  };
+
   return (
     <SharedModal
       isOpen={isOpen}
@@ -206,119 +234,183 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
         </nav>
       }
     >
+      <div className={styles.tabHeader}>
+        <button 
+          className={`${styles.tabButton} ${activeTab === 'general' ? styles.activeTab : ''}`}
+          onClick={() => setActiveTab('general')}
+        >
+          General Information
+        </button>
+        <button 
+          className={`${styles.tabButton} ${activeTab === 'questions' ? styles.activeTab : ''}`}
+          onClick={() => setActiveTab('questions')}
+        >
+          Review Questions
+        </button>
+      </div>
+
       <form
         id="themeForm"
         onSubmit={handleSubmit}
         className={styles.form}
         aria-label="Theme configuration form"
       >
-        <FormGroup label="Title">
-          <TextInput
-            value={formData.title}
-            onChange={(value) =>
-              setFormData((prev) => ({ ...prev, title: value }))
-            }
-            placeholder="Enter theme title"
-            aria-label="Theme title"
-          />
-        </FormGroup>
-
-        <FormGroup label="Description">
-          <TextArea
-            value={formData.description}
-            onChange={(value) =>
-              setFormData((prev) => ({ ...prev, description: value }))
-            }
-            placeholder="Enter theme description"
-            rows={4}
-            aria-label="Theme description"
-          />
-        </FormGroup>
-
-        <section className={styles.formRow}>
-          <FormGroup label="Submission Deadline">
-            <TextInput
-              type="datetime-local"
-              value={formData.submission_deadline}
-              onChange={(value) =>
-                setFormData((prev) => ({ ...prev, submission_deadline: value }))
-              }
-              aria-label="Submission deadline"
-            />
-          </FormGroup>
-
-          <FormGroup label="Voting Deadline">
-            <TextInput
-              type="datetime-local"
-              value={formData.voting_deadline}
-              onChange={(value) =>
-                setFormData((prev) => ({ ...prev, voting_deadline: value }))
-              }
-              aria-label="Voting deadline"
-            />
-          </FormGroup>
-        </section>
-
-        <FormGroup label="Review Deadlines">
-          {formData.review_deadline.map((deadline, index) => (
-            <article key={index} className={styles.reviewDeadlineRow}>
-              <DeadlineInputs
-                deadline={deadline}
-                onUpdate={(field, value) =>
-                  updateReviewDeadline(index, field, value)
+        {activeTab === 'general' && (
+          <div className={styles.tabContent}>
+            <FormGroup label="Title">
+              <TextInput
+                value={formData.title}
+                onChange={(value) =>
+                  setFormData((prev) => ({ ...prev, title: value }))
                 }
+                placeholder="Enter theme title"
+                aria-label="Theme title"
               />
-              {formData.review_deadline.length > 1 && (
-                <Button
-                  onClick={() => removeReviewDeadline(index)}
-                  className={buttonStyles.danger}
-                  aria-label={`Remove review period ${index + 1}`}
-                >
-                  Remove
-                </Button>
-              )}
-            </article>
-          ))}
-          <Button
-            onClick={addReviewDeadline}
-            aria-label="Add new review period"
-          >
-            + Add Review Period
-          </Button>
-        </FormGroup>
+            </FormGroup>
 
-        <section className={styles.formRow}>
-          <FormGroup label="Number of Groups">
-            <TextInput
-              type="number"
-              value={formData.number_of_groups.toString()}
-              onChange={(value) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  number_of_groups: parseInt(value) || 1,
-                }))
-              }
-              aria-label="Number of groups"
-            />
-          </FormGroup>
-
-          <FormGroup label="Auto-assign Groups">
-            <label className={styles.checkboxLabel}>
-              <input
-                type="checkbox"
-                checked={formData.auto_assign_group}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    auto_assign_group: e.target.checked,
-                  }))
+            <FormGroup label="Description">
+              <TextArea
+                value={formData.description || ''}
+                onChange={(value) =>
+                  setFormData((prev) => ({ ...prev, description: value }))
                 }
-                aria-label="Enable auto-assign groups"
+                placeholder="Enter theme description"
+                rows={4}
+                aria-label="Theme description"
               />
-              <span className={styles.checkboxText}></span>
-            </label>
-          </FormGroup>
-        </section>
+            </FormGroup>
+
+            <section className={styles.formRow}>
+              <FormGroup label="Submission Deadline">
+                <TextInput
+                  type="datetime-local"
+                  value={formData.submission_deadline}
+                  onChange={(value) =>
+                    setFormData((prev) => ({ ...prev, submission_deadline: value }))
+                  }
+                  aria-label="Submission deadline"
+                />
+              </FormGroup>
+
+              <FormGroup label="Voting Deadline">
+                <TextInput
+                  type="datetime-local"
+                  value={formData.voting_deadline}
+                  onChange={(value) =>
+                    setFormData((prev) => ({ ...prev, voting_deadline: value }))
+                  }
+                  aria-label="Voting deadline"
+                />
+              </FormGroup>
+            </section>
+
+            <FormGroup label="Review Deadlines">
+              {formData.review_deadline.map((deadline, index) => (
+                <article key={index} className={styles.reviewDeadlineRow}>
+                  <DeadlineInputs
+                    deadline={deadline}
+                    onUpdate={(field, value) =>
+                      updateReviewDeadline(index, field, value)
+                    }
+                  />
+                  {formData.review_deadline.length > 1 && (
+                    <Button
+                      onClick={() => removeReviewDeadline(index)}
+                      className={buttonStyles.danger}
+                      aria-label={`Remove review period ${index + 1}`}
+                    >
+                      Remove
+                    </Button>
+                  )}
+                </article>
+              ))}
+              <Button
+                onClick={addReviewDeadline}
+                aria-label="Add new review period"
+              >
+                + Add Review Period
+              </Button>
+            </FormGroup>
+
+            <section className={styles.formRow}>
+              <FormGroup label="Number of Groups">
+                <TextInput
+                  type="number"
+                  value={formData.number_of_groups.toString()}
+                  onChange={(value) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      number_of_groups: parseInt(value) || 1,
+                    }))
+                  }
+                  aria-label="Number of groups"
+                />
+              </FormGroup>
+
+              <FormGroup label="Auto-assign Groups">
+                <label className={styles.checkboxLabel}>
+                  <input
+                    type="checkbox"
+                    checked={formData.auto_assign_group}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        auto_assign_group: e.target.checked,
+                      }))
+                    }
+                    aria-label="Enable auto-assign groups"
+                  />
+                  <span className={styles.checkboxText}></span>
+                </label>
+              </FormGroup>
+            </section>
+          </div>
+        )}
+
+        {activeTab === 'questions' && (
+          <div className={styles.tabContent}>
+            <header className={styles.questionsHeader}>
+              <h3>Review Questions</h3>
+              <p className={styles.questionInfo}>
+                Add questions that students will answer when reviewing their peers. 
+                These questions will be rated on a scale of 1-5.
+              </p>
+            </header>
+            
+            {formData.questions.map((question, index) => (
+              <div key={index} className={styles.questionItem}>
+                <FormGroup label={`Question ${index + 1}`}>
+                  <div className={styles.questionInputRow}>
+                    <TextArea
+                      value={question.question_text}
+                      onChange={(value) => updateQuestion(index, value)}
+                      placeholder="Enter review question"
+                      rows={2}
+                      aria-label={`Review question ${index + 1}`}
+                    />
+                    {formData.questions.length > 1 && (
+                      <Button
+                        onClick={() => removeQuestion(index)}
+                        className={buttonStyles.danger}
+                        aria-label={`Remove question ${index + 1}`}
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                </FormGroup>
+              </div>
+            ))}
+            
+            <Button
+              onClick={addQuestion}
+              aria-label="Add new question"
+              className={styles.addQuestionBtn}
+            >
+              + Add Question
+            </Button>
+          </div>
+        )}
       </form>
     </SharedModal>
   );
