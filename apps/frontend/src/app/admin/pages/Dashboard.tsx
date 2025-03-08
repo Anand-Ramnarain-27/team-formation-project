@@ -52,121 +52,46 @@ const Dashboard: React.FC = () => {
   const userId = currentUser?.user_id;
   const userRole = currentUser?.role;
 
-  // Dummy theme data with questions
-  const dummyThemes: ThemeWithQuestions[] = [
-    {
-      theme_id: 1,
-      title: 'Sustainable Innovation',
-      description:
-        'Develop ideas for sustainable innovation in campus operations.',
-      submission_deadline: new Date(
-        Date.now() + 7 * 24 * 60 * 60 * 1000
-      ).toISOString(), // 7 days from now
-      voting_deadline: new Date(
-        Date.now() + 14 * 24 * 60 * 60 * 1000
-      ).toISOString(), // 14 days from now
-      review_deadline: [
-        {
-          start: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days from now
-          end: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(), // 20 days from now
-        },
-      ],
-      number_of_groups: 4,
-      auto_assign_group: true,
-      created_by: 1,
-      questions: [
-        {
-          question_id: 1,
-          theme_id: 1,
-          question_text:
-            'How well did this team member contribute to group discussions?',
-        },
-        {
-          question_id: 2,
-          theme_id: 1,
-          question_text:
-            "How would you rate this team member's problem-solving skills?",
-        },
-      ],
-    },
-    {
-      theme_id: 2,
-      title: 'Digital Learning',
-      description:
-        'Explore innovative approaches to enhance digital learning experiences.',
-      submission_deadline: new Date(
-        Date.now() - 3 * 24 * 60 * 60 * 1000
-      ).toISOString(), // 3 days ago
-      voting_deadline: new Date(
-        Date.now() + 4 * 24 * 60 * 60 * 1000
-      ).toISOString(), // 4 days from now
-      review_deadline: [
-        {
-          start: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days from now
-          end: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days from now
-        },
-      ],
-      number_of_groups: 3,
-      auto_assign_group: false,
-      created_by: 2,
-      questions: [
-        {
-          question_id: 3,
-          theme_id: 2,
-          question_text:
-            'How effectively did this team member communicate their ideas?',
-        },
-        {
-          question_id: 4,
-          theme_id: 2,
-          question_text:
-            "How would you rate this team member's ability to meet deadlines?",
-        },
-        {
-          question_id: 5,
-          theme_id: 2,
-          question_text:
-            'Did this team member actively participate in the project development?',
-        },
-      ],
-    },
-    {
-      theme_id: 3,
-      title: 'Student Wellness',
-      description:
-        'Generate ideas to improve student mental health and wellness on campus.',
-      submission_deadline: new Date(
-        Date.now() - 10 * 24 * 60 * 60 * 1000
-      ).toISOString(), // 10 days ago
-      voting_deadline: new Date(
-        Date.now() - 3 * 24 * 60 * 60 * 1000
-      ).toISOString(), // 3 days ago
-      review_deadline: [
-        {
-          start: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
-          end: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
-        },
-      ],
-      number_of_groups: 5,
-      auto_assign_group: true,
-      created_by: 1,
-      questions: [
-        {
-          question_id: 6,
-          theme_id: 3,
-          question_text:
-            'How well did this team member collaborate with others?',
-        },
-      ],
-    },
-  ];
-
-  // Fetch themes data (now using dummy data)
+  // Fetch themes data from the API
   const fetchThemes = async () => {
-    // Simulate API fetch delay
-    setTimeout(() => {
-      setActiveThemes(dummyThemes);
-    }, 500);
+    try {
+      // Fetch all themes
+      const themesResponse = await fetch('http://localhost:7071/api/theme');
+      if (!themesResponse.ok) {
+        throw new Error('Failed to fetch themes');
+      }
+      const themesData = await themesResponse.json();
+      
+      // Process each theme to include its questions
+      const themesWithQuestions = await Promise.all(
+        themesData.map(async (theme: Theme) => {
+          // Fetch questions for this theme
+          const questionsResponse = await fetch(`http://localhost:7071/api/question?id=${theme.theme_id}`);
+          if (!questionsResponse.ok) {
+            throw new Error(`Failed to fetch questions for theme ${theme.theme_id}`);
+          }
+          const questions = await questionsResponse.json();
+          
+          // Ensure review_deadline is properly parsed
+          const parsedReviewDeadline = Array.isArray(theme.review_deadline) 
+            ? theme.review_deadline 
+            : (typeof theme.review_deadline === 'string' 
+              ? JSON.parse(theme.review_deadline) 
+              : []);
+          
+          return {
+            ...theme,
+            review_deadline: parsedReviewDeadline,
+            questions: questions || []
+          };
+        })
+      );
+      
+      setActiveThemes(themesWithQuestions);
+    } catch (err) {
+      setError('Error fetching themes');
+      console.error(err);
+    }
   };
 
   // Fetch analytics data
@@ -198,7 +123,6 @@ const Dashboard: React.FC = () => {
   // Fetch notifications
   const fetchNotifications = async () => {
     try {
-      // In a real app, uncomment this to fetch from the API
       const response = await fetch(
         `http://localhost:7071/api/notification?user_id=${userId}&user_role=${userRole}`
       );
@@ -239,48 +163,45 @@ const Dashboard: React.FC = () => {
         created_by: userId,
       };
 
-      // Create a new theme with a dummy ID
-      const newId =
-        activeThemes.length > 0
-          ? Math.max(...activeThemes.map((t) => t.theme_id)) + 1
-          : 1;
+      // Create theme via API
+      const themeResponse = await fetch('http://localhost:7071/api/theme', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(themeWithCreator),
+      });
 
-      // Generate question IDs
-      const questionsWithIds = newTheme.questions.map((q, index) => ({
-        ...q,
-        question_id:
-          Math.max(
-            ...activeThemes.flatMap((t) =>
-              t.questions.map((q) => q.question_id || 0)
-            )
-          ) +
-          index +
-          1,
-        theme_id: newId,
-      }));
+      if (!themeResponse.ok) {
+        throw new Error('Failed to create theme');
+      }
 
-      const createdTheme: ThemeWithQuestions = {
-        ...themeWithCreator,
-        theme_id: newId,
-        questions: questionsWithIds,
-      };
+      const createdTheme = await themeResponse.json();
 
-      setActiveThemes((prev) => [...prev, createdTheme]);
+      // Create questions for the theme
+      await Promise.all(
+        newTheme.questions.map(async (question) => {
+          const questionData = {
+            theme_id: createdTheme.theme_id,
+            question_text: question.question_text,
+          };
 
-      // Add a notification for the new theme
-      const newNotification: Notification = {
-        notification_id:
-          notifications.length > 0
-            ? Math.max(...notifications.map((n) => n.notification_id)) + 1
-            : 1,
-        recipient_role: 'Admin',
-        message: `New theme "${newTheme.title}" has been created`,
-        created_at: new Date().toISOString(),
-        created_by: userId || 1,
-        status: 'success',
-      };
+          const questionResponse = await fetch('http://localhost:7071/api/question', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(questionData),
+          });
 
-      setNotifications((prev) => [newNotification, ...prev]);
+          if (!questionResponse.ok) {
+            throw new Error('Failed to create question');
+          }
+        })
+      );
+
+      // Refresh themes after creation
+      await fetchThemes();
     } catch (err) {
       setError('Error creating theme');
       console.error(err);
@@ -297,62 +218,76 @@ const Dashboard: React.FC = () => {
         created_by: selectedTheme.created_by,
       };
 
-      // Update questions with IDs
-      const existingQuestionIds = selectedTheme.questions.map(
-        (q) => q.question_id
-      );
-      const maxQuestionId = Math.max(
-        ...activeThemes.flatMap((t) =>
-          t.questions.map((q) => q.question_id || 0)
-        ),
-        0
-      );
-
-      const updatedQuestions = updatedTheme.questions.map((q, index) => {
-        if (index < existingQuestionIds.length && existingQuestionIds[index]) {
-          // Reuse existing question ID
-          return {
-            ...q,
-            question_id: existingQuestionIds[index],
-            theme_id: selectedTheme.theme_id,
-          };
-        } else {
-          // Generate new ID for new questions
-          return {
-            ...q,
-            question_id: maxQuestionId + index + 1,
-            theme_id: selectedTheme.theme_id,
-          };
-        }
+      // Update theme via API
+      const themeResponse = await fetch(`http://localhost:7071/api/theme?id=${selectedTheme.theme_id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(themeWithCreator),
       });
 
-      // Update the theme in the local state
-      const updatedThemeData: ThemeWithQuestions = {
-        ...themeWithCreator,
-        theme_id: selectedTheme.theme_id,
-        questions: updatedQuestions,
-      };
+      if (!themeResponse.ok) {
+        throw new Error('Failed to update theme');
+      }
 
-      setActiveThemes((prev) =>
-        prev.map((t) =>
-          t.theme_id === selectedTheme.theme_id ? updatedThemeData : t
-        )
+      // Get existing questions for comparison
+      const existingQuestionIds = selectedTheme.questions.map(q => q.question_id);
+      
+      // Process each question - update existing, create new ones
+      await Promise.all(
+        updatedTheme.questions.map(async (question, index) => {
+          if (index < existingQuestionIds.length && existingQuestionIds[index]) {
+            // Update existing question
+            const questionData = {
+              id: existingQuestionIds[index],
+              theme_id: selectedTheme.theme_id,
+              question_text: question.question_text,
+            };
+
+            await fetch('http://localhost:7071/api/question', {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(questionData),
+            });
+          } else {
+            // Create new question
+            const questionData = {
+              theme_id: selectedTheme.theme_id,
+              question_text: question.question_text,
+            };
+
+            await fetch('http://localhost:7071/api/question', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(questionData),
+            });
+          }
+        })
       );
 
-      // Add a notification for the updated theme
-      const newNotification: Notification = {
-        notification_id:
-          notifications.length > 0
-            ? Math.max(...notifications.map((n) => n.notification_id)) + 1
-            : 1,
-        recipient_role: 'Admin',
-        message: `Theme "${updatedTheme.title}" has been updated`,
-        created_at: new Date().toISOString(),
-        created_by: userId || 1,
-        status: 'info',
-      };
+      // Handle deleted questions
+      if (existingQuestionIds.length > updatedTheme.questions.length) {
+        // Delete questions that were removed
+        for (let i = updatedTheme.questions.length; i < existingQuestionIds.length; i++) {
+          if (existingQuestionIds[i]) {
+            await fetch('http://localhost:7071/api/question', {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ id: existingQuestionIds[i] }),
+            });
+          }
+        }
+      }
 
-      setNotifications((prev) => [newNotification, ...prev]);
+      // Refresh themes after update
+      await fetchThemes();
     } catch (err) {
       setError('Error updating theme');
       console.error(err);
