@@ -68,6 +68,34 @@ async function createVote(
 ): Promise<HttpResponseInit> {
   try {
     const body = (await request.json()) as VoteRequestBody;
+    const idea = await prisma.ideas.findUnique({
+      where: { idea_id: body.idea_id },
+      select: { theme_id: true, submitted_by: true },
+    });
+
+    if (!idea) {
+      return { status: 404, body: 'Idea not found.' };
+    }
+    if (idea.submitted_by === body.voted_by) {
+      return { status: 400, body: 'You cannot vote for your own idea.' };
+    }
+
+    const votesCount = await prisma.votes.count({
+      where: {
+        voted_by: body.voted_by,
+        idea: {
+          theme_id: idea.theme_id,
+        },
+      },
+    });
+
+    if (votesCount >= 3) {
+      return {
+        status: 400,
+        body: 'You have already cast 3 votes for this theme.',
+      };
+    }
+
     const vote = await prisma.votes.create({
       data: {
         idea_id: body.idea_id,

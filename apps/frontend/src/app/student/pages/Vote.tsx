@@ -84,80 +84,57 @@ const Voting: React.FC = () => {
 
   useEffect(() => {
     if (!selectedThemeId || !currentUser) return;
-
+  
     const fetchThemeAndIdeas = async () => {
       try {
         setLoading(true);
-
+  
         const themeResponse = await fetch(
           `${API_BASE_URL}/theme?id=${selectedThemeId}`
         );
         if (!themeResponse.ok) {
           throw new Error('Failed to fetch theme details');
         }
-
         const themeData = await themeResponse.json();
         setTheme(themeData);
 
         const now = new Date();
         const submissionDeadline = new Date(themeData.submission_deadline);
         const votingDeadline = new Date(themeData.voting_deadline);
-
         const votingActive = now > submissionDeadline && now < votingDeadline;
         setIsVotingActive(votingActive);
-
+  
         const ideasResponse = await fetch(
           `${API_BASE_URL}/idea?theme_id=${selectedThemeId}`
         );
         if (!ideasResponse.ok) {
           throw new Error('Failed to fetch ideas');
         }
-
         const ideasData = await ideasResponse.json();
-
-        const ideasWithVotes = await Promise.all(
-          ideasData.map(async (idea: Idea) => {
-            const votesResponse = await fetch(
-              `${API_BASE_URL}/vote?ideaId=${idea.idea_id}`
-            );
-            if (!votesResponse.ok) {
-              throw new Error(`Failed to fetch votes for idea ${idea.idea_id}`);
-            }
-
-            const votesData = await votesResponse.json();
-            return {
-              ...idea,
-              vote_count: votesData.length,
-            };
-          })
-        );
-
-        const approvedIdeas = ideasWithVotes.filter(
-          (idea: Idea) => idea.status === 'Approved'
-        );
-        setIdeas(approvedIdeas);
 
         const votesResponse = await fetch(`${API_BASE_URL}/vote`);
         if (!votesResponse.ok) {
           throw new Error('Failed to fetch votes');
         }
-
         const votesData = await votesResponse.json();
-
+  
         const userVotes = votesData.filter(
-          (vote: Vote) => vote.voted_by === currentUser.user_id
+          (vote: Vote) =>
+            vote.voted_by === currentUser.user_id &&
+            ideasData.some((idea: Idea) => idea.idea_id === vote.idea_id)
         );
+  
+        setRemainingVotes(3 - userVotes.length);
 
-        const userVoteIds: number[] = userVotes.map((vote: Vote) => {
-          return typeof vote.idea_id === 'number'
-            ? vote.idea_id
-            : Number(vote.idea_id);
-        });
-
+        const userVoteIds: number[] = userVotes.map((vote: Vote) => vote.idea_id);
         setVotedIdeas(new Set(userVoteIds));
 
-        setRemainingVotes(3 - userVoteIds.length);
-
+        const ideasWithVotes = ideasData.map((idea: Idea) => ({
+          ...idea,
+          vote_count: votesData.filter((vote: Vote) => vote.idea_id === idea.idea_id).length,
+        }));
+  
+        setIdeas(ideasWithVotes);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching data:', err);
@@ -165,7 +142,7 @@ const Voting: React.FC = () => {
         setLoading(false);
       }
     };
-
+  
     fetchThemeAndIdeas();
   }, [selectedThemeId, currentUser]);
 
@@ -181,15 +158,16 @@ const Voting: React.FC = () => {
       setError('You must be logged in to vote');
       return;
     }
-
+  
     if (!isVotingActive) {
       setError('Voting is not currently active for this theme');
       return;
     }
-
+  
     try {
-      if (remainingVotes <= 0) {
-        setError('You have used all your votes!');
+      const idea = ideas.find((idea) => idea.idea_id === ideaId);
+      if (idea && idea.submitted_by === currentUser.user_id) {
+        setError('You cannot vote for your own idea!');
         return;
       }
 
@@ -198,6 +176,11 @@ const Voting: React.FC = () => {
         return;
       }
 
+      if (remainingVotes <= 0) {
+        setError('You have used all your votes for this theme!');
+        return;
+      }
+  
       const response = await fetch(`${API_BASE_URL}/vote`, {
         method: 'POST',
         headers: {
@@ -208,11 +191,11 @@ const Voting: React.FC = () => {
           voted_by: currentUser.user_id,
         }),
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to submit vote');
       }
-
+  
       setIdeas((prevIdeas) =>
         prevIdeas.map((idea) =>
           idea.idea_id === ideaId
@@ -220,11 +203,11 @@ const Voting: React.FC = () => {
             : idea
         )
       );
-
+  
       const newVotedIdeas = new Set(votedIdeas);
       newVotedIdeas.add(ideaId);
       setVotedIdeas(newVotedIdeas);
-
+  
       setRemainingVotes((prev) => prev - 1);
       setError('');
     } catch (err) {
