@@ -19,7 +19,6 @@ const Dashboard: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const navigate = useNavigate();
 
-  // Get the current user from localStorage
   useEffect(() => {
     const userJson = localStorage.getItem('currentUser');
 
@@ -52,7 +51,6 @@ const Dashboard: React.FC = () => {
   const getRandomThemeColor = () =>
     themeColors[Math.floor(Math.random() * themeColors.length)];
 
-  // Fetch themes
   const fetchThemes = async () => {
     try {
       const response = await fetch('http://localhost:7071/api/theme');
@@ -67,7 +65,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Fetch notifications
   const fetchNotifications = async () => {
     try {
       const response = await fetch(
@@ -84,7 +81,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Fetch my ideas
   const fetchMyIdeas = async () => {
     try {
       const response = await fetch(
@@ -101,7 +97,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Fetch my group
   const fetchMyGroup = async () => {
     try {
       const response = await fetch(
@@ -118,7 +113,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Load all data
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
@@ -170,7 +164,6 @@ const Dashboard: React.FC = () => {
     const theme = themes.find((t) => t.theme_id === themeId);
     if (!theme) return;
   
-    // Check if the user has already submitted an idea for this theme
     const existingIdea = myIdeas.find(
       (idea) => idea.theme_id === theme.theme_id && idea.submitted_by === userId
     );
@@ -207,8 +200,7 @@ const Dashboard: React.FC = () => {
       setError('Theme or user not found');
       return;
     }
-  
-    // Check if the user has already submitted an idea for this theme
+
     const existingIdea = myIdeas.find(
       (idea) => idea.theme_id === selectedTheme.theme_id && idea.submitted_by === userId
     );

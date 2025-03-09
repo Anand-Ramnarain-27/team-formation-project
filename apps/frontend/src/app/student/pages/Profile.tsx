@@ -46,7 +46,6 @@ const Profile: React.FC = () => {
 
   const userId = currentUser?.user_id;
 
-  // Fetch profile data from the API
   const fetchProfileData = async () => {
     if (!userId) return;
     
@@ -60,7 +59,6 @@ const Profile: React.FC = () => {
       
       const data = await response.json() as StudentProfileData;
       
-      // Update state with API response data
       setMyIdeas(data.ideas);
       setMyGroups(data.groups);
       setReviews(data.reviews);

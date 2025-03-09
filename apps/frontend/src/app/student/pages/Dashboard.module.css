@@ -129,7 +129,6 @@
   margin: 0;
 }
 
-/* Scrollbar styling */
 .scrollArea::-webkit-scrollbar,
 .notificationsContent::-webkit-scrollbar {
   width: 6px;

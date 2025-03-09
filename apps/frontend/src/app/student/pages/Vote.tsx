@@ -9,7 +9,8 @@ import {
 } from '@/app/shared/components/States/States';
 import IdeaCard from '@/app/shared/components/IdeaCard/IdeaCard';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7071/api';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7071/api';
 
 const Voting: React.FC = () => {
   const [ideas, setIdeas] = useState<Idea[]>([]);
@@ -24,19 +25,17 @@ const Voting: React.FC = () => {
   const [isVotingActive, setIsVotingActive] = useState(false);
 
   useEffect(() => {
-    // Get the currently logged in user
     const getCurrentUser = async () => {
       try {
-        // For demo purposes, we'll use local storage or session
-        const userJson = localStorage.getItem('currentUser') || sessionStorage.getItem('currentUser');
-        
+        const userJson =
+          localStorage.getItem('currentUser') ||
+          sessionStorage.getItem('currentUser');
+
         if (userJson) {
           const user = JSON.parse(userJson);
           setCurrentUser(user);
           return user;
         } else {
-          // If no user in storage, you might redirect to login
-          // window.location.href = '/login';
           throw new Error('User not logged in');
         }
       } catch (err) {
@@ -46,27 +45,25 @@ const Voting: React.FC = () => {
       }
     };
 
-    // Fetch all available themes
     const fetchThemes = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/theme`);
         if (!response.ok) {
           throw new Error('Failed to fetch themes');
         }
-        
+
         const themesData = await response.json();
         setThemes(themesData);
-        
-        // Get theme ID from URL or use the first theme as default
+
         const urlParams = new URLSearchParams(window.location.search);
         const themeId = urlParams.get('themeId');
-        
+
         if (themeId) {
           setSelectedThemeId(themeId);
         } else if (themesData.length > 0) {
           setSelectedThemeId(themesData[0].theme_id.toString());
         }
-        
+
         return themesData;
       } catch (err) {
         console.error('Error fetching themes:', err);
@@ -74,7 +71,7 @@ const Voting: React.FC = () => {
         return [];
       }
     };
-    
+
     const initialize = async () => {
       setLoading(true);
       await getCurrentUser();
@@ -85,84 +82,82 @@ const Voting: React.FC = () => {
     initialize();
   }, []);
 
-  // Effect to load theme and ideas when selectedThemeId changes
   useEffect(() => {
     if (!selectedThemeId || !currentUser) return;
-    
+
     const fetchThemeAndIdeas = async () => {
       try {
         setLoading(true);
-        
-        // Fetch theme details
-        const themeResponse = await fetch(`${API_BASE_URL}/theme?id=${selectedThemeId}`);
+
+        const themeResponse = await fetch(
+          `${API_BASE_URL}/theme?id=${selectedThemeId}`
+        );
         if (!themeResponse.ok) {
           throw new Error('Failed to fetch theme details');
         }
-        
+
         const themeData = await themeResponse.json();
         setTheme(themeData);
-        
-        // Check if voting is active
+
         const now = new Date();
         const submissionDeadline = new Date(themeData.submission_deadline);
         const votingDeadline = new Date(themeData.voting_deadline);
-        
-        // Voting is active if current date is between submission deadline and voting deadline
+
         const votingActive = now > submissionDeadline && now < votingDeadline;
         setIsVotingActive(votingActive);
-        
-        // Fetch ideas for this theme
-        const ideasResponse = await fetch(`${API_BASE_URL}/idea?theme_id=${selectedThemeId}`);
+
+        const ideasResponse = await fetch(
+          `${API_BASE_URL}/idea?theme_id=${selectedThemeId}`
+        );
         if (!ideasResponse.ok) {
           throw new Error('Failed to fetch ideas');
         }
-        
+
         const ideasData = await ideasResponse.json();
-        
-        // Process ideas to include vote counts
+
         const ideasWithVotes = await Promise.all(
           ideasData.map(async (idea: Idea) => {
-            // Get votes for this idea
-            const votesResponse = await fetch(`${API_BASE_URL}/vote?ideaId=${idea.idea_id}`);
+            const votesResponse = await fetch(
+              `${API_BASE_URL}/vote?ideaId=${idea.idea_id}`
+            );
             if (!votesResponse.ok) {
               throw new Error(`Failed to fetch votes for idea ${idea.idea_id}`);
             }
-            
+
             const votesData = await votesResponse.json();
             return {
               ...idea,
-              vote_count: votesData.length
+              vote_count: votesData.length,
             };
           })
         );
-        
-        // Get approved ideas only
-        const approvedIdeas = ideasWithVotes.filter((idea: Idea) => idea.status === 'Approved');
+
+        const approvedIdeas = ideasWithVotes.filter(
+          (idea: Idea) => idea.status === 'Approved'
+        );
         setIdeas(approvedIdeas);
-        
-        // Get user's votes
+
         const votesResponse = await fetch(`${API_BASE_URL}/vote`);
         if (!votesResponse.ok) {
           throw new Error('Failed to fetch votes');
         }
-        
+
         const votesData = await votesResponse.json();
-        
-        // Filter votes by this user
-        const userVotes = votesData.filter((vote: Vote) => vote.voted_by === currentUser.user_id);
-        
-        // More explicit way to ensure type safety
+
+        const userVotes = votesData.filter(
+          (vote: Vote) => vote.voted_by === currentUser.user_id
+        );
+
         const userVoteIds: number[] = userVotes.map((vote: Vote) => {
-          // Ensure we're working with numbers
-          return typeof vote.idea_id === 'number' ? vote.idea_id : Number(vote.idea_id);
+          return typeof vote.idea_id === 'number'
+            ? vote.idea_id
+            : Number(vote.idea_id);
         });
-        
-        // Create a Set from the explicitly typed array
+
         setVotedIdeas(new Set(userVoteIds));
-        
-        // Set remaining votes (assuming 3 max votes per user)
+
         setRemainingVotes(3 - userVoteIds.length);
-        
+
         setLoading(false);
       } catch (err) {
         console.error('Error fetching data:', err);
@@ -176,7 +171,6 @@ const Voting: React.FC = () => {
 
   const handleThemeChange = (themeId: string) => {
     setSelectedThemeId(themeId);
-    // Update URL without page reload
     const url = new URL(window.location.href);
     url.searchParams.set('themeId', themeId);
     window.history.pushState({}, '', url.toString());
@@ -187,12 +181,12 @@ const Voting: React.FC = () => {
       setError('You must be logged in to vote');
       return;
     }
-    
+
     if (!isVotingActive) {
       setError('Voting is not currently active for this theme');
       return;
     }
-    
+
     try {
       if (remainingVotes <= 0) {
         setError('You have used all your votes!');
@@ -204,7 +198,6 @@ const Voting: React.FC = () => {
         return;
       }
 
-      // Submit vote to API
       const response = await fetch(`${API_BASE_URL}/vote`, {
         method: 'POST',
         headers: {
@@ -220,7 +213,6 @@ const Voting: React.FC = () => {
         throw new Error('Failed to submit vote');
       }
 
-      // Update local state
       setIdeas((prevIdeas) =>
         prevIdeas.map((idea) =>
           idea.idea_id === ideaId
@@ -229,11 +221,10 @@ const Voting: React.FC = () => {
         )
       );
 
-      // Update voted ideas set with proper typing
       const newVotedIdeas = new Set(votedIdeas);
       newVotedIdeas.add(ideaId);
       setVotedIdeas(newVotedIdeas);
-      
+
       setRemainingVotes((prev) => prev - 1);
       setError('');
     } catch (err) {
@@ -242,9 +233,8 @@ const Voting: React.FC = () => {
     }
   };
 
-  // Create a non-async wrapper function for onVote
   const handleVoteWrapper = (ideaId: number): void => {
-    handleVote(ideaId).catch(error => {
+    handleVote(ideaId).catch((error) => {
       console.error('Error in vote handler:', error);
       setError('An unexpected error occurred while voting.');
     });
@@ -265,7 +255,7 @@ const Voting: React.FC = () => {
           title="Authentication Required"
           description="You need to log in to view and vote for project ideas."
           action={
-            <Button onClick={() => window.location.href = '/login'}>
+            <Button onClick={() => (window.location.href = '/login')}>
               Log In
             </Button>
           }
@@ -274,17 +264,16 @@ const Voting: React.FC = () => {
     );
   }
 
-  // Prepare theme options for SelectInput
-  const themeOptions = themes.map(themeItem => ({
+  const themeOptions = themes.map((themeItem) => ({
     value: themeItem.theme_id.toString(),
-    label: themeItem.title
+    label: themeItem.title,
   }));
 
   return (
     <main className={styles.container}>
       <header className={styles.header}>
         <h1>Vote for Project Ideas</h1>
-        
+
         <div className={styles.themeSelection}>
           <label htmlFor="theme-select" className={styles.themeSelectLabel}>
             Select Theme:
@@ -297,22 +286,22 @@ const Voting: React.FC = () => {
             className={styles.themeSelect}
           />
         </div>
-        
-        {theme && (
-          <h2 className={styles.themeTitle}>{theme.title}</h2>
-        )}
-        
+
+        {theme && <h2 className={styles.themeTitle}>{theme.title}</h2>}
+
         <div className={styles.votingStatus}>
           {isVotingActive ? (
             <p className={styles.votingActive}>
               Voting is open! You have{' '}
-              <strong className={styles.votesRemaining}>{remainingVotes}</strong>{' '}
+              <strong className={styles.votesRemaining}>
+                {remainingVotes}
+              </strong>{' '}
               votes remaining.
             </p>
           ) : (
             <p className={styles.votingClosed}>
-              {theme && new Date() < new Date(theme.submission_deadline) 
-                ? 'Voting has not started yet.' 
+              {theme && new Date() < new Date(theme.submission_deadline)
+                ? 'Voting has not started yet.'
                 : 'Voting has ended for this theme.'}
             </p>
           )}
@@ -341,7 +330,11 @@ const Voting: React.FC = () => {
             <IdeaCard
               key={idea.idea_id}
               {...idea}
-              onVote={isVotingActive ? () => handleVoteWrapper(idea.idea_id) : () => {}}
+              onVote={
+                isVotingActive
+                  ? () => handleVoteWrapper(idea.idea_id)
+                  : () => {}
+              }
               isVoted={votedIdeas.has(idea.idea_id)}
               remainingVotes={remainingVotes}
               votingActive={isVotingActive}

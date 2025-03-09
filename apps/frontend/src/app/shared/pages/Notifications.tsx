@@ -62,7 +62,6 @@ const NotificationsPage = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Get the current user from localStorage
   useEffect(() => {
     const userJson = localStorage.getItem('currentUser');
 
