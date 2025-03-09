@@ -24,13 +24,10 @@ const formatDateForInput = (dateString: string): string => {
   if (!dateString) return '';
   
   try {
-    // Create a Date object from the string
     const date = new Date(dateString);
-    
-    // Check if it's a valid date
+
     if (isNaN(date.getTime())) return '';
     
-    // Format to YYYY-MM-DDTHH:MM
     return date.toISOString().substring(0, 16);
   } catch (error) {
     console.error("Error formatting date:", error);
@@ -83,19 +80,16 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
   useEffect(() => {
     if (theme) {
       const { theme_id, ...baseTheme } = theme;
-      
-      // Process the review_deadline data
+
       let reviewDeadlines;
       
       try {
-        // First check if it's already an array
         if (Array.isArray(baseTheme.review_deadline)) {
           reviewDeadlines = baseTheme.review_deadline.map(deadline => ({
             start: formatDateForInput(deadline.start),
             end: formatDateForInput(deadline.end)
           }));
         } 
-        // Check if it's a string that needs parsing
         else if (typeof baseTheme.review_deadline === 'string') {
           const parsedDeadlines = JSON.parse(baseTheme.review_deadline);
           reviewDeadlines = Array.isArray(parsedDeadlines) 
@@ -105,7 +99,6 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
               }))
             : [{ start: '', end: '' }];
         } 
-        // Default case
         else {
           reviewDeadlines = [{ start: '', end: '' }];
         }
@@ -131,8 +124,7 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Format dates correctly for the backend
+
     const formattedData = {
       ...formData,
       submission_deadline: formData.submission_deadline ? new Date(formData.submission_deadline).toISOString() : '',
@@ -141,16 +133,13 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
         start: deadline.start ? new Date(deadline.start).toISOString() : '',
         end: deadline.end ? new Date(deadline.end).toISOString() : ''
       })),
-      // Filter out empty questions
       questions: formData.questions.filter(q => q.question_text.trim() !== '')
     };
-    
-    // Filter out any review deadlines with empty dates
+
     const validReviewDeadlines = formattedData.review_deadline.filter(
       deadline => deadline.start && deadline.end
     );
-    
-    // Only submit if we have valid review deadlines
+
     if (validReviewDeadlines.length === 0) {
       alert('Please add at least one valid review deadline with start and end dates');
       return;

@@ -70,7 +70,6 @@ const StudentMetric: React.FC<{ title: string; value: string | number }> = ({
   </article>
 );
 
-// API URLs
 const API_BASE_URL = `http://localhost:7071`;
 
 const Analytics: React.FC = () => {
@@ -87,7 +86,6 @@ const Analytics: React.FC = () => {
   const [studentDetails, setStudentDetails] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'students' | 'themes'>('themes');
 
-  // Fetch all themes
   const fetchThemes = useCallback(async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/theme`);
@@ -98,8 +96,7 @@ const Analytics: React.FC = () => {
       
       const data = await response.json();
       setThemes(data);
-      
-      // Set the first theme as selected by default if available
+
       if (data.length > 0 && !selectedTheme) {
         setSelectedTheme(data[0].theme_id);
       }
@@ -108,7 +105,6 @@ const Analytics: React.FC = () => {
     }
   }, [selectedTheme]);
 
-  // Fetch all students
   const fetchStudents = useCallback(async () => {
     try {
       setIsStudentsLoading(true);
@@ -119,18 +115,16 @@ const Analytics: React.FC = () => {
       }
       
       const data = await response.json();
-      
-      // Filter users to only include those with the role "student"
+
       const studentsOnly = data.filter((user: any) => 
         user.role && user.role.toLowerCase() === "student"
       );
       
-      // Map the API response to the Student interface
       const formattedStudents: Student[] = studentsOnly.map((user: any) => ({
         user_id: user.user_id,
         name: user.name,
         email: user.email,
-        group_name: '', // Will be populated with student details API
+        group_name: '', 
         metrics: {
           ideas_submitted: 0,
           votes_given: 0,
@@ -148,7 +142,6 @@ const Analytics: React.FC = () => {
     }
   }, []);
 
-  // Fetch global analytics data across all themes
   const fetchGlobalAnalyticsData = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -162,7 +155,6 @@ const Analytics: React.FC = () => {
       setGlobalAnalyticsData(data);
     } catch (error) {
       console.error('Error fetching global analytics data:', error);
-      // Create placeholder data in case of error
       const placeholderData: AnalyticsReport = {
         report_id: 0,
         theme_id: 0,
@@ -185,7 +177,6 @@ const Analytics: React.FC = () => {
     }
   }, []);
 
-  // Fetch theme-specific analytics
   const fetchThemeAnalytics = useCallback(async (themeId: number) => {
     try {
       setIsThemeAnalyticsLoading(true);
@@ -199,7 +190,6 @@ const Analytics: React.FC = () => {
       setAnalyticsData(data);
     } catch (error) {
       console.error(`Error fetching analytics for theme ${themeId}:`, error);
-      // Create placeholder data in case of error
       const placeholderData: AnalyticsReport = {
         report_id: 0,
         theme_id: themeId,
@@ -222,21 +212,18 @@ const Analytics: React.FC = () => {
     }
   }, []);
 
-  // Initial data loading
   useEffect(() => {
     fetchThemes();
     fetchStudents();
     fetchGlobalAnalyticsData();
   }, [fetchThemes, fetchStudents, fetchGlobalAnalyticsData]);
 
-  // Fetch theme-specific analytics when a theme is selected
   useEffect(() => {
     if (selectedTheme) {
       fetchThemeAnalytics(selectedTheme);
     }
   }, [selectedTheme, fetchThemeAnalytics]);
 
-  // Fetch student details when a student is selected
   useEffect(() => {
     const fetchStudentDetails = async () => {
       if (!selectedStudent) return;
@@ -252,7 +239,6 @@ const Analytics: React.FC = () => {
         
         const profileData = await response.json();
         
-        // Update the student with detailed information
         const updatedStudent = {
           ...selectedStudent,
           group_name: profileData.groups.length > 0 ? profileData.groups[0].group_name : 'No Group',
@@ -275,21 +261,17 @@ const Analytics: React.FC = () => {
     fetchStudentDetails();
   }, [selectedStudent?.user_id]);
 
-  // Helper function to calculate participation rate
   const calculateParticipationRate = (profileData: any): string => {
-    // Simple calculation - can be adjusted based on actual requirements
     const totalActivities = profileData.participationStats.totalIdeas + 
                           profileData.participationStats.totalVotes + 
                           profileData.participationStats.totalReviews;
-    
-    // Assuming a theoretical maximum of 10 activities per student
+
     const maxActivities = 10;
     const rate = Math.min(100, Math.round((totalActivities / maxActivities) * 100));
     
     return `${rate}%`;
   };
 
-  // Helper function to render theme selector
   const renderThemeSelector = () => (
     <div className={styles.themeSelector}>
       <SelectInput
@@ -304,12 +286,10 @@ const Analytics: React.FC = () => {
     </div>
   );
 
-  // Helper function to get participation rate as a percentage
   const getParticipationRate = (stats: ParticipationStats): string => {
     if (!stats) return '0%';
     
     const totalActivities = stats.totalIdeas + stats.totalVotes + stats.totalReviews;
-    // Theoretical maximum activities per student (adjustable)
     const maxActivitiesPerStudent = 10;
     const totalStudents = globalAnalyticsData?.total_students || 1;
     const maxPossibleActivities = totalStudents * maxActivitiesPerStudent;
@@ -318,7 +298,6 @@ const Analytics: React.FC = () => {
     return `${rate}%`;
   };
 
-  // Filter students based on search query
   const filteredStudents = students.filter(
     (student) =>
       student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -351,7 +330,6 @@ const Analytics: React.FC = () => {
       </section>
 
       {activeTab === 'themes' ? (
-        // Theme Analytics View
         <>
           <section className={styles.metricsGrid}>
             <MetricCard
@@ -482,7 +460,6 @@ const Analytics: React.FC = () => {
           </section>
         </>
       ) : (
-        // Student Analytics View
         <>
           <section className={styles.metricsGrid}>
             <MetricCard

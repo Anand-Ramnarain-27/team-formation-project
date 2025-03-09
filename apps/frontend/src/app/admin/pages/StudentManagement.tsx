@@ -117,7 +117,7 @@ const StudentManagement: React.FC = () => {
           name: userData.name,
           email: userData.email,
           role: userData.role,
-          auth_provider: 'local' // Default auth provider
+          auth_provider: 'local' 
         }),
       });
 
@@ -125,7 +125,6 @@ const StudentManagement: React.FC = () => {
         throw new Error(`Failed to add user: ${response.status} ${response.statusText}`);
       }
 
-      // Refresh the user list
       await fetchStudents();
       setIsAddModalOpen(false);
     } catch (error) {
@@ -158,7 +157,6 @@ const StudentManagement: React.FC = () => {
         throw new Error(`Failed to update user: ${response.status} ${response.statusText}`);
       }
 
-      // Refresh the user list
       await fetchStudents();
       setEditingStudent(null);
     } catch (error) {

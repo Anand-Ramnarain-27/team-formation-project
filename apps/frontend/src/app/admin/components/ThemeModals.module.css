@@ -41,7 +41,7 @@
 
 .reviewDeadlineInputs input {
   flex: 1;
-  min-width: 0; /* Prevents input from overflowing */
+  min-width: 0;
 }
 
 .modalActions {
@@ -169,7 +169,6 @@
   margin-left: 0.5rem;
 }
 
-/* Tab styles */
 .tabHeader {
   display: flex;
   border-bottom: 1px solid #e2e8f0;
@@ -220,7 +219,6 @@
   }
 }
 
-/* Questions tab styles */
 .questionsHeader {
   margin-bottom: 1.5rem;
 }

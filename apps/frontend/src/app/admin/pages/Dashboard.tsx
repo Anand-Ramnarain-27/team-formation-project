@@ -30,7 +30,6 @@ const Dashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-  // Get the current user from localStorage
   useEffect(() => {
     const userJson = localStorage.getItem('currentUser');
 
@@ -52,27 +51,22 @@ const Dashboard: React.FC = () => {
   const userId = currentUser?.user_id;
   const userRole = currentUser?.role;
 
-  // Fetch themes data from the API
   const fetchThemes = async () => {
     try {
-      // Fetch all themes
       const themesResponse = await fetch('http://localhost:7071/api/theme');
       if (!themesResponse.ok) {
         throw new Error('Failed to fetch themes');
       }
       const themesData = await themesResponse.json();
-      
-      // Process each theme to include its questions
+
       const themesWithQuestions = await Promise.all(
         themesData.map(async (theme: Theme) => {
-          // Fetch questions for this theme
           const questionsResponse = await fetch(`http://localhost:7071/api/question?id=${theme.theme_id}`);
           if (!questionsResponse.ok) {
             throw new Error(`Failed to fetch questions for theme ${theme.theme_id}`);
           }
           const questions = await questionsResponse.json();
-          
-          // Ensure review_deadline is properly parsed
+
           const parsedReviewDeadline = Array.isArray(theme.review_deadline) 
             ? theme.review_deadline 
             : (typeof theme.review_deadline === 'string' 
@@ -94,7 +88,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Fetch analytics data from API
   const fetchAnalytics = async () => {
     try {
       const response = await fetch('http://localhost:7071/api/generateAllThemesAnalytics');
@@ -109,7 +102,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Fetch notifications
   const fetchNotifications = async () => {
     try {
       const response = await fetch(
@@ -127,7 +119,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Load all data
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
@@ -144,7 +135,6 @@ const Dashboard: React.FC = () => {
     }
   }, [userId, userRole]);
 
-  // Create a new theme with questions
   const handleCreateTheme = async (newTheme: BaseThemeWithQuestions) => {
     try {
       const themeWithCreator = {
@@ -152,7 +142,6 @@ const Dashboard: React.FC = () => {
         created_by: userId,
       };
 
-      // Create theme via API
       const themeResponse = await fetch('http://localhost:7071/api/theme', {
         method: 'POST',
         headers: {
@@ -167,7 +156,6 @@ const Dashboard: React.FC = () => {
 
       const createdTheme = await themeResponse.json();
 
-      // Create questions for the theme
       await Promise.all(
         newTheme.questions.map(async (question) => {
           const questionData = {
@@ -189,7 +177,6 @@ const Dashboard: React.FC = () => {
         })
       );
 
-      // Refresh themes after creation
       await fetchThemes();
     } catch (err) {
       setError('Error creating theme');
@@ -197,7 +184,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Edit an existing theme with questions
   const handleEditTheme = async (updatedTheme: BaseThemeWithQuestions) => {
     if (!selectedTheme) return;
 
@@ -207,7 +193,6 @@ const Dashboard: React.FC = () => {
         created_by: selectedTheme.created_by,
       };
 
-      // Update theme via API
       const themeResponse = await fetch(`http://localhost:7071/api/theme?id=${selectedTheme.theme_id}`, {
         method: 'PUT',
         headers: {
@@ -220,14 +205,11 @@ const Dashboard: React.FC = () => {
         throw new Error('Failed to update theme');
       }
 
-      // Get existing questions for comparison
       const existingQuestionIds = selectedTheme.questions.map(q => q.question_id);
-      
-      // Process each question - update existing, create new ones
+
       await Promise.all(
         updatedTheme.questions.map(async (question, index) => {
           if (index < existingQuestionIds.length && existingQuestionIds[index]) {
-            // Update existing question
             const questionData = {
               id: existingQuestionIds[index],
               theme_id: selectedTheme.theme_id,
@@ -242,7 +224,6 @@ const Dashboard: React.FC = () => {
               body: JSON.stringify(questionData),
             });
           } else {
-            // Create new question
             const questionData = {
               theme_id: selectedTheme.theme_id,
               question_text: question.question_text,
@@ -259,9 +240,7 @@ const Dashboard: React.FC = () => {
         })
       );
 
-      // Handle deleted questions
       if (existingQuestionIds.length > updatedTheme.questions.length) {
-        // Delete questions that were removed
         for (let i = updatedTheme.questions.length; i < existingQuestionIds.length; i++) {
           if (existingQuestionIds[i]) {
             await fetch('http://localhost:7071/api/question', {
@@ -275,7 +254,6 @@ const Dashboard: React.FC = () => {
         }
       }
 
-      // Refresh themes after update
       await fetchThemes();
     } catch (err) {
       setError('Error updating theme');
@@ -358,17 +336,14 @@ const Dashboard: React.FC = () => {
                     {(() => {
                       const now = new Date();
 
-                      // Check if we're in the submission phase
                       if (now < new Date(theme.submission_deadline)) {
                         return 'Submission Phase';
                       }
 
-                      // Check if we're in the voting phase
                       if (now < new Date(theme.voting_deadline)) {
                         return 'Voting Phase';
                       }
 
-                      // Check if we're in any of the review phases
                       for (const review of theme.review_deadline) {
                         if (
                           now >= new Date(review.start) &&
@@ -380,7 +355,6 @@ const Dashboard: React.FC = () => {
                         }
                       }
 
-                      // Check if the review phase hasn't started yet but there is one scheduled
                       const nextReview = theme.review_deadline.find(
                         (review) => now < new Date(review.start)
                       );
@@ -388,7 +362,6 @@ const Dashboard: React.FC = () => {
                         return 'Review Phase is Going to Start';
                       }
 
-                      // If none of the above, it's completed
                       return 'Completed';
                     })()}
                   </span>

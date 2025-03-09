@@ -14,7 +14,6 @@
   font-weight: var(--font-weight-bold);
 }
 
-/* Stats Grid */
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -51,7 +50,6 @@
   color: #6b7280;
 }
 
-/* Themes Section */
 .themesSection {
   margin-bottom: 2rem;
 }
@@ -124,7 +122,6 @@
   text-transform: capitalize;
 }
 
-/* Grid Container */
 .gridContainer {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -171,7 +168,6 @@
   margin-bottom: 0;
 }
 
-/* Notifications */
 .notificationsCard {
   background: white;
   padding: 1.5rem;

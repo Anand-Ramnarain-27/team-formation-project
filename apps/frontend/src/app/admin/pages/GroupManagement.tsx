@@ -17,7 +17,6 @@ import TextInput from '@/app/shared/components/Form/TextInput';
 import SelectInput from '@/app/shared/components/SelectInput/SelectInput';
 import GroupCard from '@/app/shared/components/GroupCard/GroupCard';
 
-// API base URL - can be updated based on your environment
 const API_BASE_URL = 'http://localhost:7071/api';
 
 const GroupDialog: React.FC<GroupDialogProp> = ({
@@ -34,7 +33,6 @@ const GroupDialog: React.FC<GroupDialogProp> = ({
     team_lead: group?.team_lead?.toString() || '',
   });
 
-  // Update form data when the group changes
   useEffect(() => {
     if (group) {
       setFormData({
@@ -197,13 +195,11 @@ const MemberManagementDialog: React.FC<MemberManagementDialogProps> = ({
 };
 
 const GroupManagement: React.FC = () => {
-  // State for data
   const [groups, setGroups] = useState<Group[]>([]);
   const [filteredGroups, setFilteredGroups] = useState<Group[]>([]);
   const [themes, setThemes] = useState<Theme[]>([]);
   const [users, setUsers] = useState<User[]>([]);
 
-  // State for UI
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [showGroupDialog, setShowGroupDialog] = useState(false);
@@ -214,7 +210,6 @@ const GroupManagement: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch all groups
   const fetchGroups = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/group`);
@@ -232,7 +227,6 @@ const GroupManagement: React.FC = () => {
     }
   };
 
-  // Fetch all themes
   const fetchThemes = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/theme`);
@@ -249,7 +243,6 @@ const GroupManagement: React.FC = () => {
     }
   };
 
-  // Fetch all users
   const fetchUsers = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/user`);
@@ -266,7 +259,6 @@ const GroupManagement: React.FC = () => {
     }
   };
 
-  // Fetch members of a specific group
   const fetchGroupMembers = async (groupId: number) => {
     try {
       const response = await fetch(`${API_BASE_URL}/groupMember?id=${groupId}`);
@@ -278,7 +270,6 @@ const GroupManagement: React.FC = () => {
       const membersData = await response.json();
       
       if (Array.isArray(membersData)) {
-        // Extract member objects from the response
         const members = membersData.map((item: any) => item.member);
         return members;
       }
@@ -290,7 +281,6 @@ const GroupManagement: React.FC = () => {
     }
   };
 
-  // Load data on component mount
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
@@ -306,7 +296,6 @@ const GroupManagement: React.FC = () => {
     loadData();
   }, []);
 
-  // Search groups by name or theme
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     if (!query.trim()) {
@@ -320,21 +309,17 @@ const GroupManagement: React.FC = () => {
     setFilteredGroups(filtered);
   };
 
-  // Check if a user is a member of the group
   const checkAndRemoveTeamLeadFromMembers = async (
     groupId: number,
     newTeamLeadId: number
   ) => {
     try {
-      // Get current group members
       const members = await fetchGroupMembers(groupId);
       
-      // Check if the new team lead is currently a member
       const teamLeadIsMember = members.some(
         (member: User) => member.user_id === newTeamLeadId
       );
-      
-      // If team lead is a member, remove them from members
+
       if (teamLeadIsMember) {
         await fetch(
           `${API_BASE_URL}/groupMember?groupId=${groupId}&userId=${newTeamLeadId}`,
@@ -349,7 +334,6 @@ const GroupManagement: React.FC = () => {
     }
   };
 
-  // Create or update a group
   const handleSaveGroup = async (formData: GroupFormData) => {
     try {
       const payload = {
@@ -361,11 +345,9 @@ const GroupManagement: React.FC = () => {
       let response;
 
       if (selectedGroup) {
-        // Check if team lead has changed
         const oldTeamLeadId = selectedGroup.team_lead;
         const newTeamLeadId = parseInt(formData.team_lead);
-        
-        // Update existing group
+
         response = await fetch(
           `${API_BASE_URL}/group?id=${selectedGroup.group_id}`,
           {
@@ -380,8 +362,7 @@ const GroupManagement: React.FC = () => {
         if (!response.ok) {
           throw new Error(`Failed to save group: ${response.statusText}`);
         }
-        
-        // If team lead has changed and is a member, remove them from members
+
         if (oldTeamLeadId !== newTeamLeadId) {
           await checkAndRemoveTeamLeadFromMembers(
             selectedGroup.group_id,
@@ -389,7 +370,6 @@ const GroupManagement: React.FC = () => {
           );
         }
       } else {
-        // Create new group
         response = await fetch(`${API_BASE_URL}/group`, {
           method: 'POST',
           headers: {
@@ -401,18 +381,15 @@ const GroupManagement: React.FC = () => {
         if (!response.ok) {
           throw new Error(`Failed to save group: ${response.statusText}`);
         }
-        
-        // Get the newly created group
+
         const newGroup = await response.json();
-        
-        // Check if the new team lead is also added as a member and remove if needed
+
         await checkAndRemoveTeamLeadFromMembers(
           newGroup.group_id,
           parseInt(formData.team_lead)
         );
       }
 
-      // Refresh the groups list
       await fetchGroups();
       setShowGroupDialog(false);
     } catch (error) {
@@ -420,7 +397,6 @@ const GroupManagement: React.FC = () => {
     }
   };
 
-  // Toggle group expansion
   const handleToggleExpand = (groupId: number) => {
     setExpandedGroups((prev) => ({
       ...prev,
@@ -428,31 +404,25 @@ const GroupManagement: React.FC = () => {
     }));
   };
 
-  // Handle opening the member management dialog
   const handleOpenMemberDialog = async (group: Group) => {
     try {
-      // Fetch the members for this group
       const members = await fetchGroupMembers(group.group_id);
-      
-      // Update the selectedGroup with the members array
+
       setSelectedGroup({
         ...group,
         members: members
       });
-      
-      // Open the dialog
+
       setShowMemberDialog(true);
     } catch (error) {
       console.error('Error preparing member dialog:', error);
     }
   };
 
-  // Add a user to a group
   const handleAddMember = async (user: User) => {
     if (!selectedGroup) return;
 
     try {
-      // Don't allow adding the team lead as a member
       if (user.user_id === selectedGroup.team_lead) {
         console.warn("Cannot add team lead as a member");
         return;
@@ -473,10 +443,8 @@ const GroupManagement: React.FC = () => {
         throw new Error(`Failed to add member: ${response.statusText}`);
       }
 
-      // Fetch the updated members list
       const members = await fetchGroupMembers(selectedGroup.group_id);
       
-      // Update the selectedGroup with the new members array
       setSelectedGroup({
         ...selectedGroup,
         members
@@ -487,7 +455,6 @@ const GroupManagement: React.FC = () => {
     }
   };
 
-  // Remove a user from a group
   const handleRemoveMember = async (userId: number) => {
     if (!selectedGroup) return;
 
@@ -503,10 +470,8 @@ const GroupManagement: React.FC = () => {
         throw new Error(`Failed to remove member: ${response.statusText}`);
       }
 
-      // Fetch the updated members list
       const members = await fetchGroupMembers(selectedGroup.group_id);
-      
-      // Update the selectedGroup with the new members array
+
       setSelectedGroup({
         ...selectedGroup,
         members

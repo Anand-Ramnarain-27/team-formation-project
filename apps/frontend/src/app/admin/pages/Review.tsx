@@ -70,7 +70,6 @@ const Review: React.FC = () => {
 
   const updateIdeaStatus = async (ideaId: number, status: string) => {
     try {
-      // The API expects the idea_id in the URL query params, not in the path
       const response = await fetch(`http://localhost:7071/api/idea?idea_id=${ideaId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
