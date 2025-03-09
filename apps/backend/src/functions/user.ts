@@ -40,7 +40,6 @@ export async function userHandler(
   }
 }
 
-// Get all users
 async function getUsers(context: InvocationContext): Promise<HttpResponseInit> {
   try {
     const users = await prisma.users.findMany();
@@ -55,7 +54,6 @@ async function getUsers(context: InvocationContext): Promise<HttpResponseInit> {
   }
 }
 
-// Get a user by ID
 async function getUserById(
   request: HttpRequest,
   context: InvocationContext
@@ -87,7 +85,6 @@ async function getUserById(
   }
 }
 
-// Create a new user
 async function createUser(
   request: HttpRequest,
   context: InvocationContext
@@ -114,7 +111,6 @@ async function createUser(
   }
 }
 
-// Update an existing user
 async function updateUser(
   request: HttpRequest,
   context: InvocationContext

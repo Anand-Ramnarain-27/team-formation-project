@@ -35,7 +35,6 @@ export async function voteHandler(
   }
 }
 
-// Get votes for a specific idea or all votes
 async function getVotes(
   request: HttpRequest,
   context: InvocationContext
@@ -63,7 +62,6 @@ async function getVotes(
   }
 }
 
-// Create a new vote
 async function createVote(
   request: HttpRequest,
   context: InvocationContext

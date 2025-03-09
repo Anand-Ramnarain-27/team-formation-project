@@ -9,7 +9,6 @@ import { corsMiddleware } from '../utils/cors';
 
 const prisma = new PrismaClient();
 
-// Map rating_enum to numeric values
 const ratingMap: Record<rating_enum, number> = {
   [rating_enum.RATING_1]: 1,
   [rating_enum.RATING_2]: 2,
@@ -30,7 +29,6 @@ export async function studentProfileHandler(
       return { status: 400, body: 'userId query parameter is required.' };
     }
 
-    // Fetch student details
     const student = await prisma.users.findUnique({
       where: { user_id: parseInt(userId, 10) },
     });
@@ -39,15 +37,13 @@ export async function studentProfileHandler(
       return { status: 404, body: 'Student not found.' };
     }
 
-    // Fetch ideas submitted by the student
     const ideas = await prisma.ideas.findMany({
       where: { submitted_by: parseInt(userId, 10) },
       include: {
-        votes: true, // Include votes for each idea
+        votes: true, 
       },
     });
 
-    // Fetch groups where the student is a member or team lead
     const groupMemberships = await prisma.group_members.findMany({
       where: { user_id: parseInt(userId, 10) },
       include: { group: true },
@@ -57,7 +53,6 @@ export async function studentProfileHandler(
       where: { team_lead: parseInt(userId, 10) },
     });
 
-    // Combine groups (remove duplicates)
     const groups = [
       ...groupMemberships.map((membership) => membership.group),
       ...teamLeadGroups,
@@ -66,21 +61,18 @@ export async function studentProfileHandler(
         index === self.findIndex((g) => g.group_id === group.group_id)
     );
 
-    // Fetch reviews received by the student
     const reviews = await prisma.review.findMany({
       where: { reviewee_id: parseInt(userId, 10) },
     });
 
-    // Calculate average rating from received reviews
     const averageRating =
       reviews.length > 0
         ? reviews.reduce(
-            (acc, review) => acc + ratingMap[review.rating], // Convert rating_enum to numeric value
+            (acc, review) => acc + ratingMap[review.rating], 
             0
           ) / reviews.length
         : 0;
 
-    // Calculate participation stats
     const participationStats = {
       ideas_submitted: ideas.length,
       votes_cast: ideas.reduce(
@@ -96,10 +88,9 @@ export async function studentProfileHandler(
         0
       ),
       totalReviews: reviews.length,
-      averageRating: averageRating, // Use the calculated average rating
+      averageRating: averageRating, 
     };
 
-    // Return the student profile data
     const profileData = {
       student,
       ideas,
@@ -121,10 +112,8 @@ export async function studentProfileHandler(
   }
 }
 
-// Wrap the handler with CORS middleware
 const studentProfile = corsMiddleware(studentProfileHandler);
 
-// Register the Azure Function
 app.http('studentProfile', {
   methods: ['GET'],
   authLevel: 'anonymous',

@@ -41,7 +41,6 @@ export async function groupMemberHandler(
   }
 }
 
-// Get all members of a group, including the team lead
 async function getGroupMembers(
   request: HttpRequest,
   context: InvocationContext
@@ -52,11 +51,10 @@ async function getGroupMembers(
       return { status: 400, body: 'Group ID is required.' };
     }
 
-    // Fetch the group details, including the team lead user
     const group = await prisma.groups.findUnique({
       where: { group_id: parseInt(groupId, 10) },
       include: {
-        leader: true, // Include the team lead user details using the `leader` relation
+        leader: true, 
       },
     });
 
@@ -64,7 +62,6 @@ async function getGroupMembers(
       return { status: 404, body: 'Group not found.' };
     }
 
-    // Fetch the group members
     const groupMembers = await prisma.group_members.findMany({
       where: { group_id: parseInt(groupId, 10) },
       include: {
@@ -72,7 +69,6 @@ async function getGroupMembers(
       },
     });
 
-    // Add the team lead to the list of members if they are not already included
     if (group.team_lead && group.leader) {
       const teamLeadMember = groupMembers.find(
         (member) => member.user_id === group.team_lead
@@ -102,7 +98,6 @@ async function getGroupMembers(
   }
 }
 
-// Get all groups of a user
 async function getUserGroups(
   request: HttpRequest,
   context: InvocationContext
@@ -133,7 +128,6 @@ async function getUserGroups(
   }
 }
 
-// Add a member to a group
 async function addGroupMember(
   request: HttpRequest,
   context: InvocationContext
@@ -167,7 +161,6 @@ async function addGroupMember(
   }
 }
 
-// Remove a member from a group
 async function removeGroupMember(
   request: HttpRequest,
   context: InvocationContext

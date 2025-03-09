@@ -39,7 +39,6 @@ export async function ideaHandler(
   }
 }
 
-// Get all ideas (optionally filtered by theme_id, idea_id, or submitted_by)
 async function getIdeas(
   request: HttpRequest,
   context: InvocationContext
@@ -73,7 +72,6 @@ async function getIdeas(
   }
 }
 
-// Submit a new idea
 async function submitIdea(
   request: HttpRequest,
   context: InvocationContext
@@ -101,7 +99,6 @@ async function submitIdea(
   }
 }
 
-// Update idea status by ID
 async function updateIdeaStatus(
   request: HttpRequest,
   context: InvocationContext
@@ -130,7 +127,6 @@ async function updateIdeaStatus(
   }
 }
 
-// Delete idea by ID
 async function deleteIdea(
   request: HttpRequest,
   context: InvocationContext

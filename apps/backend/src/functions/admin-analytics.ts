@@ -21,7 +21,6 @@ import {
         return { status: 400, body: 'themeId query parameter is required.' };
       }
   
-      // Fetch theme details
       const theme = await prisma.theme.findUnique({
         where: { theme_id: parseInt(themeId, 10) },
         include: {
@@ -33,7 +32,7 @@ import {
           groups: {
             include: {
               group_members: true,
-              reviews: true, // Include reviews for each group
+              reviews: true,
             },
           },
         },
@@ -42,18 +41,15 @@ import {
       if (!theme) {
         return { status: 404, body: 'Theme not found.' };
       }
-  
-      // Calculate total students
+
       const totalStudents = theme.groups.reduce(
         (acc: number, group: { group_members: { length: number } }) =>
           acc + group.group_members.length,
         0
       );
   
-      // Calculate total ideas
       const totalIdeas = theme.ideas.length;
   
-      // Calculate average rating of ideas
       const totalRatings = theme.ideas.reduce(
         (acc: number, idea: { status: string }) =>
           acc + (idea.status === 'Approved' ? 1 : 0),
@@ -61,7 +57,6 @@ import {
       );
       const averageRating = totalRatings / totalIdeas || 0;
   
-      // Calculate participation statistics
       const participationStats = {
         ideas_submitted: theme.ideas.length,
         votes_cast: theme.ideas.reduce(
@@ -88,9 +83,8 @@ import {
         averageRating: averageRating,
       };
   
-      // Return the analytics report
       const report = {
-        report_id: 1, // You can generate a unique ID if needed
+        report_id: 1,
         theme_id: theme.theme_id,
         total_students: totalStudents,
         total_reports: totalIdeas,
@@ -110,11 +104,9 @@ import {
       await prisma.$disconnect();
     }
   }
-  
-  // Wrap the handler with CORS middleware
+
   const generateAnalytics = corsMiddleware(generateAnalyticsHandler);
   
-  // Register the Azure Function
   app.http('generateAnalytics', {
     methods: ['GET', 'OPTIONS'],
     authLevel: 'anonymous',

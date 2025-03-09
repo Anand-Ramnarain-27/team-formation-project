@@ -16,7 +16,6 @@ export async function generateAllThemesAnalyticsHandler(
   context.log(`Http function processed request for url "${request.url}"`);
 
   try {
-      // Fetch all themes with their related data
       const themes = await prisma.theme.findMany({
           include: {
               ideas: {
@@ -33,7 +32,6 @@ export async function generateAllThemesAnalyticsHandler(
           },
       });
 
-      // Calculate total students across all themes
       const totalStudents = themes.reduce(
           (acc, theme) => acc + theme.groups.reduce(
               (groupAcc, group) => groupAcc + group.group_members.length,
@@ -42,22 +40,18 @@ export async function generateAllThemesAnalyticsHandler(
           0
       );
 
-      // Calculate total ideas across all themes
       const totalIdeas = themes.reduce(
           (acc, theme) => acc + theme.ideas.length,
           0
       );
 
-      // Calculate total approved ideas across all themes
       const totalPendingIdeas = themes.reduce(
           (acc, theme) => acc + theme.ideas.filter((idea) => idea.status === 'Pending').length,
           0
       );
 
-      // Calculate average rating across all themes
       const averageRating = totalPendingIdeas / totalIdeas || 0;
 
-      // Calculate participation statistics across all themes
       const participationStats = {
           ideas_submitted: totalIdeas,
           votes_cast: themes.reduce(
@@ -92,9 +86,8 @@ export async function generateAllThemesAnalyticsHandler(
           averageRating: averageRating,
       };
 
-      // Return the analytics report for all themes
       const report = {
-          report_id: 2, // You can generate a unique ID if needed
+          report_id: 2, 
           total_students: totalStudents,
           total_reports: totalIdeas,
           average_rating: averageRating,

@@ -10,12 +10,11 @@ export async function autoAssignLocalHandler(
   context.log('Auto-assign function triggered manually.');
 
   try {
-    // Fetch all themes where the voting deadline has passed and groups haven't been assigned yet
     const now = new Date();
     const themes = await prisma.theme.findMany({
       where: {
-        voting_deadline: { lt: now }, // Voting deadline has passed
-        groups: { none: {} }, // No groups have been created yet
+        voting_deadline: { lt: now }, 
+        groups: { none: {} }, 
       },
       include: {
         ideas: {
@@ -29,7 +28,6 @@ export async function autoAssignLocalHandler(
     for (const theme of themes) {
       context.log(`Processing theme: ${theme.title}`);
 
-      // Get all students who are not already in a group for this theme
       const students = await prisma.users.findMany({
         where: {
           role: 'Student',
@@ -45,7 +43,6 @@ export async function autoAssignLocalHandler(
         },
       });
 
-      // Sort ideas by vote count (descending) and creation time (ascending for ties)
       const sortedIdeas = theme.ideas
         .map((idea) => ({
           ...idea,
@@ -58,10 +55,8 @@ export async function autoAssignLocalHandler(
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
         });
 
-      // Get the top N ideas based on the number_of_groups
       const topIdeas = sortedIdeas.slice(0, theme.number_of_groups);
 
-      // Create groups for the top ideas
       const createdGroups = await Promise.all(
         topIdeas.map(async (idea) => {
           const group = await prisma.groups.create({
@@ -75,16 +70,13 @@ export async function autoAssignLocalHandler(
         })
       );
 
-      // If auto_assign_group is true, assign the remaining students to the groups
       if (theme.auto_assign_group) {
         const studentsToAssign = students.filter(
           (student) => !topIdeas.some((idea) => idea.submitted_by === student.user_id)
         );
 
-        // Shuffle students randomly
         const shuffledStudents = studentsToAssign.sort(() => Math.random() - 0.5);
 
-        // Assign students to groups equally
         const groupAssignments = [];
         for (let i = 0; i < shuffledStudents.length; i++) {
           const groupIndex = i % createdGroups.length;
@@ -94,7 +86,6 @@ export async function autoAssignLocalHandler(
           });
         }
 
-        // Add group members to the database
         await prisma.group_members.createMany({
           data: groupAssignments,
         });

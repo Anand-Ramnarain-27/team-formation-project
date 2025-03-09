@@ -39,7 +39,6 @@ export async function groupHandler(
   }
 }
 
-// Get all groups or a specific group by ID or team lead
 async function getGroups(
   request: HttpRequest,
   context: InvocationContext
@@ -57,7 +56,6 @@ async function getGroups(
       }
       return { status: 200, jsonBody: group };
     } else if (teamLeadId) {
-      // Fetch groups where the user is a team lead
       const groups = await prisma.groups.findMany({
         where: { team_lead: parseInt(teamLeadId, 10) },
       });
@@ -76,15 +74,13 @@ async function getGroups(
   }
 }
 
-// Create a new group
 async function createGroup(
   request: HttpRequest,
   context: InvocationContext
 ): Promise<HttpResponseInit> {
   try {
     const body = (await request.json()) as GroupCreateRequestBody;
-    
-    // Check if group_name exists in ideas table
+
     if (body.group_name) {
       const idea = await prisma.ideas.findUnique({
         where: { idea_name: body.group_name },
@@ -116,7 +112,6 @@ async function createGroup(
   }
 }
 
-// Update an existing group
 async function updateGroup(
   request: HttpRequest,
   context: InvocationContext
@@ -132,7 +127,6 @@ async function updateGroup(
       return { status: 400, body: 'Invalid request body' };
     }
 
-    // Check if group_name exists in ideas table if it's being updated
     if (body.group_name) {
       const idea = await prisma.ideas.findUnique({
         where: { idea_name: body.group_name },
@@ -166,7 +160,6 @@ async function updateGroup(
   }
 }
 
-// Delete a group
 async function deleteGroup(
   request: HttpRequest,
   context: InvocationContext

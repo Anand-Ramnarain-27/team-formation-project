@@ -38,7 +38,6 @@ export async function questionHandler(
     }
 }
 
-// Get Questions by Theme ID
 async function getQuestionsByThemeId(
     request: HttpRequest,
     context: InvocationContext
@@ -64,7 +63,6 @@ async function getQuestionsByThemeId(
     }
 }
 
-// Create a New Question
 async function createQuestion(
     request: HttpRequest,
     context: InvocationContext
@@ -90,7 +88,6 @@ async function createQuestion(
     }
 }
 
-// Update an Existing Question
 async function updateQuestion(
     request: HttpRequest,
     context: InvocationContext
@@ -118,7 +115,6 @@ async function updateQuestion(
     }
 }
 
-// Delete a Question
 async function deleteQuestion(
     request: HttpRequest,
     context: InvocationContext

@@ -37,13 +37,11 @@ export async function assignHandler(
       return { status: 404, body: 'Theme not found.' };
     }
 
-    // Check if the voting phase is over
     const now = new Date();
     if (now < new Date(theme.voting_deadline)) {
       return { status: 400, body: 'Voting phase is not yet over.' };
     }
 
-    // Get all students who are not already in a group for this theme
     const students = await prisma.users.findMany({
       where: {
         role: 'Student',
@@ -59,7 +57,6 @@ export async function assignHandler(
       },
     });
 
-    // Sort ideas by vote count (descending) and creation time (ascending for ties)
     const sortedIdeas = theme.ideas
       .map((idea) => ({
         ...idea,
@@ -72,10 +69,8 @@ export async function assignHandler(
         return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
       });
 
-    // Get the top N ideas based on the number_of_groups
     const topIdeas = sortedIdeas.slice(0, theme.number_of_groups);
 
-    // Create groups for the top ideas
     const createdGroups = await Promise.all(
       topIdeas.map(async (idea) => {
         const group = await prisma.groups.create({
@@ -89,16 +84,13 @@ export async function assignHandler(
       })
     );
 
-    // If auto_assign_group is true, assign the remaining students to the groups
     if (theme.auto_assign_group) {
       const studentsToAssign = students.filter(
         (student) => !topIdeas.some((idea) => idea.submitted_by === student.user_id)
       );
 
-      // Shuffle students randomly
       const shuffledStudents = studentsToAssign.sort(() => Math.random() - 0.5);
 
-      // Assign students to groups equally
       const groupAssignments = [];
       for (let i = 0; i < shuffledStudents.length; i++) {
         const groupIndex = i % createdGroups.length;
@@ -108,7 +100,6 @@ export async function assignHandler(
         });
       }
 
-      // Add group members to the database
       await prisma.group_members.createMany({
         data: groupAssignments,
       });

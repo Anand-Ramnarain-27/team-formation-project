@@ -44,7 +44,6 @@ export async function themeHandler(
   }
 }
 
-// Get all themes
 async function getThemes(
   context: InvocationContext
 ): Promise<HttpResponseInit> {
@@ -71,7 +70,6 @@ async function getThemes(
   }
 }
 
-// Get a theme by ID
 async function getThemeById(
   request: HttpRequest,
   context: InvocationContext
@@ -111,7 +109,6 @@ async function getThemeById(
   }
 }
 
-// Create a new theme
 async function createTheme(
   request: HttpRequest,
   context: InvocationContext
@@ -147,7 +144,6 @@ async function createTheme(
   }
 }
 
-// Update an existing theme
 async function updateTheme(
   request: HttpRequest,
   context: InvocationContext

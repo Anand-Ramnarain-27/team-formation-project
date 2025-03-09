@@ -44,7 +44,6 @@ export async function reviewHandler(
   }
 }
 
-// Get all reviews
 async function getAllReviews(context: InvocationContext): Promise<HttpResponseInit> {
   try {
     const reviews = await prisma.review.findMany();
@@ -59,7 +58,6 @@ async function getAllReviews(context: InvocationContext): Promise<HttpResponseIn
   }
 }
 
-// Get a review by ID
 async function getReviewById(
   request: HttpRequest,
   context: InvocationContext
@@ -91,7 +89,6 @@ async function getReviewById(
   }
 }
 
-// Get reviews by group ID
 async function getReviewsByGroupId(
   request: HttpRequest,
   context: InvocationContext
@@ -119,7 +116,6 @@ async function getReviewsByGroupId(
   }
 }
 
-// Get reviews by reviewer ID
 async function getReviewsByReviewerId(
   request: HttpRequest,
   context: InvocationContext
@@ -147,7 +143,6 @@ async function getReviewsByReviewerId(
   }
 }
 
-// Get reviews by reviewee ID
 async function getReviewsByRevieweeId(
   request: HttpRequest,
   context: InvocationContext
@@ -175,7 +170,6 @@ async function getReviewsByRevieweeId(
   }
 }
 
-// Add this function to check if a review already exists
 async function checkExistingReview(
   reviewerId: number,
   revieweeId: number,
@@ -197,7 +191,6 @@ async function checkExistingReview(
   }
 }
 
-// Modify the createReview function to include the check
 async function createReview(
   request: HttpRequest,
   context: InvocationContext
@@ -206,17 +199,14 @@ async function createReview(
     const body = await request.json();
     const reviewBody: ReviewRequestBody = body as ReviewRequestBody;
 
-    // Validate rating
     if (reviewBody.rating < 1 || reviewBody.rating > 5) {
       return { status: 400, body: 'Invalid rating value. Must be between 1 and 5.' };
     }
 
-    // Check if the rating exists in the map
     if (!(reviewBody.rating in ratingEnumMap)) {
       return { status: 400, body: 'Invalid rating value.' };
     }
 
-    // Check if a review already exists for this reviewer, reviewee, and group
     const reviewExists = await checkExistingReview(
       reviewBody.reviewer_id,
       reviewBody.reviewee_id,
@@ -228,7 +218,6 @@ async function createReview(
       return { status: 400, body: 'You have already submitted a review for this member in the current review period.' };
     }
 
-    // Type assertion to tell TypeScript this is a valid key
     const ratingValue = ratingEnumMap[reviewBody.rating as 1|2|3|4|5];
 
     const review = await prisma.review.create({
