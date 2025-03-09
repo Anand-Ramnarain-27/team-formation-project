@@ -208,3 +208,29 @@ export interface ThemeWithQuestions extends Theme {
 export interface BaseThemeWithQuestions extends BaseTheme {
   questions: Question[];
 }
+
+export interface AdminAnalyticsReport {
+  report_id: number;
+  theme_id: number;
+  total_students: number;
+  total_reports: number;
+  average_rating: number;
+  participation_stats: {
+    ideas_submitted: number;
+    votes_cast: number;
+    reviews_completed: number;
+    totalIdeas: number;
+    totalVotes: number;
+    totalReviews: number;
+    averageRating: number;
+  };
+}
+
+export interface StudentProfileData {
+  student: User;
+  ideas: Idea[];
+  groups: Group[];
+  reviews: Review[];
+  participationStats: ParticipationStats;
+}
+

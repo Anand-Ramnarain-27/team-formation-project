@@ -94,30 +94,19 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Fetch analytics data
+  // Fetch analytics data from API
   const fetchAnalytics = async () => {
-    // Dummy analytics data
-    const dummyAnalytics: AnalyticsReport = {
-      report_id: 1,
-      theme_id: 1,
-      total_students: 87,
-      total_reports: 32,
-      average_rating: 4.2,
-      participation_stats: {
-        ideas_submitted: 45,
-        votes_cast: 156,
-        reviews_completed: 28,
-        totalIdeas: 45,
-        totalVotes: 200,
-        totalReviews: 35,
-        averageRating: 4.2,
-      },
-    };
-
-    // Simulate API fetch delay
-    setTimeout(() => {
-      setAnalyticsData(dummyAnalytics);
-    }, 700);
+    try {
+      const response = await fetch('http://localhost:7071/api/generateAllThemesAnalytics');
+      if (!response.ok) {
+        throw new Error('Failed to fetch analytics data');
+      }
+      const data = await response.json();
+      setAnalyticsData(data);
+    } catch (err) {
+      setError('Error fetching analytics data');
+      console.error(err);
+    }
   };
 
   // Fetch notifications
@@ -324,15 +313,6 @@ const Dashboard: React.FC = () => {
               </p>
             </Card>
             <Card>
-              <h3 className={styles.statTitle}>Average Rating</h3>
-              <p className={styles.statValue}>
-                {analyticsData.average_rating}/5.0
-              </p>
-              <p className={`${styles.statTrend} ${styles.neutral}`}>
-                Based on {analyticsData.total_reports} reviews
-              </p>
-            </Card>
-            <Card>
               <h3 className={styles.statTitle}>Ideas Submitted</h3>
               <p className={styles.statValue}>
                 {analyticsData.participation_stats.ideas_submitted}
@@ -342,7 +322,7 @@ const Dashboard: React.FC = () => {
               </p>
             </Card>
             <Card>
-              <h3 className={styles.statTitle}>Pending Reviews</h3>
+              <h3 className={styles.statTitle}>Reviews</h3>
               <p className={styles.statValue}>
                 {analyticsData.participation_stats.reviews_completed}
               </p>
@@ -430,14 +410,14 @@ const Dashboard: React.FC = () => {
                 <h4>Participation Stats</h4>
                 <ul>
                   <li>
-                    {analyticsData.participation_stats.votes_cast} votes cast
+                    {analyticsData.participation_stats.totalVotes} votes cast
                   </li>
                   <li>
-                    {analyticsData.participation_stats.ideas_submitted} ideas
+                    {analyticsData.participation_stats.totalIdeas} ideas
                     submitted
                   </li>
                   <li>
-                    {analyticsData.participation_stats.reviews_completed}{' '}
+                    {analyticsData.participation_stats.totalReviews}{' '}
                     reviews completed
                   </li>
                 </ul>

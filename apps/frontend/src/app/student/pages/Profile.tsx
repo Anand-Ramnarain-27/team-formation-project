@@ -6,6 +6,7 @@ import {
   Group,
   Review,
   ParticipationStats,
+  StudentProfileData,
 } from '@/app/shared/utils/types';
 import Card from '@/app/shared/components/Card/Card';
 import Tabs from '@/app/shared/components/Tabs/Tabs';
@@ -17,14 +18,13 @@ type TabType = 'participation' | 'ideas' | 'groups' | 'reviews';
 
 const Profile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('participation');
-  const [expandedGroups, setExpandedGroups] = useState<Record<number, boolean>>(
-    {}
-  );
+  const [expandedGroups, setExpandedGroups] = useState<Record<number, boolean>>({});
   const [error, setError] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<User>();
   const [myIdeas, setMyIdeas] = useState<Idea[]>([]);
   const [myGroups, setMyGroups] = useState<Group[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [participationStats, setParticipationStats] = useState<ParticipationStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -46,111 +46,36 @@ const Profile: React.FC = () => {
 
   const userId = currentUser?.user_id;
 
-  const [participationStats] = useState<ParticipationStats>({
-    ideas_submitted: 1,
-    votes_cast: 3,
-    reviews_completed: 3,
-    totalIdeas: 5,
-    totalVotes: 15,
-    totalReviews: 12,
-    averageRating: 4.2,
-  });
-
-  // Fetch my ideas
-  const fetchMyIdeas = async () => {
+  // Fetch profile data from the API
+  const fetchProfileData = async () => {
+    if (!userId) return;
+    
     try {
-      const response = await fetch(
-        `http://localhost:7071/api/idea?submitted_by=${userId}`
-      );
+      setIsLoading(true);
+      const response = await fetch(`http://localhost:7071/api/studentProfile?userId=${userId}`);
+      
       if (!response.ok) {
-        throw new Error('Failed to fetch my ideas');
+        throw new Error('Failed to fetch profile data');
       }
-      const data = await response.json();
-      setMyIdeas(data);
+      
+      const data = await response.json() as StudentProfileData;
+      
+      // Update state with API response data
+      setMyIdeas(data.ideas);
+      setMyGroups(data.groups);
+      setReviews(data.reviews);
+      setParticipationStats(data.participationStats);
+      setIsLoading(false);
     } catch (err) {
-      setError('Error fetching my ideas');
+      setError('Error fetching profile data');
       console.error(err);
-    }
-  };
-
-  // Fetch groups the user is a member of or is team lead for
-  const fetchMyGroups = async () => {
-    try {
-      if (!userId) return;
-
-      // First, get groups where user is a member
-      const memberResponse = await fetch(
-        `http://localhost:7071/api/groupMember?userId=${userId}`
-      );
-      if (!memberResponse.ok) {
-        throw new Error('Failed to fetch member groups');
-      }
-      const memberData = await memberResponse.json();
-
-      // Then, get groups where user is team lead
-      const leadResponse = await fetch(
-        `http://localhost:7071/api/group?teamLead=${userId}`
-      );
-      if (!leadResponse.ok) {
-        throw new Error('Failed to fetch team lead groups');
-      }
-      const leadData = await leadResponse.json();
-
-      // Combine the results, ensuring no duplicates
-      let groupsList = [];
-
-      // Extract the group objects from the member response
-      if (Array.isArray(memberData) && memberData.length > 0) {
-        groupsList = memberData.map((item) => item.group);
-      }
-
-      // Add groups where user is team lead, avoiding duplicates
-      if (Array.isArray(leadData) && leadData.length > 0) {
-        for (const leadGroup of leadData) {
-          const isDuplicate = groupsList.some(
-            (group) => group.group_id === leadGroup.group_id
-          );
-          if (!isDuplicate) {
-            groupsList.push(leadGroup);
-          }
-        }
-      }
-
-      setMyGroups(groupsList);
-    } catch (err) {
-      setError('Error fetching my groups');
-      console.error(err);
-    }
-  };
-
-  // Fetch reviews received by the user
-  const fetchReviews = async () => {
-    try {
-      if (!userId) return;
-
-      const response = await fetch(
-        `http://localhost:7071/api/review?reviewee_id=${userId}`
-      );
-      if (!response.ok) {
-        throw new Error('Failed to fetch reviews');
-      }
-      const data = await response.json();
-      setReviews(data);
-    } catch (err) {
-      setError('Error fetching reviews');
-      console.error(err);
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      await Promise.all([fetchMyIdeas(), fetchMyGroups(), fetchReviews()]);
-      setIsLoading(false);
-    };
-
     if (userId) {
-      loadData();
+      fetchProfileData();
     }
   }, [userId]);
 
@@ -223,12 +148,14 @@ const Profile: React.FC = () => {
           <address className={styles.profileDate}>{currentUser?.email}</address>
         </section>
 
-        <aside className={styles.profileRating}>
-          <p className={styles.ratingValue} aria-label="Average rating">
-            {participationStats.averageRating}/5
-          </p>
-          <p className={styles.ratingLabel}>Average Rating</p>
-        </aside>
+        {participationStats && (
+          <aside className={styles.profileRating}>
+            <p className={styles.ratingValue} aria-label="Average rating">
+              {participationStats.averageRating.toFixed(1)}/5
+            </p>
+            <p className={styles.ratingLabel}>Average Rating</p>
+          </aside>
+        )}
       </article>
 
       <nav>
@@ -242,42 +169,54 @@ const Profile: React.FC = () => {
       >
         {activeTab === 'participation' && (
           <Card title="Participation Overview">
-            <section className={styles.participationStats}>
-              <ParticipationStat
-                label="Ideas"
-                value={participationStats.totalIdeas}
-                total={20}
-              />
-              <ParticipationStat
-                label="Votes"
-                value={participationStats.totalVotes}
-                total={20}
-              />
-              <ParticipationStat
-                label="Reviews"
-                value={participationStats.totalReviews}
-                total={20}
-              />
-            </section>
+            {isLoading ? (
+              <div className={styles.loading}>Loading participation stats...</div>
+            ) : participationStats ? (
+              <section className={styles.participationStats}>
+                <ParticipationStat
+                  label="Ideas"
+                  value={participationStats.ideas_submitted}
+                  total={20}
+                />
+                <ParticipationStat
+                  label="Votes"
+                  value={participationStats.votes_cast}
+                  total={20}
+                />
+                <ParticipationStat
+                  label="Reviews"
+                  value={participationStats.reviews_completed}
+                  total={20}
+                />
+              </section>
+            ) : (
+              <div className={styles.noData}>No participation data available</div>
+            )}
           </Card>
         )}
 
         {activeTab === 'ideas' && (
           <Card title="Submitted Ideas">
-            <ul className={styles.ideaList}>
-              {myIdeas.map((idea) => (
-                <li key={idea.idea_id}>
-                  <IdeaCard
-                    key={idea.idea_id}
-                    {...idea}
-                    onVote={() => {}}
-                    isVoted={false}
-                    remainingVotes={0}
-                    votingActive={false}
-                  />
-                </li>
-              ))}
-            </ul>
+            {isLoading ? (
+              <div className={styles.loading}>Loading ideas...</div>
+            ) : myIdeas.length > 0 ? (
+              <ul className={styles.ideaList}>
+                {myIdeas.map((idea) => (
+                  <li key={idea.idea_id}>
+                    <IdeaCard
+                      key={idea.idea_id}
+                      {...idea}
+                      onVote={() => {}}
+                      isVoted={false}
+                      remainingVotes={0}
+                      votingActive={false}
+                    />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className={styles.noData}>No ideas submitted yet</div>
+            )}
           </Card>
         )}
 
@@ -311,17 +250,23 @@ const Profile: React.FC = () => {
 
         {activeTab === 'reviews' && (
           <Card title="Reviews Received">
-            <ul className={styles.reviewList}>
-              {reviews.map((review) => (
-                <li key={review.review_id}>
-                  <ReviewCard
-                    {...review}
-                    showGroupName={true}
-                    className={styles.reviewItem}
-                  />
-                </li>
-              ))}
-            </ul>
+            {isLoading ? (
+              <div className={styles.loading}>Loading reviews...</div>
+            ) : reviews.length > 0 ? (
+              <ul className={styles.reviewList}>
+                {reviews.map((review) => (
+                  <li key={review.review_id}>
+                    <ReviewCard
+                      {...review}
+                      showGroupName={true}
+                      className={styles.reviewItem}
+                    />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className={styles.noData}>No reviews received yet</div>
+            )}
           </Card>
         )}
       </section>

@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import styles from './Analytics.module.css';
-import { AnalyticsReport, Student } from '@/app/shared/utils/types';
+import { AnalyticsReport, Student, Theme, ParticipationStats } from '@/app/shared/utils/types';
 import Card from '@/app/shared/components/Card/Card';
 import TextInput from '@/app/shared/components/Form/TextInput';
+import SelectInput from '@/app/shared/components/SelectInput/SelectInput';
+import Button from '@/app/shared/components/Button/Button';
 import {
   LoadingState,
   EmptyState,
@@ -68,67 +70,255 @@ const StudentMetric: React.FC<{ title: string; value: string | number }> = ({
   </article>
 );
 
+// API URLs
+const API_BASE_URL = `http://localhost:7071`;
+
 const Analytics: React.FC = () => {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsReport | null>(
-    null
-  );
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsReport | null>(null);
+  const [globalAnalyticsData, setGlobalAnalyticsData] = useState<AnalyticsReport | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
+  const [themes, setThemes] = useState<Theme[]>([]);
+  const [selectedTheme, setSelectedTheme] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isStudentsLoading, setIsStudentsLoading] = useState(true);
+  const [isThemeAnalyticsLoading, setIsThemeAnalyticsLoading] = useState(false);
+  const [studentDetails, setStudentDetails] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'students' | 'themes'>('themes');
 
+  // Fetch all themes
+  const fetchThemes = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/theme`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch themes');
+      }
+      
+      const data = await response.json();
+      setThemes(data);
+      
+      // Set the first theme as selected by default if available
+      if (data.length > 0 && !selectedTheme) {
+        setSelectedTheme(data[0].theme_id);
+      }
+    } catch (error) {
+      console.error('Error fetching themes:', error);
+    }
+  }, [selectedTheme]);
+
+  // Fetch all students
+  const fetchStudents = useCallback(async () => {
+    try {
+      setIsStudentsLoading(true);
+      const response = await fetch(`${API_BASE_URL}/api/user`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch students');
+      }
+      
+      const data = await response.json();
+      
+      // Filter users to only include those with the role "student"
+      const studentsOnly = data.filter((user: any) => 
+        user.role && user.role.toLowerCase() === "student"
+      );
+      
+      // Map the API response to the Student interface
+      const formattedStudents: Student[] = studentsOnly.map((user: any) => ({
+        user_id: user.user_id,
+        name: user.name,
+        email: user.email,
+        group_name: '', // Will be populated with student details API
+        metrics: {
+          ideas_submitted: 0,
+          votes_given: 0,
+          reviews_given: 0,
+          average_rating_received: 0,
+          participation_rate: '0%',
+        },
+      }));
+      
+      setStudents(formattedStudents);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+    } finally {
+      setIsStudentsLoading(false);
+    }
+  }, []);
+
+  // Fetch global analytics data across all themes
+  const fetchGlobalAnalyticsData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`${API_BASE_URL}/api/generateAllThemesAnalytics`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch global analytics data');
+      }
+      
+      const data = await response.json();
+      setGlobalAnalyticsData(data);
+    } catch (error) {
+      console.error('Error fetching global analytics data:', error);
+      // Create placeholder data in case of error
+      const placeholderData: AnalyticsReport = {
+        report_id: 0,
+        theme_id: 0,
+        total_students: 0,
+        total_reports: 0,
+        average_rating: 0,
+        participation_stats: {
+          ideas_submitted: 0,
+          votes_cast: 0,
+          reviews_completed: 0,
+          totalIdeas: 0,
+          totalVotes: 0,
+          totalReviews: 0,
+          averageRating: 0,
+        },
+      };
+      setGlobalAnalyticsData(placeholderData);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Fetch theme-specific analytics
+  const fetchThemeAnalytics = useCallback(async (themeId: number) => {
+    try {
+      setIsThemeAnalyticsLoading(true);
+      const response = await fetch(`${API_BASE_URL}/api/generateAnalytics?themeId=${themeId}`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch analytics for theme ${themeId}`);
+      }
+      
+      const data = await response.json();
+      setAnalyticsData(data);
+    } catch (error) {
+      console.error(`Error fetching analytics for theme ${themeId}:`, error);
+      // Create placeholder data in case of error
+      const placeholderData: AnalyticsReport = {
+        report_id: 0,
+        theme_id: themeId,
+        total_students: 0,
+        total_reports: 0,
+        average_rating: 0,
+        participation_stats: {
+          ideas_submitted: 0,
+          votes_cast: 0,
+          reviews_completed: 0,
+          totalIdeas: 0,
+          totalVotes: 0,
+          totalReviews: 0,
+          averageRating: 0,
+        },
+      };
+      setAnalyticsData(placeholderData);
+    } finally {
+      setIsThemeAnalyticsLoading(false);
+    }
+  }, []);
+
+  // Initial data loading
   useEffect(() => {
-    const fetchData = async () => {
+    fetchThemes();
+    fetchStudents();
+    fetchGlobalAnalyticsData();
+  }, [fetchThemes, fetchStudents, fetchGlobalAnalyticsData]);
+
+  // Fetch theme-specific analytics when a theme is selected
+  useEffect(() => {
+    if (selectedTheme) {
+      fetchThemeAnalytics(selectedTheme);
+    }
+  }, [selectedTheme, fetchThemeAnalytics]);
+
+  // Fetch student details when a student is selected
+  useEffect(() => {
+    const fetchStudentDetails = async () => {
+      if (!selectedStudent) return;
+      
       try {
-        // Simulated API calls
-        const mockAnalyticsData: AnalyticsReport = {
-          report_id: 1,
-          theme_id: 1,
-          total_students: 150,
-          total_reports: 450,
-          average_rating: 4.2,
-          participation_stats: {
-            ideas_submitted: 125,
-            votes_cast: 1200,
-            reviews_completed: 300,
-            totalIdeas: 5,
-            totalVotes: 15,
-            totalReviews: 12,
-            averageRating: 4.2,
+        const response = await fetch(
+          `${API_BASE_URL}/api/studentProfile?userId=${selectedStudent.user_id}`
+        );
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch student profile');
+        }
+        
+        const profileData = await response.json();
+        
+        // Update the student with detailed information
+        const updatedStudent = {
+          ...selectedStudent,
+          group_name: profileData.groups.length > 0 ? profileData.groups[0].group_name : 'No Group',
+          metrics: {
+            ideas_submitted: profileData.participationStats.totalIdeas,
+            votes_given: profileData.participationStats.totalVotes,
+            reviews_given: profileData.participationStats.totalReviews,
+            average_rating_received: profileData.participationStats.averageRating.toFixed(1),
+            participation_rate: calculateParticipationRate(profileData),
           },
         };
-
-        const mockStudents: Student[] = [
-          {
-            user_id: 1,
-            name: 'Alice Johnson',
-            email: 'alice@university.edu',
-            group_name: 'Innovation Team',
-            metrics: {
-              ideas_submitted: 2,
-              votes_given: 15,
-              reviews_given: 8,
-              average_rating_received: 4.5,
-              participation_rate: '95%',
-            },
-          },
-        ];
-
-        setAnalyticsData(mockAnalyticsData);
-        setStudents(mockStudents);
-        setIsLoading(false);
-        setIsStudentsLoading(false);
+        
+        setSelectedStudent(updatedStudent);
+        setStudentDetails(profileData);
       } catch (error) {
-        console.error('Error fetching data:', error);
-        setIsLoading(false);
-        setIsStudentsLoading(false);
+        console.error('Error fetching student details:', error);
       }
     };
 
-    fetchData();
-  }, []);
+    fetchStudentDetails();
+  }, [selectedStudent?.user_id]);
 
+  // Helper function to calculate participation rate
+  const calculateParticipationRate = (profileData: any): string => {
+    // Simple calculation - can be adjusted based on actual requirements
+    const totalActivities = profileData.participationStats.totalIdeas + 
+                          profileData.participationStats.totalVotes + 
+                          profileData.participationStats.totalReviews;
+    
+    // Assuming a theoretical maximum of 10 activities per student
+    const maxActivities = 10;
+    const rate = Math.min(100, Math.round((totalActivities / maxActivities) * 100));
+    
+    return `${rate}%`;
+  };
+
+  // Helper function to render theme selector
+  const renderThemeSelector = () => (
+    <div className={styles.themeSelector}>
+      <SelectInput
+        value={selectedTheme?.toString() || ''}
+        onChange={(value: any) => setSelectedTheme(Number(value))}
+        options={themes.map((theme) => ({
+          value: theme.theme_id.toString(),
+          label: theme.title,
+        }))}
+        className={styles.themeSelect}
+      />
+    </div>
+  );
+
+  // Helper function to get participation rate as a percentage
+  const getParticipationRate = (stats: ParticipationStats): string => {
+    if (!stats) return '0%';
+    
+    const totalActivities = stats.totalIdeas + stats.totalVotes + stats.totalReviews;
+    // Theoretical maximum activities per student (adjustable)
+    const maxActivitiesPerStudent = 10;
+    const totalStudents = globalAnalyticsData?.total_students || 1;
+    const maxPossibleActivities = totalStudents * maxActivitiesPerStudent;
+    
+    const rate = Math.min(100, Math.round((totalActivities / maxPossibleActivities) * 100));
+    return `${rate}%`;
+  };
+
+  // Filter students based on search query
   const filteredStudents = students.filter(
     (student) =>
       student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -141,106 +331,238 @@ const Analytics: React.FC = () => {
 
   return (
     <main className={styles.dashboard}>
-      <section className={styles.metricsGrid}>
-        <MetricCard
-          icon="👥"
-          label="Total Students"
-          value={analyticsData?.total_students || 0}
-          colorClass="metricBlue"
-        />
-        <MetricCard
-          icon="💡"
-          label="Ideas Submitted"
-          value={analyticsData?.participation_stats.ideas_submitted || 0}
-          colorClass="metricYellow"
-        />
-        <MetricCard
-          icon="⭐"
-          label="Average Rating"
-          value={analyticsData?.average_rating || 0}
-          colorClass="metricPurple"
-        />
+      <section className={styles.analyticsHeader}>
+        <div className={styles.tabSelector}>
+          <Button 
+            className={`${styles.tabButton} ${activeTab === 'themes' ? styles.activeTab : ''}`}
+            onClick={() => setActiveTab('themes')}
+          >
+            Theme Analytics
+          </Button>
+          <Button 
+            className={`${styles.tabButton} ${activeTab === 'students' ? styles.activeTab : ''}`}
+            onClick={() => setActiveTab('students')}
+          >
+            Student Analytics
+          </Button>
+        </div>
+        
+        {activeTab === 'themes' && renderThemeSelector()}
       </section>
 
-      <section className={styles.chartsGrid}>
-        <Card title="Ideas Distribution">
-          <figure className={styles.chart}>
-            <figcaption>Ideas Distribution Chart</figcaption>
-            {/* Chart implementation here */}
-          </figure>
-        </Card>
-
-        <Card title="Rating Distribution">
-          <figure className={styles.chart}>
-            <figcaption>Rating Distribution Chart</figcaption>
-            {/* Chart implementation here */}
-          </figure>
-        </Card>
-
-        <Card title="Activity Overview" className={styles.fullWidth}>
-          <figure className={styles.chart}>
-            <figcaption>Activity Overview Chart</figcaption>
-            {/* Chart implementation here */}
-          </figure>
-        </Card>
-      </section>
-
-      <section className={styles.studentSection}>
-        {isStudentsLoading ? (
-          <LoadingState message="Loading students..." />
-        ) : students.length === 0 ? (
-          <EmptyState
-            title="No Students Found"
-            description="There are no students to display at this time."
-          />
-        ) : (
-          <Card title="Student Analytics">
-            <TextInput
-              value={searchQuery}
-              onChange={setSearchQuery}
-              placeholder="Search students..."
-              className={styles.searchInput}
+      {activeTab === 'themes' ? (
+        // Theme Analytics View
+        <>
+          <section className={styles.metricsGrid}>
+            <MetricCard
+              icon="📚"
+              label="Total Themes"
+              value={themes.length}
+              colorClass="metricGreen"
             />
-            <section className={styles.studentList}>
-              {filteredStudents.map((student) => (
-                <StudentCard
-                  key={student.user_id}
-                  student={student}
-                  isSelected={selectedStudent?.user_id === student.user_id}
-                  onSelect={setSelectedStudent}
-                />
-              ))}
-            </section>
-          </Card>
-        )}
+            <MetricCard
+              icon="👥"
+              label="Total Students"
+              value={globalAnalyticsData?.total_students || 0}
+              colorClass="metricBlue"
+            />
+            <MetricCard
+              icon="💡"
+              label="Total Ideas"
+              value={globalAnalyticsData?.participation_stats.totalIdeas || 0}
+              colorClass="metricYellow"
+            />
+          </section>
+          
+          <section className={styles.themeAnalytics}>
+            <Card title={`Theme Analytics: ${themes.find(t => t.theme_id === selectedTheme)?.title || 'Loading...'}`}>
+              {isThemeAnalyticsLoading ? (
+                <LoadingState message="Loading theme analytics..." />
+              ) : (
+                <div className={styles.themeMetricsGrid}>
+                  <div className={styles.themeMetric}>
+                    <h3>Students</h3>
+                    <p className={styles.metricValue}>{analyticsData?.total_students || 0}</p>
+                  </div>
+                  <div className={styles.themeMetric}>
+                    <h3>Ideas Submitted</h3>
+                    <p className={styles.metricValue}>{analyticsData?.participation_stats.ideas_submitted || 0}</p>
+                  </div>
+                  <div className={styles.themeMetric}>
+                    <h3>Votes Cast</h3>
+                    <p className={styles.metricValue}>{analyticsData?.participation_stats.votes_cast || 0}</p>
+                  </div>
+                  <div className={styles.themeMetric}>
+                    <h3>Reviews Completed</h3>
+                    <p className={styles.metricValue}>{analyticsData?.participation_stats.reviews_completed || 0}</p>
+                  </div>
+                  <div className={styles.themeMetric}>
+                    <h3>Average Rating</h3>
+                    <p className={styles.metricValue}>{(analyticsData?.average_rating || 0).toFixed(1)}</p>
+                  </div>
+                  <div className={styles.themeMetric}>
+                    <h3>Participation Rate</h3>
+                    <p className={styles.metricValue}>
+                      {analyticsData ? getParticipationRate(analyticsData.participation_stats) : '0%'}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </Card>
+          </section>
 
-        {selectedStudent && (
-          <Card title="Student Details">
-            <section className={styles.studentMetrics}>
-              <StudentMetric
-                title="Ideas Submitted"
-                value={selectedStudent.metrics.ideas_submitted}
+          <section className={styles.chartsGrid}>
+            <Card title="Ideas Distribution">
+              <figure className={styles.chart}>
+                <div className={styles.chartPlaceholder}>
+                  <h3>Ideas by Status</h3>
+                  <div className={styles.distributionBar}>
+                    <div 
+                      className={`${styles.distributionSegment} ${styles.approvedSegment}`}
+                      style={{ 
+                        width: `${analyticsData?.participation_stats.ideas_submitted ? 
+                          (analyticsData.total_reports / analyticsData.participation_stats.ideas_submitted) * 100 : 0}%` 
+                      }}
+                    >
+                      Approved
+                    </div>
+                    <div 
+                      className={`${styles.distributionSegment} ${styles.pendingSegment}`}
+                      style={{ 
+                        width: `${analyticsData?.participation_stats.ideas_submitted ? 
+                          100 - ((analyticsData.total_reports / analyticsData.participation_stats.ideas_submitted) * 100) : 0}%` 
+                      }}
+                    >
+                      Pending
+                    </div>
+                  </div>
+                </div>
+              </figure>
+            </Card>
+
+            <Card title="Rating Distribution">
+              <figure className={styles.chart}>
+                <div className={styles.chartPlaceholder}>
+                  <h3>Average Ratings</h3>
+                  <div className={styles.ratingDistribution}>
+                    <div className={styles.starRating}>
+                      <span className={styles.stars}>{'★'.repeat(5)}</span>
+                      <div 
+                        className={styles.ratingBar} 
+                        style={{ width: `${analyticsData?.average_rating ? (analyticsData.average_rating / 5) * 100 : 0}%` }}
+                      ></div>
+                    </div>
+                    <span className={styles.ratingValue}>{(analyticsData?.average_rating || 0).toFixed(1)}</span>
+                  </div>
+                </div>
+              </figure>
+            </Card>
+
+            <Card title="Activity Overview" className={styles.fullWidth}>
+              <figure className={styles.chart}>
+                <div className={styles.chartPlaceholder}>
+                  <h3>Participation Summary</h3>
+                  <div className={styles.activitySummary}>
+                    <div className={styles.activityMetric}>
+                      <div className={styles.activityLabel}>Ideas</div>
+                      <div className={styles.activityValue}>{analyticsData?.participation_stats.ideas_submitted || 0}</div>
+                    </div>
+                    <div className={styles.activityMetric}>
+                      <div className={styles.activityLabel}>Votes</div>
+                      <div className={styles.activityValue}>{analyticsData?.participation_stats.votes_cast || 0}</div>
+                    </div>
+                    <div className={styles.activityMetric}>
+                      <div className={styles.activityLabel}>Reviews</div>
+                      <div className={styles.activityValue}>{analyticsData?.participation_stats.reviews_completed || 0}</div>
+                    </div>
+                  </div>
+                </div>
+              </figure>
+            </Card>
+          </section>
+        </>
+      ) : (
+        // Student Analytics View
+        <>
+          <section className={styles.metricsGrid}>
+            <MetricCard
+              icon="👥"
+              label="Total Students"
+              value={students.length}
+              colorClass="metricBlue"
+            />
+            <MetricCard
+              icon="💡"
+              label="Ideas Submitted"
+              value={globalAnalyticsData?.participation_stats.ideas_submitted || 0}
+              colorClass="metricYellow"
+            />
+            <MetricCard
+              icon="⭐"
+              label="Average Rating"
+              value={(globalAnalyticsData?.average_rating || 0).toFixed(1)}
+              colorClass="metricPurple"
+            />
+          </section>
+
+          <section className={styles.studentSection}>
+            {isStudentsLoading ? (
+              <LoadingState message="Loading students..." />
+            ) : students.length === 0 ? (
+              <EmptyState
+                title="No Students Found"
+                description="There are no students to display at this time."
               />
-              <StudentMetric
-                title="Votes Given"
-                value={selectedStudent.metrics.votes_given}
-              />
-              <StudentMetric
-                title="Reviews Given"
-                value={selectedStudent.metrics.reviews_given}
-              />
-              <StudentMetric
-                title="Average Rating"
-                value={selectedStudent.metrics.average_rating_received}
-              />
-              <StudentMetric
-                title="Participation Rate"
-                value={selectedStudent.metrics.participation_rate}
-              />
-            </section>
-          </Card>
-        )}
-      </section>
+            ) : (
+              <Card title="Student Analytics">
+                <TextInput
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  placeholder="Search students..."
+                  className={styles.searchInput}
+                />
+                <section className={styles.studentList}>
+                  {filteredStudents.map((student) => (
+                    <StudentCard
+                      key={student.user_id}
+                      student={student}
+                      isSelected={selectedStudent?.user_id === student.user_id}
+                      onSelect={setSelectedStudent}
+                    />
+                  ))}
+                </section>
+              </Card>
+            )}
+
+            {selectedStudent && (
+              <Card title="Student Details">
+                <section className={styles.studentMetrics}>
+                  <StudentMetric
+                    title="Ideas Submitted"
+                    value={selectedStudent.metrics.ideas_submitted}
+                  />
+                  <StudentMetric
+                    title="Votes Given"
+                    value={selectedStudent.metrics.votes_given}
+                  />
+                  <StudentMetric
+                    title="Reviews Given"
+                    value={selectedStudent.metrics.reviews_given}
+                  />
+                  <StudentMetric
+                    title="Average Rating"
+                    value={selectedStudent.metrics.average_rating_received}
+                  />
+                  <StudentMetric
+                    title="Participation Rate"
+                    value={selectedStudent.metrics.participation_rate}
+                  />
+                </section>
+              </Card>
+            )}
+          </section>
+        </>
+      )}
     </main>
   );
 };

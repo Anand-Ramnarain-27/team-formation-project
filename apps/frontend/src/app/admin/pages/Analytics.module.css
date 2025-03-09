@@ -1,115 +1,257 @@
 .dashboard {
-  padding: var(--spacing-lg);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: 1.5rem;
+}
+
+.analyticsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.tabSelector {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tabButton {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  background-color: #f3f4f6;
+  color: #6b7280;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.activeTab {
+  background-color: #2563eb;
+  color: white;
+}
+
+.themeSelector {
+  min-width: 250px;
 }
 
 .metricsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--spacing-md);
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
 }
 
 .metricCard {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  padding: 1rem;
 }
 
 .metricIcon {
-  width: 2.5rem;
-  height: 2.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0.5rem;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  margin-right: 1rem;
+  font-size: 1.5rem;
 }
 
 .metricBlue {
-  background: #e6f3ff;
-  color: #2196f3;
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
 }
 
 .metricYellow {
-  background: #fff3e0;
-  color: #ffa726;
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
 }
 
 .metricPurple {
-  background: #f3e5f5;
-  color: #9c27b0;
+  background-color: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+}
+
+.metricGreen {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.metricRed {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
 }
 
 .metricContent {
-  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .metricLabel {
   font-size: 0.875rem;
   color: #6b7280;
-  margin-bottom: 0.25rem;
-  font-weight: normal;
+  margin: 0;
 }
 
 .metricValue {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #111827;
   margin: 0;
 }
 
 .chartsGrid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
-
-@media (min-width: 1024px) {
-  .chartsGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
 }
 
 .fullWidth {
   grid-column: 1 / -1;
 }
 
+.chart {
+  height: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+}
+
+.chartPlaceholder {
+  width: 100%;
+  height: 100%;
+  padding: 1rem;
+}
+
+.distributionBar {
+  height: 2rem;
+  display: flex;
+  border-radius: 0.375rem;
+  overflow: hidden;
+  margin-top: 1rem;
+}
+
+.distributionSegment {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: width 0.5s ease;
+}
+
+.approvedSegment {
+  background-color: #10b981;
+}
+
+.pendingSegment {
+  background-color: #f59e0b;
+}
+
+.ratingDistribution {
+  display: flex;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.starRating {
+  flex: 1;
+  position: relative;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+}
+
+.stars {
+  color: #d1d5db;
+  font-size: 1.5rem;
+}
+
+.ratingBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background-color: rgba(245, 158, 11, 0.3);
+  z-index: -1;
+  border-radius: 0.25rem;
+  transition: width 0.5s ease;
+}
+
+.ratingValue {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-left: 1rem;
+}
+
+.activitySummary {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 1.5rem;
+}
+
+.activityMetric {
+  text-align: center;
+}
+
+.activityLabel {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.activityValue {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.themeAnalytics {
+  margin-bottom: 1.5rem;
+}
+
+.themeMetricsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  padding: 1rem;
+}
+
+.themeMetric {
+  text-align: center;
+  background-color: #f9fafb;
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.themeMetric h3 {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 0.5rem 0;
+}
+
 .studentSection {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
-
-@media (min-width: 1024px) {
-  .studentSection {
-    grid-template-columns: 350px 1fr;
-  }
-}
-
-.searchInput {
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  margin-bottom: 1rem;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
 }
 
 .studentList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  max-height: 31.25rem;
+  max-height: 400px;
   overflow-y: auto;
+  margin-top: 1rem;
 }
 
 .studentCard {
   padding: 0.75rem;
   border-radius: 0.375rem;
   border: 1px solid #e5e7eb;
+  margin-bottom: 0.5rem;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
 }
 
 .studentCard:hover {
@@ -117,74 +259,91 @@
 }
 
 .studentCard.selected {
-  background-color: #e6f3ff;
-  border-color: #2196f3;
+  background-color: #eff6ff;
+  border-color: #3b82f6;
 }
 
 .studentHeader {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
 }
 
 .avatar {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 50%;
-  background: #e5e7eb;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background-color: #3b82f6;
+  color: white;
   font-weight: 600;
-  color: #4b5563;
+  margin-right: 0.75rem;
 }
 
 .studentInfo {
-  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .studentName {
-  font-weight: 600;
-  color: #111827;
+  font-size: 0.875rem;
+  font-weight: 500;
   margin: 0;
-  font-size: 1rem;
 }
 
 .studentEmail {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: #6b7280;
   margin: 0;
 }
 
 .studentMetrics {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 1rem;
+  margin-top: 1rem;
 }
 
 .metricBox {
+  text-align: center;
+  background-color: #f9fafb;
   padding: 1rem;
-  border-radius: 0.375rem;
-  background: #f9fafb;
+  border-radius: 0.5rem;
 }
 
 .metricTitle {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: #6b7280;
-  margin: 0 0 0.25rem 0;
-  font-weight: normal;
+  margin: 0 0 0.5rem 0;
 }
 
 .metricNumber {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #111827;
   margin: 0;
 }
 
-.chart {
-  width: 100%;
-  height: 18.75rem;
-  padding: 1rem;
-  margin: 0;
+.searchInput {
+  margin-top: 1rem;
+}
+
+@media screen and (max-width: 768px) {
+  .chartsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .studentSection {
+    grid-template-columns: 1fr;
+  }
+  
+  .themeMetricsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .analyticsHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
 }
