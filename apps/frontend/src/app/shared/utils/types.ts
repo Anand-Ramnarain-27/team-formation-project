@@ -62,7 +62,7 @@ export interface Group {
   team_lead: number;
   created_at: string;
   updated_at?: string | null;
-  // Joined/computed fields
+
   theme_title?: string;
   team_lead_details?: User;
   members?: User[];
@@ -92,16 +92,16 @@ export interface Idea {
   description: string;
   status: 'Pending' | 'Approved' | 'Rejected';
   created_at: string;
-  // Joined/computed fields
+
   submitter_name?: string;
   votingActive?: boolean;
   votes_count?: number;
   theme_title?: string;
   vote_count?: number;
   className?: string;
-  onVote?: () => void; // Optional vote handler
-  isVoted?: boolean; // Whether the idea is already voted
-  remainingVotes?: number; // Remaining votes
+  onVote?: () => void; 
+  isVoted?: boolean; 
+  remainingVotes?: number;
 }
 
 export interface IdeaSubmission {
@@ -190,7 +190,6 @@ export interface MemberManagementDialogProps {
   onRemoveMember: (userId: number) => void;
 }
 
-// Define the Question interface
 export interface Question {
   question_id?: number;
   theme_id?: number;
@@ -199,12 +198,10 @@ export interface Question {
   updated_at?: string;
 }
 
-// Extended Theme to include questions
 export interface ThemeWithQuestions extends Theme {
   questions: Question[];
 }
 
-// Extended BaseTheme to include questions
 export interface BaseThemeWithQuestions extends BaseTheme {
   questions: Question[];
 }

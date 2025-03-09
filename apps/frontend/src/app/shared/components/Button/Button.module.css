@@ -13,22 +13,20 @@
   gap: 0.5rem;
 }
 
-/* Primary Button (Default) */
 .button {
-  background-color: #2563eb; /* Blue */
+  background-color: #2563eb;
   color: white;
 }
 
 .button:hover:not(:disabled) {
-  background-color: #1d4ed8; /* Darker blue */
+  background-color: #1d4ed8;
 }
 
 .button:disabled {
-  background-color: #93c5fd; /* Lighter blue */
+  background-color: #93c5fd; 
   cursor: not-allowed;
 }
 
-/* Secondary Button */
 .secondary {
   background-color: white;
   color: #2563eb;
@@ -42,31 +40,29 @@
 }
 
 .third:hover:not(:disabled) {
-  background-color: #f5b9b9; /* Darker red */
+  background-color: #f5b9b9;
 }
 
 .secondary:hover:not(:disabled) {
-  background-color: #f8f9fa; /* Light gray */
+  background-color: #f8f9fa;
 }
 
-/* Danger Button */
 .danger {
-  background-color: #dc2626; /* Red */
+  background-color: #dc2626;
   color: white;
 }
 
 .danger:hover:not(:disabled) {
-  background-color: #b91c1c; /* Darker red */
+  background-color: #b91c1c; 
 }
 
-/* Success Button */
 .success {
-  background-color: #22c55e; /* Green */
+  background-color: #22c55e;
   color: white;
 }
 
 .success:hover:not(:disabled) {
-  background-color: #16a34a; /* Darker green */
+  background-color: #16a34a;
 }
 
 .fourth {

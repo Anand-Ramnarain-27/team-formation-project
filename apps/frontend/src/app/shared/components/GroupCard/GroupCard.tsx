@@ -57,7 +57,6 @@ const GroupCard = ({
     }
   };
 
-  // No need to fetch team lead separately as it's now included in group members API response
   const fetchGroupData = async () => {
     try {
       if (isExpanded && group.group_id) {
@@ -72,37 +71,32 @@ const GroupCard = ({
         const groupMembersData = await response.json();
         
         if (Array.isArray(groupMembersData) && groupMembersData.length > 0) {
-          // Extract all members including team lead
           const membersList = groupMembersData.map(item => item.member);
           setMembers(membersList);
           
-          // Find team lead from the members list
           if (group.team_lead) {
             const teamLead = membersList.find(member => member.user_id === group.team_lead);
             if (teamLead) {
               setTeamLeadName(teamLead.name);
               setTeamLeadDetails(teamLead.email);
             } else {
-              // If team lead is not in members list (though it should be based on updated API)
               fetchTeamLeadSeparately();
             }
           }
         } else {
           setMembers([]);
-          fetchTeamLeadSeparately(); // Fallback if no members returned
+          fetchTeamLeadSeparately(); 
         }
       } else if (group.team_lead) {
-        // If not expanded but we still need team lead info
         fetchTeamLeadSeparately();
       }
     } catch (error) {
       console.error('Error fetching group data:', error);
       setMembers([]);
-      fetchTeamLeadSeparately(); // Fallback on error
+      fetchTeamLeadSeparately(); 
     }
   };
 
-  // Fallback method to fetch team lead separately if needed
   const fetchTeamLeadSeparately = async () => {
     try {
       if (group.team_lead) {
@@ -127,7 +121,6 @@ const GroupCard = ({
     }
   };
 
-  // Load basic data
   useEffect(() => {
     const loadBasicData = async () => {
       setIsLoading(true);
@@ -140,7 +133,6 @@ const GroupCard = ({
     }
   }, [group.theme_id]);
 
-  // Load members and team lead when expanded
   useEffect(() => {
     if (isExpanded || group.team_lead) {
       fetchGroupData();

@@ -17,7 +17,6 @@ const LoginPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Mock user data for the dropdown
   const availableUsers = [
     { user_id: 1, name: 'Admin', email: 'Admin@gmail.com', role: 'Admin' },
     { user_id: 2, name: 'Student One', email: 'student_one@gmail.com', role: 'Student' },
@@ -40,11 +39,9 @@ const LoginPage: React.FC = () => {
     setError(null);
 
     try {
-      // First try to use the API
       let userData: User | null = null;
       
       try {
-        // Call your API to get the user details
         const response = await fetch(`http://localhost:7071/api/user/${selectedUserId}`);
         
         if (!response.ok) {
@@ -58,7 +55,6 @@ const LoginPage: React.FC = () => {
       } catch (apiError) {
         console.error('API error:', apiError);
         
-        // Fallback to mock data if API fails
         console.log('Falling back to mock data');
         userData = availableUsers.find(user => user.user_id.toString() === selectedUserId) as User;
         
@@ -67,14 +63,12 @@ const LoginPage: React.FC = () => {
         }
       }
       
-      // Navigate based on user role
       if (userData?.role === 'Admin') {
         navigate('/admin');
       } else {
         navigate('/student');
       }
       
-      // Store user data in localStorage for future reference
       localStorage.setItem('currentUser', JSON.stringify(userData));
       
     } catch (err) {

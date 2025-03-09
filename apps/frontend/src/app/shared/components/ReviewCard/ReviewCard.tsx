@@ -24,7 +24,6 @@ const ReviewCard = ({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Parse the rating enum (e.g., RATING_1, RATING_2) to get numeric value
   let numericRating = '1';
   if (rating && typeof rating === 'string' && rating.match(/RATING_\d+/)) {
     const ratingMatch = rating.match(/RATING_(\d+)/);
@@ -32,11 +31,9 @@ const ReviewCard = ({
       numericRating = ratingMatch[1];
     }
   } else {
-    // If it's already a number or number as string, use it directly
     numericRating = rating;
   }
 
-  // Convert to number for comparison
   const ratingValue = Number(numericRating);
 
   const formatDate = (date: string) =>
