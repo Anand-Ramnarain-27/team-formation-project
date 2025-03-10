@@ -30,7 +30,7 @@
 
 .themesGrid {
   display: grid;
-  gap: 1rem;
+  gap: var(--spacing-md);
 }
 
 .pinkTheme {
@@ -56,12 +56,12 @@
 }
 
 .viewButton {
-  padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-sm);
   background-color: rgba(255, 255, 255, 0.2);
   border: none;
   border-radius: 0.25rem;
-  color: white;
+  color: var(--text-color-light);
   cursor: pointer;
   transition: background-color 0.2s;
 }
@@ -76,7 +76,7 @@
 }
 
 .status {
-  font-size: 0.75rem;
+  font-size: var(--font-size-sm);
 }
 
 .notificationsContent {
@@ -91,8 +91,8 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 0.75rem;
-  border-bottom: 1px solid #e2e8f0;
+  padding: var(--spacing-sm);
+  border-bottom: 1px solid var(--grey-color);
 }
 
 .notification:last-child {
@@ -104,25 +104,25 @@
 }
 
 .notificationTitle {
-  font-size: 0.875rem;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-xs);
 }
 
 .notificationDescription {
-  font-size: 0.75rem;
-  color: #64748b;
+  font-size: var(--font-size-sm);
+  color: var(--grey-color);
 }
 
 .bottomSection {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
+  gap: var(--spacing-lg);
 }
 
 .cardHeader {
-  padding: 1rem;
-  border-bottom: 1px solid #e2e8f0;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--grey-color);
 }
 
 .scrollArea {
@@ -140,30 +140,30 @@
 
 .scrollArea::-webkit-scrollbar-track,
 .notificationsContent::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--grey-color);
 }
 
 .scrollArea::-webkit-scrollbar-thumb,
 .notificationsContent::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--grey-color);
   border-radius: 3px;
 }
 
 .themeButtons {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
 }
 
 .themeFooter {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 1rem;
+  margin-top: var(--spacing-md);
 }
 
 .themeInfo {
-  margin-bottom: 0.5rem;
-  font-size: 0.875rem;
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-sm);
 }
 
 @media (max-width: 1024px) {

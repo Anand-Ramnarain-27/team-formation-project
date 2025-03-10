@@ -17,7 +17,7 @@
 .profileAvatar {
   width: 80px;
   height: 80px;
-  background: #f3f4f6;
+  background: #6b7280;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -28,7 +28,7 @@
 .avatarIcon {
   width: 48px;
   height: 48px;
-  fill: #6b7280;
+  fill: var(--grey-color);
 }
 
 .profileInfo {
@@ -42,14 +42,14 @@
 }
 
 .profileEmail {
-  color: var(--grey-color);
+  color: var(--dark-grey-color);
   margin: var(--spacing-xs) 0;
   font-style: normal;
 }
 
 .profileDate {
-  font-size: 14px;
-  color: #9ca3af;
+  font-size: var(--font-size-sm);
+  color: var(--dark-grey-color);
   margin: 0;
   display: block;
 }
@@ -60,37 +60,37 @@
 
 .ratingValue {
   font-size: 24px;
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
   margin: 0;
 }
 
 .ratingLabel {
-  color: #6b7280;
+  color: var(--dark-grey-color);
   margin: 0;
 }
 
 .participationStats {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--spacing-md);
 }
 
 .statBar {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--spacing-md);
 }
 
 .statLabel {
   width: 80px;
-  font-weight: 500;
+  font-weight: var(--font-weight-bold);
   margin: 0;
 }
 
 .statBarContainer {
   flex: 1;
   height: 24px;
-  background: #f3f4f6;
+  background: var(--grey-color);
   border-radius: 12px;
   position: relative;
   overflow: hidden;
@@ -98,19 +98,19 @@
 
 .statBarFill {
   height: 100%;
-  background: #4f46e5;
+  background: var(--primary-color);
   border-radius: 12px;
   transition: width 0.3s ease;
 }
 
 .statBarContainer span {
   position: absolute;
-  right: 12px;
+  right: var(--spacing-sm);
   top: 50%;
   transform: translateY(-50%);
-  color: white;
-  font-weight: 500;
-  font-size: 14px;
+  color: var(--text-color-light);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
   z-index: 1;
 }
 
@@ -119,7 +119,7 @@
 .reviewList {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--spacing-md);
   list-style: none;
   padding: 0;
   margin: 0;
@@ -140,7 +140,6 @@
   }
 }
 
-
 @media (prefers-reduced-motion: reduce) {
   .tabContent,
   .statBarFill {
@@ -151,13 +150,13 @@
 
 @media (max-width: 768px) {
   .container {
-    padding: 16px;
+    padding: var(--spacing-md);
   }
 
   .profileHeader {
     flex-direction: column;
     text-align: center;
-    gap: 16px;
+    gap: var(--spacing-md);
   }
 
   .profileInfo {
@@ -185,7 +184,7 @@
   }
 
   .statBarContainer {
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--grey-color);
   }
 
   .statBarFill {
