@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from './IdeaCard.module.css';
-import { Idea, User } from '@/app/shared/utils/types';
+import { Idea } from '@/app/shared/utils/types';
 import Button from '../Button/Button';
 
 interface IdeaCardProps extends Idea {
@@ -20,10 +20,10 @@ const IdeaCard: React.FC<IdeaCardProps> = ({
   isVoted,
   remainingVotes,
   votingActive,
+  status,
 }) => {
   const [submitterName, setSubmitterName] = useState<string>('Loading...');
   const [currentVoteCount, setCurrentVoteCount] = useState<number>(vote_count);
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchSubmitterName = async () => {
@@ -81,32 +81,42 @@ const IdeaCard: React.FC<IdeaCardProps> = ({
     }
   }, [submitted_by, idea_id]);
 
+  const cardClassName = `${styles.ideaCard} ${status ? styles[status] : ''}`;
+
   return (
-    <div className={`${styles.card} ${isVoted ? styles.voted : ''}`}>
-      <div className={styles.content}>
-        <h3 className={styles.title}>{idea_name}</h3>
-        <p className={styles.description}>{description}</p>
-        <p className={styles.submitter}>Submitted by: {submitterName}</p>
+    <div className={cardClassName}>
+      <div className={styles.cardHeader}>
+        <div className={styles.headerContent}>
+          <h3 className={styles.ideaName}>{idea_name}</h3>
+          <p className={styles.submitter}>Submitted by: {submitterName}</p>
+        </div>
+        {status && (
+          <div className={styles.statusBadge}>
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </div>
+        )}
+      </div>
+      
+      <div className={styles.cardContent}>
+        <div className={styles.description}>{description}</div>
       </div>
 
-      <div className={styles.footer}>
+      <div className={styles.cardFooter}>
         <div className={styles.voteCount}>
-          <span className={styles.count}>{currentVoteCount}</span>
-          <span className={styles.label}>votes</span>
+          <span>{currentVoteCount}</span>
+          <span>votes</span>
         </div>
 
         {votingActive ? (
           <Button
-            className={`${styles.voteButton} ${
-              isVoted ? styles.votedButton : ''
-            }`}
             onClick={onVote}
             disabled={isVoted || remainingVotes <= 0}
+            className={isVoted ? styles.votedButton : ''}
           >
             {isVoted ? 'Voted' : 'Vote'}
           </Button>
         ) : (
-          <div className={styles.votingClosedInfo}>
+          <div>
             Voting {new Date() < new Date() ? 'not yet open' : 'closed'}
           </div>
         )}
