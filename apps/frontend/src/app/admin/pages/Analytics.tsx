@@ -4,11 +4,14 @@ import { AnalyticsReport, Student, Theme, ParticipationStats } from '@/app/share
 import Card from '@/app/shared/components/Card/Card';
 import TextInput from '@/app/shared/components/Form/TextInput';
 import SelectInput from '@/app/shared/components/SelectInput/SelectInput';
+import Tabs from '@/app/shared/components/Tabs/Tabs';
 import Button from '@/app/shared/components/Button/Button';
 import {
   LoadingState,
   EmptyState,
 } from '@/app/shared/components/States/States';
+
+type TabType = 'themes' | 'students';
 
 interface MetricCardProps {
   icon: string;
@@ -84,7 +87,8 @@ const Analytics: React.FC = () => {
   const [isStudentsLoading, setIsStudentsLoading] = useState(true);
   const [isThemeAnalyticsLoading, setIsThemeAnalyticsLoading] = useState(false);
   const [studentDetails, setStudentDetails] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'students' | 'themes'>('themes');
+  //const [activeTab, setActiveTab] = useState<'students' | 'themes'>('themes');
+  const [activeTab, setActiveTab] = useState<TabType>('themes');
 
   const fetchThemes = useCallback(async () => {
     try {
@@ -308,23 +312,27 @@ const Analytics: React.FC = () => {
     return <LoadingState message="Loading analytics..." />;
   }
 
+  const tabs: Array<{ id: TabType; label: string }> = [
+    { id: 'themes', label: 'Theme Analytics' },
+    { id: 'students', label: 'Student Analytics' },
+  ];
+
+  const handleTabChange = (tabId: string) => {
+    if (isValidTab(tabId)) {
+      setActiveTab(tabId);
+    }
+  };
+
+  const isValidTab = (tab: string): tab is TabType => {
+    return tabs.map((t) => t.id).includes(tab as TabType);
+  };
+
   return (
     <main className={styles.dashboard}>
       <section className={styles.analyticsHeader}>
-        <div className={styles.tabSelector}>
-          <Button 
-            className={`${styles.tabButton} ${activeTab === 'themes' ? styles.activeTab : ''}`}
-            onClick={() => setActiveTab('themes')}
-          >
-            Theme Analytics
-          </Button>
-          <Button 
-            className={`${styles.tabButton} ${activeTab === 'students' ? styles.activeTab : ''}`}
-            onClick={() => setActiveTab('students')}
-          >
-            Student Analytics
-          </Button>
-        </div>
+        <nav>
+          <Tabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} />
+        </nav>
         
         {activeTab === 'themes' && renderThemeSelector()}
       </section>
