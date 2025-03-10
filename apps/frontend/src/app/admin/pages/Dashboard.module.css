@@ -12,72 +12,75 @@
 .header h1 {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
+  color: var(--text-color-dark);
 }
 
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
 }
 
 .statTitle {
-  font-size: 0.875rem;
-  color: #6b7280;
+  font-size: var(--font-size-sm);
+  color: var(--dark-grey-color);
   margin: 0;
 }
 
 .statValue {
   font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0.5rem 0;
+  font-weight: var(--font-weight-bold);
+  margin: var(--spacing-sm) 0;
+  color: var(--text-color-dark);
 }
 
 .statTrend {
-  font-size: 0.75rem;
+  font-size: var(--font-size-sm);
   margin: 0;
 }
 
 .positive {
-  color: #10b981;
+  color: var(--success-color);
 }
 
 .warning {
-  color: #f59e0b;
+  color: var(--danger-color);
 }
 
 .neutral {
-  color: #6b7280;
+  color: var(--grey-color);
 }
 
 .themesSection {
-  margin-bottom: 2rem;
+  margin-bottom: var(--spacing-xl);
 }
 
 .sectionHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: var(--spacing-md);
 }
 
 .sectionHeader h2 {
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-bold);
   margin: 0;
+  color: var(--text-color-dark);
 }
 
 .themesGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1rem;
+  gap: var(--spacing-md);
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
 .themeCard {
-  background: white;
+  background: var(--light-color);
   border-radius: 0.5rem;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -89,8 +92,8 @@
 }
 
 .themeHeader {
-  padding: 1rem;
-  color: white;
+  padding: var(--spacing-md);
+  color: var(--text-color-light);
 }
 
 .themeHeader h3 {
@@ -98,34 +101,35 @@
 }
 
 .blue {
-  background: #3b82f6;
+  background: var(--primary-color);
 }
 
 .themeContent {
-  padding: 1rem;
+  padding: var(--spacing-md);
 }
 
 .themeContent p {
-  margin: 0 0 1rem 0;
+  margin: 0 0 var(--spacing-md) 0;
+  color: var(--text-color-dark);
 }
 
 .themeFooter {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 1rem;
+  margin-top: var(--spacing-md);
 }
 
 .themeStatus {
-  font-size: 0.875rem;
-  color: #6b7280;
+  font-size: var(--font-size-sm);
+  color: var(--grey-color);
   text-transform: capitalize;
 }
 
 .gridContainer {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 2rem;
+  gap: var(--spacing-xl);
 }
 
 @media (max-width: 1024px) {
@@ -137,19 +141,20 @@
 .activityGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin: 1rem 0;
+  gap: var(--spacing-md);
+  margin: var(--spacing-md) 0;
 }
 
 .activityBox {
-  background: #f9fafb;
-  padding: 1rem;
+  background: var(--grey-color);
+  padding: var(--spacing-md);
   border-radius: 0.5rem;
 }
 
 .activityBox h4 {
-  font-weight: 600;
-  margin: 0 0 0.5rem 0;
+  font-weight: var(--font-weight-bold);
+  margin: 0 0 var(--spacing-sm) 0;
+  color: var(--text-color-dark);
 }
 
 .activityBox ul {
@@ -159,9 +164,9 @@
 }
 
 .activityBox li {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin-bottom: 0.5rem;
+  font-size: var(--font-size-sm);
+  color: var(--text-color-dark);
+  margin-bottom: var(--spacing-sm);
 }
 
 .activityBox li:last-child {
@@ -169,14 +174,15 @@
 }
 
 .notificationsCard {
-  background: white;
-  padding: 1.5rem;
+  background: var(--light-color);
+  padding: var(--spacing-lg);
   border-radius: 0.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .notificationsCard h3 {
-  margin: 0 0 1rem 0;
+  margin: 0 0 var(--spacing-md) 0;
+  color: var(--text-color-dark);
 }
 
 .notificationsList {
@@ -185,5 +191,5 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--spacing-md);
 }

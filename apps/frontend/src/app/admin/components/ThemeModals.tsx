@@ -7,6 +7,9 @@ import buttonStyles from '@/app/shared/components/Button/Button.module.css';
 import FormGroup from '@/app/shared/components/Form/FormGroup';
 import TextInput from '@/app/shared/components/Form/TextInput';
 import TextArea from '@/app/shared/components/Form/TextArea';
+import Tabs from '@/app/shared/components/Tabs/Tabs';
+
+type TabType = 'general' | 'questions' ;
 
 interface ThemeModalProps {
   isOpen: boolean;
@@ -75,7 +78,7 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
   };
 
   const [formData, setFormData] = useState<BaseThemeWithQuestions>(initialTheme);
-  const [activeTab, setActiveTab] = useState<'general' | 'questions'>('general');
+  const [activeTab, setActiveTab] = useState<TabType>('general');
 
   useEffect(() => {
     if (theme) {
@@ -200,6 +203,21 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
     }));
   };
 
+  const tabs: Array<{ id: TabType; label: string }> = [
+    { id: 'general', label: 'General Information' },
+    { id: 'questions', label: 'Review Questions' },
+  ];
+
+  const handleTabChange = (tabId: string) => {
+    if (isValidTab(tabId)) {
+      setActiveTab(tabId);
+    }
+  };
+
+  const isValidTab = (tab: string): tab is TabType => {
+    return tabs.map((t) => t.id).includes(tab as TabType);
+  };
+
   return (
     <SharedModal
       isOpen={isOpen}
@@ -223,20 +241,7 @@ export const ThemeModal: React.FC<ThemeModalProps> = ({
         </nav>
       }
     >
-      <div className={styles.tabHeader}>
-        <button 
-          className={`${styles.tabButton} ${activeTab === 'general' ? styles.activeTab : ''}`}
-          onClick={() => setActiveTab('general')}
-        >
-          General Information
-        </button>
-        <button 
-          className={`${styles.tabButton} ${activeTab === 'questions' ? styles.activeTab : ''}`}
-          onClick={() => setActiveTab('questions')}
-        >
-          Review Questions
-        </button>
-      </div>
+      <Tabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} />
 
       <form
         id="themeForm"

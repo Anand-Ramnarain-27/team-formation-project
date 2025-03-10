@@ -8,8 +8,10 @@
   --light-color: #f8f9fa;
   --dark-color: #343a40;
   --grey-color: #EEEEEE;
+  --dark-grey-color: #838181;
   --text-color-light: #FFFFFF;
   --text-color-dark: #000000;
+  --text-color-grey: #717171;
 
   --font-family: 'Roboto', sans-serif;
   --font-size-base: 16px;

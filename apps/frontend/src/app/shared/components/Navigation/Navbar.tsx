@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import styles from './Navbar.module.css';
-import Button from '@/app/shared/components/Button/Button';
 
 const adminMenuItems = [
   { name: 'Dashboard', path: '/admin' },
@@ -28,29 +27,56 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ userType, userName }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const menuItems = userType === 'Admin' ? adminMenuItems : studentMenuItems;
+  const navigate = useNavigate();
+  
+  // Close mobile menu when screen size changes to desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 768 && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isMobileMenuOpen]);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
-
-  const navigate = useNavigate();
 
   const handleSignOut = () => {
     navigate('/login');
     window.location.reload();
   };
 
+  // Close mobile menu when clicking outside
+  const handleOverlayClick = () => {
+    setIsMobileMenuOpen(false);
+  };
+
+  // Check if current screen is mobile
+  const isMobileScreen = () => {
+    return window.innerWidth <= 768;
+  };
+
   return (
     <>
-      <button className={styles.hamburgerButton} onClick={toggleMobileMenu}>
+      {/* Only render hamburger button on mobile screens */}
+      <button 
+        className={styles.hamburgerButton} 
+        onClick={toggleMobileMenu}
+        aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+      >
         {isMobileMenuOpen ? '✕' : '☰'}
       </button>
 
+      {/* Desktop Navigation - always visible on desktop/laptop */}
       <nav className={`${styles.navbar} ${styles.desktopNavbar}`}>
-        <header className={styles.header}>
+        <div className={styles.header}>
           <h1>Team Formation</h1>
-        </header>
-        <nav className={styles.menu}>
+        </div>
+        <div className={styles.menu}>
           {menuItems.map((item) => (
             <NavLink
               key={item.path}
@@ -64,41 +90,54 @@ const Navbar: React.FC<NavbarProps> = ({ userType, userName }) => {
               {item.name}
             </NavLink>
           ))}
-        </nav>
-        <footer className={styles.userSection}>
-          <button className={styles.signOutButton} onClick={handleSignOut}>
+        </div>
+        <div className={styles.userSection}>
+          <button 
+            className={styles.signOutButton} 
+            onClick={handleSignOut}
+          >
             Sign Out
           </button>
-        </footer>
+        </div>
       </nav>
 
+      {/* Mobile Navigation - only rendered when mobile menu is open and on mobile screens */}
       {isMobileMenuOpen && (
-        <nav className={`${styles.navbar} ${styles.mobileNavbar}`}>
-          <header className={styles.header}>
-            <h2>Team Formation</h2>
-          </header>
-          <nav className={styles.menu}>
-            {menuItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  `${styles.menuItem} ${isActive ? styles.active : ''}`
-                }
-                end={item.path === '/admin' || item.path === '/student'}
-                onClick={toggleMobileMenu}
+        <>
+          <div 
+            className={`${styles.overlay} ${isMobileMenuOpen ? styles.active : ''}`}
+            onClick={handleOverlayClick}
+          ></div>
+          <nav className={`${styles.navbar} ${styles.mobileNavbar}`}>
+            <div className={styles.header}>
+              <h2>Team Formation</h2>
+            </div>
+            <div className={styles.menu}>
+              {menuItems.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  className={({ isActive }) =>
+                    `${styles.menuItem} ${isActive ? styles.active : ''}`
+                  }
+                  end={item.path === '/admin' || item.path === '/student'}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <span className={styles.menuIcon}></span>
+                  {item.name}
+                </NavLink>
+              ))}
+            </div>
+            <div className={styles.userSection}>
+              <button 
+                className={styles.signOutButton} 
+                onClick={handleSignOut}
               >
-                <span className={styles.menuIcon}></span>
-                {item.name}
-              </NavLink>
-            ))}
+                Sign Out
+              </button>
+            </div>
           </nav>
-          <footer className={styles.userSection}>
-            <Button onClick={handleSignOut} className={styles.signOutButton}>
-              Sign Out
-            </Button>
-          </footer>
-        </nav>
+        </>
       )}
     </>
   );
