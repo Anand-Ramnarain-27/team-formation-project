@@ -1,7 +1,6 @@
-/* GroupManagement.module.css */
 .container {
-  padding: 1.5rem;
-  max-width: 1280px;
+  padding: var(--spacing-lg);
+  max-width: var(--breakpoint-xl);
   margin: 0 auto;
 }
 
@@ -9,28 +8,28 @@
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  padding: 1rem;
-  border-bottom: 1px solid #e5e7eb;
-  margin-bottom: 1rem;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--grey-color);
+  margin-bottom: var(--spacing-md);
 }
 
 .content {
-  padding: 1.5rem;
+  padding: var(--spacing-lg);
 }
 
 .searchInput {
   width: 100%;
-  padding: 0.5rem 1rem;
-  border: 1px solid #e5e7eb;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--grey-color);
   border-radius: 0.5rem;
-  font-size: 0.875rem;
-  margin-bottom: 1rem;
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-md);
 }
 
 .groupList {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--spacing-md);
   list-style: none;
   padding: 0;
   margin: 0;
@@ -39,20 +38,20 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--spacing-md);
 }
 
 .sectionTitle {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #374151;
-  margin: 0 0 0.5rem;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color-dark);
+  margin: 0 0 var(--spacing-sm) 0;
 }
 
 .memberGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
+  gap: var(--spacing-lg);
 }
 
 .memberSection {
@@ -61,9 +60,9 @@
 }
 
 .memberList {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--grey-color);
   border-radius: 0.5rem;
-  background-color: white;
+  background-color: var(--light-color);
   list-style: none;
   padding: 0;
   margin: 0;
@@ -71,11 +70,11 @@
 }
 
 .memberItem {
-  padding: 0.75rem;
+  padding: var(--spacing-sm);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--grey-color);
 }
 
 .memberItem:last-child {
@@ -85,35 +84,35 @@
 .memberInfo {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--spacing-sm);
 }
 
 .memberName {
-  font-weight: 500;
-  color: #374151;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color-dark);
 }
 
 .memberEmail {
-  font-size: 0.875rem;
-  color: #6b7280;
+  font-size: var(--font-size-sm);
+  color: var(--dark-grey-color);
 }
 
 .memberRole {
-  font-size: 0.75rem;
-  color: #4b5563;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  color: var(---dark-grey-color);
+  font-weight: var(--font-weight-bold);
 }
 
 .emptyState {
-  padding: 1rem;
+  padding: var(--spacing-md);
   text-align: center;
-  color: #6b7280;
-  font-size: 0.875rem;
+  color: var(--grey-color);
+  font-size: var(--font-size-sm);
 }
 
 .noResults {
   text-align: center;
-  padding: 2rem;
-  color: #6b7280;
-  font-size: 0.875rem;
+  padding: var(--spacing-lg);
+  color: var(--grey-color);
+  font-size: var(--font-size-sm);
 }

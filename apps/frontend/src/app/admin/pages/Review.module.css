@@ -1,49 +1,49 @@
 .container {
-  padding: 2rem;
-  max-width: 1200px;
+  padding: var(--spacing-lg);
+  max-width: var(--breakpoint-xl);
   margin: 0 auto;
 }
 
 .filters {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
   flex-wrap: wrap;
 }
 
 .select {
-  padding: 0.5rem;
-  border: 1px solid #e2e8f0;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--grey-color);
   border-radius: 4px;
-  background-color: white;
+  background-color: var(--light-color);
   min-width: 150px;
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
 }
 
 .searchInput {
-  padding: 0.5rem;
-  border: 1px solid #e2e8f0;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--grey-color);
   border-radius: 4px;
   flex-grow: 1;
   max-width: 300px;
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
 }
 
 .ideasList {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--spacing-md);
 }
 
 .ideaCard {
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: var(--light-color);
+  border: 1px solid var(--dark-grey-color);
   border-radius: 6px;
-  padding: 1.5rem;
+  padding: var(--spacing-lg);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 1rem;
+  gap: var(--spacing-md);
 }
 
 .ideaContent {
@@ -53,68 +53,68 @@
 .ideaHeader {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.5rem;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
 }
 
 .ideaName {
   font-size: 1.125rem;
-  font-weight: 600;
-  color: #1a1a1a;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color-dark);
   margin: 0;
 }
 
 .ideaDescription {
-  color: #4b5563;
-  margin: 0.5rem 0;
+  color: var(--dark-grey-color);
+  margin: var(--spacing-sm) 0;
   line-height: 1.5;
 }
 
 .ideaMeta {
   display: flex;
-  gap: 1rem;
-  color: #6b7280;
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
+  gap: var(--spacing-md);
+  color: var(--text-color-dark);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-sm);
 }
 
 .actions {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
 }
 
 .approveButton {
-  background-color: white;
-  border-color: #e2e8f0;
-  color: #1a1a1a;
+  background-color: var(--light-color);
+  border-color: var(--grey-color);
+  color: var(--text-color-dark);
 }
 
 .approveButton:hover {
-  background-color: #f8fafc;
-  border-color: #cbd5e1;
+  background-color: var(--grey-color);
+  border-color: var(--grey-color);
 }
 
 .rejectButton {
-  background-color: white;
-  border-color: #e2e8f0;
-  color: #dc2626;
+  background-color: var(--light-color);
+  border-color: var(--grey-color);
+  color: var(--danger-color);
 }
 
 .rejectButton:hover {
-  background-color: #fee2e2;
-  border-color: #fecaca;
+  background-color: var(--danger-color);
+  border-color: var(--danger-color);
 }
 
 .emptyState {
   text-align: center;
-  padding: 2rem;
-  color: #6b7280;
-  font-size: 0.875rem;
+  padding: var(--spacing-lg);
+  color: var(--grey-color);
+  font-size: var(--font-size-sm);
 }
 
 @media (max-width: 640px) {
   .container {
-    padding: 1rem;
+    padding: var(--spacing-md);
   }
 
   .filters {
@@ -136,6 +136,6 @@
 
   .ideaMeta {
     flex-direction: column;
-    gap: 0.5rem;
+    gap: var(--spacing-sm);
   }
 }
