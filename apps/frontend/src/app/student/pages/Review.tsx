@@ -7,6 +7,7 @@ import {
   GroupMember,
   Review,
   Question,
+  ReviewDeadline,
 } from '@/app/shared/utils/types';
 import Button from '@/app/shared/components/Button/Button';
 import FormGroup from '@/app/shared/components/Form/FormGroup';
@@ -39,6 +40,7 @@ const Reviews: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [hasSubmittedReviews, setHasSubmittedReviews] = useState(false);
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [reviewDeadlines, setReviewDeadlines] = useState<ReviewDeadline[]>([]);
 
   const tabs: Array<{ id: TabType; label: string }> = [
     { id: 'ratings', label: 'Ratings' },
@@ -149,6 +151,7 @@ const Reviews: React.FC = () => {
 
           if (teamLeadGroup && teamLeadGroup.theme_id) {
             await fetchQuestions(teamLeadGroup.theme_id);
+            await fetchReviewDeadlines(teamLeadGroup.theme_id);
           }
         } else {
           setCurrentGroup(userGroup.group);
@@ -191,6 +194,7 @@ const Reviews: React.FC = () => {
 
           if (userGroup.group && userGroup.group.theme_id) {
             await fetchQuestions(userGroup.group.theme_id);
+            await fetchReviewDeadlines(userGroup.group.theme_id);
           }
         }
 
@@ -238,6 +242,20 @@ const Reviews: React.FC = () => {
 
     fetchGroupData();
   }, [currentUserId]);
+
+  const fetchReviewDeadlines = async (themeId: number) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/theme?id=${themeId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch theme data');
+      }
+      const theme = await response.json();
+      return theme.review_deadline;
+    } catch (err) {
+      console.error('Error fetching review deadlines:', err);
+      return [];
+    }
+  };
 
   const fetchQuestions = async (themeId: number) => {
     try {
@@ -303,6 +321,17 @@ const Reviews: React.FC = () => {
     );
   }
 
+  const isWithinReviewPeriod = (reviewDeadlines: ReviewDeadline[]): boolean => {
+    const now = new Date();
+    return reviewDeadlines.some((period) => {
+      const start = new Date(period.start);
+      const end = new Date(period.end);
+      return now >= start && now <= end;
+    });
+  };
+
+  const isReviewPeriodOpen = isWithinReviewPeriod(reviewDeadlines);
+
   const handleQuestionRatingChange = (
     revieweeId: number,
     questionId: number,
@@ -363,6 +392,12 @@ const Reviews: React.FC = () => {
     setError(null);
 
     try {
+      const reviewDeadlines = await fetchReviewDeadlines(currentGroup.theme_id);
+
+      if (!isWithinReviewPeriod(reviewDeadlines)) {
+        setError('Reviews can only be submitted during the review period.');
+        return;
+      }
       const reviewPromises = Object.values(reviews).map(async (review) => {
         let averageRating = 3;
 
@@ -623,6 +658,11 @@ const Reviews: React.FC = () => {
             </ul>
 
             <nav className={styles.buttonContainer}>
+              {isReviewPeriodOpen && (
+                <p className={styles.error}>
+                  The review period is closed. You can no longer submit reviews.
+                </p>
+              )}
               <Button onClick={() => setActiveTab('ratings')}>
                 Back to Ratings
               </Button>

@@ -5,7 +5,7 @@ import {
   InvocationContext,
 } from '@azure/functions';
 import { PrismaClient, rating_enum } from '@prisma/client';
-import { ReviewRequestBody, ratingEnumMap } from '../utils/types';
+import { ReviewRequestBody, ratingEnumMap, ReviewDeadline } from '../utils/types';
 import { corsMiddleware } from '../utils/cors';
 
 const prisma = new PrismaClient();
@@ -42,6 +42,15 @@ export async function reviewHandler(
     }
     return { status: 500, body: 'Internal Server Error' };
   }
+}
+
+export function isWithinReviewPeriod(reviewDeadlines: ReviewDeadline[]): boolean {
+  const now = new Date();
+  return reviewDeadlines.some((period) => {
+    const start = new Date(period.start);
+    const end = new Date(period.end);
+    return now >= start && now <= end;
+  });
 }
 
 async function getAllReviews(context: InvocationContext): Promise<HttpResponseInit> {
@@ -198,6 +207,24 @@ async function createReview(
   try {
     const body = await request.json();
     const reviewBody: ReviewRequestBody = body as ReviewRequestBody;
+
+    const group = await prisma.groups.findUnique({
+      where: { group_id: reviewBody.group_id },
+      include: { theme: true },
+    });
+
+    if (!group || !group.theme) {
+      return { status: 404, body: 'Group or theme not found.' };
+    }
+
+    const reviewDeadlines: ReviewDeadline[] = Array.isArray(group.theme.review_deadline)
+      ? group.theme.review_deadline
+      : JSON.parse(group.theme.review_deadline as string);
+
+    if (!isWithinReviewPeriod(reviewDeadlines)) {
+      return { status: 400, body: 'Reviews can only be submitted during the review period.' };
+    }
+
 
     if (reviewBody.rating < 1 || reviewBody.rating > 5) {
       return { status: 400, body: 'Invalid rating value. Must be between 1 and 5.' };
