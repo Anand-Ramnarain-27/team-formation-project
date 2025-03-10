@@ -15,30 +15,34 @@ import Card from '@/app/shared/components/Card/Card';
 import Button from '@/app/shared/components/Button/Button';
 import NotificationCard from '@/app/shared/components/NotificationCard/NotificationCard';
 import Tabs from '@/app/shared/components/Tabs/Tabs';
+import useApi from '@/app/shared/hooks/useApi';
 
 const Dashboard: React.FC = () => {
   const [activeTabId, setActiveTabId] = useState('active-themes');
-  
+
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<
     ThemeWithQuestions | undefined
   >();
   const [activeThemes, setActiveThemes] = useState<ThemeWithQuestions[]>([]);
-  const [previousThemes, setPreviousThemes] = useState<ThemeWithQuestions[]>([]);
+  const [previousThemes, setPreviousThemes] = useState<ThemeWithQuestions[]>(
+    []
+  );
   const [analyticsData, setAnalyticsData] = useState<AnalyticsReport | null>(
     null
   );
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  const api = useApi('');
+  const { loading, error } = api;
 
   useEffect(() => {
     const userJson = localStorage.getItem('currentUser');
 
     if (!userJson) {
-      setError("You're not logged in. Please log in to view notifications.");
       return;
     }
 
@@ -46,7 +50,6 @@ const Dashboard: React.FC = () => {
       const user = JSON.parse(userJson) as User;
       setCurrentUser(user);
     } catch (err) {
-      setError('Invalid user data. Please log in again.');
       localStorage.removeItem('currentUser');
     }
   }, []);
@@ -57,30 +60,22 @@ const Dashboard: React.FC = () => {
 
   const fetchThemes = async () => {
     try {
-      const themesResponse = await fetch('http://localhost:7071/api/theme');
-      if (!themesResponse.ok) {
-        throw new Error('Failed to fetch themes');
-      }
-      const themesData = await themesResponse.json();
+      const themesData = await api.get('/theme');
 
       const themesWithQuestions = await Promise.all(
         themesData.map(async (theme: Theme) => {
-          const questionsResponse = await fetch(`http://localhost:7071/api/question?id=${theme.theme_id}`);
-          if (!questionsResponse.ok) {
-            throw new Error(`Failed to fetch questions for theme ${theme.theme_id}`);
-          }
-          const questions = await questionsResponse.json();
+          const questions = await api.get(`/question?id=${theme.theme_id}`);
 
-          const parsedReviewDeadline = Array.isArray(theme.review_deadline) 
-            ? theme.review_deadline 
-            : (typeof theme.review_deadline === 'string' 
-              ? JSON.parse(theme.review_deadline) 
-              : []);
-          
+          const parsedReviewDeadline = Array.isArray(theme.review_deadline)
+            ? theme.review_deadline
+            : typeof theme.review_deadline === 'string'
+            ? JSON.parse(theme.review_deadline)
+            : [];
+
           return {
             ...theme,
             review_deadline: parsedReviewDeadline,
-            questions: questions || []
+            questions: questions || [],
           };
         })
       );
@@ -88,61 +83,50 @@ const Dashboard: React.FC = () => {
       const now = new Date();
       const active: ThemeWithQuestions[] = [];
       const previous: ThemeWithQuestions[] = [];
-      
-      themesWithQuestions.forEach(theme => {
+
+      themesWithQuestions.forEach((theme) => {
         let isCompleted = true;
 
         if (theme.review_deadline && theme.review_deadline.length > 0) {
-          const lastReviewDeadline = theme.review_deadline[theme.review_deadline.length - 1];
+          const lastReviewDeadline =
+            theme.review_deadline[theme.review_deadline.length - 1];
           if (now <= new Date(lastReviewDeadline.end)) {
             isCompleted = false;
           }
         } else if (now <= new Date(theme.voting_deadline)) {
           isCompleted = false;
         }
-        
+
         if (isCompleted) {
           previous.push(theme);
         } else {
           active.push(theme);
         }
       });
-      
+
       setActiveThemes(active);
       setPreviousThemes(previous);
     } catch (err) {
-      setError('Error fetching themes');
       console.error(err);
     }
   };
 
   const fetchAnalytics = async () => {
     try {
-      const response = await fetch('http://localhost:7071/api/generateAllThemesAnalytics');
-      if (!response.ok) {
-        throw new Error('Failed to fetch analytics data');
-      }
-      const data = await response.json();
+      const data = await api.get('/generateAllThemesAnalytics');
       setAnalyticsData(data);
     } catch (err) {
-      setError('Error fetching analytics data');
       console.error(err);
     }
   };
 
   const fetchNotifications = async () => {
     try {
-      const response = await fetch(
-        `http://localhost:7071/api/notification?user_id=${userId}&user_role=${userRole}`
+      const data = await api.get(
+        `/notification?user_id=${userId}&user_role=${userRole}`
       );
-      if (!response.ok) {
-        throw new Error('Failed to fetch notifications');
-      }
-      const data = await response.json();
-
       setNotifications(data);
     } catch (err) {
-      setError('Error fetching notifications');
       console.error(err);
     }
   };
@@ -165,39 +149,31 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     const timeouts: NodeJS.Timeout[] = [];
-  
+
     activeThemes.forEach((theme) => {
       const votingDeadline = new Date(theme.voting_deadline);
       const now = new Date();
       const timeRemaining = votingDeadline.getTime() - now.getTime();
-  
+
       if (timeRemaining > 0) {
         const timeout = setTimeout(async () => {
           try {
-            const response = await fetch('http://localhost:7071/api/autoAssign', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ theme_id: theme.theme_id }),
-            });
-  
-            if (response.ok) {
-              console.log(`Auto-assign triggered for theme: ${theme.title}`);
-            } else {
-              console.error(`Failed to trigger auto-assign for theme: ${theme.title}`);
-            }
-  
+            await api.post('/autoAssign', { theme_id: theme.theme_id });
+            console.log(`Auto-assign triggered for theme: ${theme.title}`);
+
             await fetchThemes();
           } catch (error) {
-            console.error(`Error triggering auto-assign for theme: ${theme.title}`, error);
+            console.error(
+              `Error triggering auto-assign for theme: ${theme.title}`,
+              error
+            );
           }
         }, timeRemaining);
-  
+
         timeouts.push(timeout);
       }
     });
-  
+
     return () => timeouts.forEach((timeout) => clearTimeout(timeout));
   }, [activeThemes]);
 
@@ -208,19 +184,7 @@ const Dashboard: React.FC = () => {
         created_by: userId,
       };
 
-      const themeResponse = await fetch('http://localhost:7071/api/theme', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(themeWithCreator),
-      });
-
-      if (!themeResponse.ok) {
-        throw new Error('Failed to create theme');
-      }
-
-      const createdTheme = await themeResponse.json();
+      const createdTheme = await api.post('/theme', themeWithCreator);
 
       await Promise.all(
         newTheme.questions.map(async (question) => {
@@ -229,13 +193,16 @@ const Dashboard: React.FC = () => {
             question_text: question.question_text,
           };
 
-          const questionResponse = await fetch('http://localhost:7071/api/question', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(questionData),
-          });
+          const questionResponse = await fetch(
+            'http://localhost:7071/api/question',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(questionData),
+            }
+          );
 
           if (!questionResponse.ok) {
             throw new Error('Failed to create question');
@@ -245,7 +212,6 @@ const Dashboard: React.FC = () => {
 
       await fetchThemes();
     } catch (err) {
-      setError('Error creating theme');
       console.error(err);
     }
   };
@@ -259,70 +225,50 @@ const Dashboard: React.FC = () => {
         created_by: selectedTheme.created_by,
       };
 
-      const themeResponse = await fetch(`http://localhost:7071/api/theme?id=${selectedTheme.theme_id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(themeWithCreator),
-      });
+      await api.put(`/theme?id=${selectedTheme.theme_id}`, themeWithCreator);
 
-      if (!themeResponse.ok) {
-        throw new Error('Failed to update theme');
-      }
-
-      const existingQuestionIds = selectedTheme.questions.map(q => q.question_id);
+      const existingQuestionIds = selectedTheme.questions.map(
+        (q) => q.question_id
+      );
 
       await Promise.all(
         updatedTheme.questions.map(async (question, index) => {
-          if (index < existingQuestionIds.length && existingQuestionIds[index]) {
+          if (
+            index < existingQuestionIds.length &&
+            existingQuestionIds[index]
+          ) {
             const questionData = {
               id: existingQuestionIds[index],
               theme_id: selectedTheme.theme_id,
               question_text: question.question_text,
             };
 
-            await fetch('http://localhost:7071/api/question', {
-              method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(questionData),
-            });
+            await api.put('/question', questionData);
           } else {
             const questionData = {
               theme_id: selectedTheme.theme_id,
               question_text: question.question_text,
             };
 
-            await fetch('http://localhost:7071/api/question', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(questionData),
-            });
+            await api.post('/question', questionData);
           }
         })
       );
 
       if (existingQuestionIds.length > updatedTheme.questions.length) {
-        for (let i = updatedTheme.questions.length; i < existingQuestionIds.length; i++) {
+        for (
+          let i = updatedTheme.questions.length;
+          i < existingQuestionIds.length;
+          i++
+        ) {
           if (existingQuestionIds[i]) {
-            await fetch('http://localhost:7071/api/question', {
-              method: 'DELETE',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ id: existingQuestionIds[i] }),
-            });
+            await api.remove('/question', { id: existingQuestionIds[i] });
           }
         }
       }
 
       await fetchThemes();
     } catch (err) {
-      setError('Error updating theme');
       console.error(err);
     }
   };
@@ -344,10 +290,7 @@ const Dashboard: React.FC = () => {
     }
 
     for (const review of theme.review_deadline) {
-      if (
-        now >= new Date(review.start) &&
-        now <= new Date(review.end)
-      ) {
+      if (now >= new Date(review.start) && now <= new Date(review.end)) {
         return `Review Phase (Group ${
           theme.review_deadline.indexOf(review) + 1
         })`;
@@ -407,7 +350,7 @@ const Dashboard: React.FC = () => {
 
   const themeTabs = [
     { id: 'active-themes', label: 'Active Themes' },
-    { id: 'previous-themes', label: 'Previous Themes' }
+    { id: 'previous-themes', label: 'Previous Themes' },
   ];
 
   return (
@@ -455,18 +398,28 @@ const Dashboard: React.FC = () => {
             + Create New Theme
           </Button>
         </header>
-        
-        <Tabs 
-          tabs={themeTabs} 
-          activeTab={activeTabId} 
-          onTabChange={setActiveTabId} 
+
+        <Tabs
+          tabs={themeTabs}
+          activeTab={activeTabId}
+          onTabChange={setActiveTabId}
         />
-        
-        <div role="tabpanel" id={`panel-active-themes`} aria-labelledby={`tab-active-themes`} hidden={activeTabId !== 'active-themes'}>
+
+        <div
+          role="tabpanel"
+          id={`panel-active-themes`}
+          aria-labelledby={`tab-active-themes`}
+          hidden={activeTabId !== 'active-themes'}
+        >
           {renderThemesList(activeThemes)}
         </div>
-        
-        <div role="tabpanel" id={`panel-previous-themes`} aria-labelledby={`tab-previous-themes`} hidden={activeTabId !== 'previous-themes'}>
+
+        <div
+          role="tabpanel"
+          id={`panel-previous-themes`}
+          aria-labelledby={`tab-previous-themes`}
+          hidden={activeTabId !== 'previous-themes'}
+        >
           {renderThemesList(previousThemes)}
         </div>
       </section>
@@ -486,8 +439,8 @@ const Dashboard: React.FC = () => {
                     submitted
                   </li>
                   <li>
-                    {analyticsData.participation_stats.totalReviews}{' '}
-                    reviews completed
+                    {analyticsData.participation_stats.totalReviews} reviews
+                    completed
                   </li>
                 </ul>
               </section>
