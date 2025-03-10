@@ -50,7 +50,7 @@ const ThemeModals: React.FC<ThemeModalsProps> = ({
   const ThemeDetails = () => (
     <section className={styles.detailsSection}>
       <p className={styles.themeDescription}>{theme.description}</p>
-  
+
       <dl>
         <div className={styles.infoRow}>
           <dt className={styles.infoLabel}>Submission Deadline:</dt>
@@ -58,23 +58,27 @@ const ThemeModals: React.FC<ThemeModalsProps> = ({
             {formatDate(theme.submission_deadline)}
           </dd>
         </div>
-  
+
         <div className={styles.infoRow}>
           <dt className={styles.infoLabel}>Voting Deadline:</dt>
           <dd className={styles.infoValue}>
             {formatDate(theme.voting_deadline)}
           </dd>
         </div>
-  
+
         <div className={styles.infoRow}>
           <dt className={styles.infoLabel}>Review Period:</dt>
           <dd className={styles.infoValue}>
             {theme.review_deadline && theme.review_deadline.length > 0
-              ? `${formatDate(theme.review_deadline[0].start)} - ${formatDate(theme.review_deadline[0].end)}`
+              ? theme.review_deadline.map((deadline, index) => (
+                  <div key={index}>
+                    {formatDate(deadline.start)} - {formatDate(deadline.end)}
+                  </div>
+                ))
               : 'Not specified'}
           </dd>
         </div>
-  
+
         <div className={styles.infoRow}>
           <dt className={styles.infoLabel}>Number of Groups:</dt>
           <dd className={styles.infoValue}>{theme.number_of_groups}</dd>

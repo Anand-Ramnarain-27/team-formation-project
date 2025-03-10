@@ -137,26 +137,43 @@ const Dashboard: React.FC = () => {
     const now = new Date();
     const submissionDeadline = new Date(theme.submission_deadline);
     const votingDeadline = new Date(theme.voting_deadline);
-    const reviewDeadline = theme.review_deadline[0];
-    const reviewStart = reviewDeadline ? new Date(reviewDeadline.start) : null;
-    const reviewEnd = reviewDeadline ? new Date(reviewDeadline.end) : null;
-
+    const reviewDeadlines = theme.review_deadline; // Assuming this is an array of review deadlines
+  
+    // Check submission phase
     if (now < submissionDeadline) {
       return {
         phase: 'submission',
         actionButton: 'Submit Idea',
         isActive: true,
       };
-    } else if (now < votingDeadline) {
-      return { phase: 'voting', actionButton: 'Vote Now', isActive: true };
-    } else if (
-      reviewStart &&
-      reviewEnd &&
-      now >= reviewStart &&
-      now <= reviewEnd
-    ) {
-      return { phase: 'review', actionButton: 'Review', isActive: true };
     }
+  
+    // Check voting phase
+    if (now < votingDeadline) {
+      return { phase: 'voting', actionButton: 'Vote Now', isActive: true };
+    }
+  
+    // Check review phases
+    for (const reviewDeadline of reviewDeadlines) {
+      const reviewStart = new Date(reviewDeadline.start);
+      const reviewEnd = new Date(reviewDeadline.end);
+  
+      // If the current time is within a review phase
+      if (now >= reviewStart && now <= reviewEnd) {
+        return { phase: 'review', actionButton: 'Review', isActive: true };
+      }
+  
+      // If the current time is before the start of a review phase
+      if (now < reviewStart) {
+        return {
+          phase: 'review phase is going to start',
+          actionButton: 'Review Phase Starting Soon',
+          isActive: false,
+        };
+      }
+    }
+  
+    // If all review phases are completed
     return { phase: 'completed', actionButton: 'Completed', isActive: false };
   };
 
