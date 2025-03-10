@@ -201,6 +201,7 @@ const GroupManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedThemeId, setSelectedThemeId] = useState('');
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [showGroupDialog, setShowGroupDialog] = useState(false);
   const [showMemberDialog, setShowMemberDialog] = useState(false);
@@ -217,8 +218,11 @@ const GroupManagement: React.FC = () => {
         throw new Error(`Failed to fetch groups: ${response.statusText}`);
       }
       const data = await response.json();
-      setGroups(data);
-      setFilteredGroups(data);
+
+      const sortedGroups = [...data].sort((a, b) => b.group_id - a.group_id);
+      
+      setGroups(sortedGroups);
+      setFilteredGroups(sortedGroups);
     } catch (error) {
       console.error('Error fetching groups:', error);
       setError(
@@ -296,17 +300,34 @@ const GroupManagement: React.FC = () => {
     loadData();
   }, []);
 
+  useEffect(() => {
+    filterGroups();
+  }, [searchQuery, selectedThemeId, groups]);
+
+  const filterGroups = () => {
+    let filtered = [...groups];
+    
+    if (searchQuery.trim()) {
+      filtered = filtered.filter((group) =>
+        (group.group_name?.toLowerCase() || '').includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    if (selectedThemeId) {
+      filtered = filtered.filter(
+        (group) => group.theme_id === parseInt(selectedThemeId)
+      );
+    }
+    
+    setFilteredGroups(filtered);
+  };
+
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    if (!query.trim()) {
-      setFilteredGroups(groups);
-      return;
-    }
+  };
 
-    const filtered = groups.filter((group) =>
-      (group.group_name?.toLowerCase() || '').includes(query.toLowerCase())
-    );
-    setFilteredGroups(filtered);
+  const handleThemeFilter = (themeId: string) => {
+    setSelectedThemeId(themeId);
   };
 
   const checkAndRemoveTeamLeadFromMembers = async (
@@ -482,6 +503,14 @@ const GroupManagement: React.FC = () => {
     }
   };
 
+  const themeOptions = [
+    { value: '', label: 'All Themes' },
+    ...themes.map((theme: Theme) => ({
+      value: theme.theme_id.toString(),
+      label: theme.title,
+    })),
+  ];
+
   return (
     <main className={styles.container}>
       <Card title="Group Management">
@@ -497,12 +526,22 @@ const GroupManagement: React.FC = () => {
         </header>
 
         <section className={styles.content}>
-          <TextInput
-            value={searchQuery}
-            onChange={handleSearch}
-            placeholder="Search groups..."
-            className={styles.searchInput}
-          />
+          <div className={styles.filterContainer}>
+            <TextInput
+              value={searchQuery}
+              onChange={handleSearch}
+              placeholder="Search groups..."
+              className={styles.searchInput}
+            />
+            
+            <SelectInput
+              value={selectedThemeId}
+              onChange={handleThemeFilter}
+              options={themeOptions}
+              placeholder="Filter by theme"
+              className={styles.themeFilter}
+            />
+          </div>
 
           {isLoading ? (
             <div className={styles.loading}>Loading groups...</div>
@@ -526,7 +565,7 @@ const GroupManagement: React.FC = () => {
               ))}
               {!filteredGroups.length && !isLoading && (
                 <li className={styles.noResults}>
-                  {searchQuery
+                  {searchQuery || selectedThemeId
                     ? 'No groups found matching your search criteria'
                     : 'No groups found. Create your first group!'}
                 </li>

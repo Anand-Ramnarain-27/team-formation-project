@@ -420,7 +420,7 @@ const Dashboard: React.FC = () => {
         {analyticsData && (
           <>
             <Card>
-              <h3 className={styles.statTitle}>Total Students</h3>
+              <h3 className={styles.statTitle}>Total Users</h3>
               <p className={styles.statValue}>{analyticsData.total_students}</p>
               <p className={`${styles.statTrend} ${styles.positive}`}>
                 Active in current themes
