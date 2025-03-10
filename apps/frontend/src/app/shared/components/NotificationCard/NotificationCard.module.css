@@ -1,35 +1,35 @@
 .notificationCard {
-  padding: 1rem;
-  border: 1px solid #e5e7eb;
+  padding: var(--spacing-md);
+  border: 1px solid var(--grey-color);
   border-radius: 6px;
-  margin-bottom: 1rem;
+  margin-bottom: var(--spacing-md);
   transition: all 0.2s ease;
 }
 
 .notificationCard:hover {
-  border-color: #d1d5db;
-  background-color: #f9fafb;
+  border-color: var(--info-color);
+  background-color: var(--grey-color);
 }
 
 .message {
-  color: #111827;
-  margin-bottom: 0.5rem;
+  color: var(--text-color-dark);
+  margin-bottom: var(--spacing-sm);
 }
 
 .timestamp {
   display: block;
-  color: #6b7280;
-  font-size: 0.75rem;
+  color: var(--dark-grey-color);
+  font-size: var(--font-size-sm);
 }
 
 .info {
-  border-left: 4px solid #2563eb;
+  border-left: 4px solid var(--success-color);
 }
 
 .warning {
-  border-left: 4px solid #f59e0b;
+  border-left: 4px solid var(--danger-color);
 }
 
 .success {
-  border-left: 4px solid #22c55e;
+  border-left: 4px solid var(--success-color);
 }

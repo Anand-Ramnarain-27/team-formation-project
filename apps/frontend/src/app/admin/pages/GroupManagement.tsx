@@ -69,7 +69,7 @@ const GroupDialog: React.FC<GroupDialogProp> = ({
       showFooter
       footerContent={
         <>
-          <Button onClick={onClose} className={styles.secondaryButton}>
+          <Button onClick={onClose} className={buttonStyles.third}>
             Cancel
           </Button>
           <Button

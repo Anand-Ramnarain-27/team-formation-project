@@ -1,9 +1,9 @@
 .ideaCard {
-  padding: 1.5rem;
-  border: 1px solid #e5e7eb;
+  padding: var(--spacing-lg);
+  border: 1px solid var(--grey-color);
   border-radius: 6px;
   transition: all 0.2s ease;
-  background-color: white;
+  background-color: var(--light-color);
   height: 100%;
   min-height: 200px;
   max-height: 300px;
@@ -12,8 +12,8 @@
 }
 
 .ideaCard:hover {
-  border-color: #d1d5db;
-  background-color: #f9fafb;
+  border-color: var(--grey-color);
+  background-color: var(--grey-color);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
@@ -21,7 +21,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1rem;
+  margin-bottom: var(--spacing-md);
   flex-shrink: 0;
 }
 
@@ -32,23 +32,23 @@
 
 .ideaName {
   font-size: 1.25rem;
-  font-weight: 600;
-  color: #111827;
-  margin: 0 0 0.5rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color-dark);
+  margin: 0 0 var(--spacing-sm) 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .submitter {
-  color: #6b7280;
-  font-size: 0.875rem;
+  color: var(--dark-grey-color);
+  font-size: var(--font-size-sm);
   margin: 0;
   font-style: normal;
 }
 
 .cardContent {
-  color: #4b5563;
+  color: var(--dark-grey-color);
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -56,7 +56,7 @@
 }
 
 .description {
-  margin-bottom: 1rem;
+  margin-bottom: var(--spacing-md);
   line-height: 1.5;
   overflow-y: auto;
   flex: 1;
@@ -74,46 +74,46 @@
 }
 
 .voteCount {
-  color: #6b7280;
-  font-size: 0.875rem;
+  color: var(--text-color-dark);
+  font-size: var(--font-size-sm);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
 }
 
 .statusBadge {
   display: inline-block;
-  padding: 0.25rem 0.5rem;
+  padding: var(--spacing-sm) var(--spacing-md);
   border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
 }
 
 .approved {
-  border-left: 4px solid #22c55e;
+  border-left: 4px solid var(--success-color);
 }
 
 .approved .statusBadge {
-  background-color: #dcfce7;
-  color: #15803d;
+  background-color: lighten(var(--success-color), 90%);
+  color: var(--success-color);
 }
 
 .pending {
-  border-left: 4px solid #f59e0b;
+  border-left: 4px solid var(--danger-color);
 }
 
 .pending .statusBadge {
-  background-color: #fef3c7;
-  color: #b45309;
+  background-color: lighten(var(--danger-color), 90%);
+  color: var(--danger-color);
 }
 
 .rejected {
-  border-left: 4px solid #dc2626;
+  border-left: 4px solid var(--danger-color);
 }
 
 .rejected .statusBadge {
-  background-color: #fee2e2;
-  color: #b91c1c;
+  background-color: lighten(var(--danger-color), 90%);
+  color: var(--danger-color);
 }
 
 .votedButton {
@@ -126,7 +126,7 @@
   }
 
   .statusBadge {
-    margin: 0.5rem 0 0;
+    margin: var(--spacing-sm) 0 0;
   }
 
   .ideaCard {

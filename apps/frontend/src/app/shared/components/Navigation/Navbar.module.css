@@ -1,7 +1,7 @@
 .navbar {
-  background-color: #0e1b34;
-  color: white;
-  padding: 1rem;
+  background-color: var(--primary-color);
+  color: var(--text-color-light);
+  padding: var(--spacing-md);
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -24,11 +24,11 @@
 .hamburgerButton {
   display: none; 
   position: fixed;
-  top: 1rem;
-  left: 1rem;
+  top: var(--spacing-md);
+  left: var(--spacing-md);
   z-index: 60;
-  background: #0e1b34;
-  color: white;
+  background: var(--primary-color);
+  color: var(--text-color-light);
   border: none;
   border-radius: 0.25rem;
   font-size: 1.5rem;
@@ -42,7 +42,7 @@
 }
 
 .hamburgerButton:hover {
-  background-color: #1a2d4d;
+  background-color: darken(var(--primary-color), 10%);
 }
 
 @media screen and (max-width: 768px) {
@@ -61,7 +61,7 @@
 }
 
 .header {
-  margin-bottom: 2rem;
+  margin-bottom: var(--spacing-lg);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -69,7 +69,7 @@
 
 .header h1, .header h2 {
   font-size: 1.25rem;
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
   margin: 0;
 }
 
@@ -78,16 +78,16 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  margin-bottom: 2rem;
+  margin-bottom: var(--spacing-lg);
 }
 
 .menuItem {
   display: flex;
   align-items: center;
-  padding: 0.75rem;
-  margin-bottom: 0.5rem;
+  padding: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
   border-radius: 0.25rem;
-  color: #d1d5db;
+  color: var(--grey-color);
   text-decoration: none;
   transition: background-color 0.2s;
 }
@@ -97,42 +97,42 @@
 }
 
 .menuItem.active {
-  background-color: #2563eb;
-  color: white;
+  background-color: var(--secondary-color);
+  color: var(--text-color-light);
 }
 
 .menuIcon {
-  margin-right: 0.75rem;
+  margin-right: var(--spacing-sm);
 }
 
 .userSection {
-  padding-top: 1rem;
+  padding-top: var(--spacing-md);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .userInfo {
   display: flex;
   align-items: center;
-  margin-bottom: 1rem;
-  padding: 0.5rem;
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-sm);
 }
 
 .userName {
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin-left: 0.5rem;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  margin-left: var(--spacing-sm);
 }
 
 .signOutButton {
   width: 100%;
-  background-color: #dc2626;
-  color: white;
-  padding: 0.5rem;
+  background-color: var(--secondary-color);
+  color: var(--text-color-light);
+  padding: var(--spacing-sm);
   border-radius: 0.25rem;
   border: none;
   cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
   transition: background-color 0.2s;
   display: flex;
   justify-content: center;
@@ -140,7 +140,7 @@
 }
 
 .signOutButton:hover {
-  background-color: #b91c1c;
+  background-color: var(--danger-color);
 }
 
 .overlay {

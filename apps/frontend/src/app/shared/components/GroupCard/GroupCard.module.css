@@ -1,9 +1,9 @@
 .card {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--dark-grey-color);
   border-radius: 8px;
-  background-color: white;
+  background-color: var(--light-color);
   transition: all 0.2s ease-in-out;
-  margin-bottom: 1rem;
+  margin-bottom: var(--spacing-md);
 }
 
 .card:hover {
@@ -11,7 +11,7 @@
 }
 
 .header {
-  padding: 1rem;
+  padding: var(--spacing-md);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -23,84 +23,84 @@
 
 .title {
   font-size: 1.125rem;
-  font-weight: 600;
-  color: #111827;
-  margin: 0 0 0.25rem 0;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color-dark);
+  margin: 0 0 var(--spacing-sm) 0;
 }
 
 .theme {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin: 0 0 0.5rem 0;
+  font-size: var(--font-size-sm);
+  color: var(--dark-grey-color);
+  margin: 0 0 var(--spacing-sm) 0;
 }
 
 .meta {
   display: flex;
-  gap: 1rem;
-  font-size: 0.875rem;
-  color: #6b7280;
+  gap: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--dark-grey-color);
 }
 
 .rating {
-  color: #0f766e;
-  font-weight: 500;
+  color: var(--success-color);
+  font-weight: var(--font-weight-bold);
 }
 
 .actions {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
 }
 
 .content {
-  padding: 1rem;
-  border-top: 1px solid #e5e7eb;
+  padding: var(--spacing-md);
+  border-top: 1px solid var(--dark-grey-color);
 }
 
 .leadContainer {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--spacing-lg);
 }
 
 .sectionTitle {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #374151;
-  margin: 0 0 0.5rem 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color-dark);
+  margin: 0 0 var(--spacing-sm) 0;
 }
 
 .leadInfo {
-  margin-top: 0.25rem;
+  margin-top: var(--spacing-sm);
 }
 
 .membersList {
-  margin-top: 1rem;
+  margin-top: var(--spacing-md);
 }
 
 .membersGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-top: 0.5rem;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-sm);
 }
 
 .memberItem {
-  padding: 0.75rem;
-  background-color: #f9fafb;
+  padding: var(--spacing-sm);
+  background-color: var(--grey-color);
   border-radius: 6px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--grey-color);
 }
 
 .memberName {
-  font-weight: 500;
-  color: #111827;
-  margin: 0 0 0.25rem 0;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color-dark);
+  margin: 0 0 var(--spacing-sm) 0;
 }
 
 .memberEmail {
-  font-size: 0.875rem;
-  color: #6b7280;
+  font-size: var(--font-size-sm);
+  color: var(--dark-grey-color);
   margin: 0;
 }
 
@@ -110,7 +110,7 @@
   }
 
   .actions {
-    margin-top: 1rem;
+    margin-top: var(--spacing-md);
     width: 100%;
     justify-content: flex-end;
   }
@@ -125,6 +125,6 @@
 
   .actions button {
     width: 100%;
-    margin-top: 1rem;
+    margin-top: var(--spacing-md);
   }
 }

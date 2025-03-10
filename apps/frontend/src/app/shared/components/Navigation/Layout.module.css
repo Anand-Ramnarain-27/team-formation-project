@@ -4,8 +4,8 @@
 
 .mainContent {
   flex-grow: 1;
-  padding: 1rem;
-  background-color: #f3f4f6;
+  padding: var(--spacing-md);
+  background-color: var(--grey-color);
   min-height: 100vh;
   margin-left: 16rem;
   transition: margin-left 0.3s ease;

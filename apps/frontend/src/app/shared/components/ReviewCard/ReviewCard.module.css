@@ -1,58 +1,58 @@
 .reviewCard {
-  padding: 1.5rem;
-  background-color: white;
+  padding: var(--spacing-lg);
+  background-color: var(--light-color);
 }
 
 .cardHeader {
-  margin-bottom: 1rem;
+  margin-bottom: var(--spacing-md);
 }
 
 .groupName {
   font-size: 1.25rem;
-  font-weight: 600;
-  color: #111827;
-  margin: 0 0 0.5rem 0;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-color-dark);
+  margin: 0 0 var(--spacing-sm) 0;
 }
 
 .ratingContainer {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
 }
 
 .stars {
   display: flex;
-  gap: 0.25rem;
+  gap: var(--spacing-sm);
 }
 
 .star {
   width: 20px;
   height: 20px;
   fill: none;
-  stroke: #d1d5db;
+  stroke: var(--grey-color);
   stroke-width: 2;
 }
 
 .starFilled {
-  fill: #fbbf24;
-  stroke: #fbbf24;
+  fill: var(--star-color);
+  stroke: var(--danger-color);
 }
 
 .ratingText {
-  color: #4b5563;
-  font-weight: 500;
+  color: var(--text-color-dark);
+  font-weight: var(--font-weight-bold);
 }
 
 .timestamp {
-  color: #6b7280;
-  font-size: 0.875rem;
+  color: var(--dark-grey-color);
+  font-size: var(--font-size-sm);
   margin: 0;
   display: block;
 }
 
 .feedback {
-  color: #4b5563;
+  color: var(--text-color-dark);
   line-height: 1.6;
   margin: 0;
   white-space: pre-wrap;
@@ -60,7 +60,7 @@
 
 @media (max-width: 640px) {
   .reviewCard {
-    padding: 1rem;
+    padding: var(--spacing-md);
   }
 
   .ratingContainer {

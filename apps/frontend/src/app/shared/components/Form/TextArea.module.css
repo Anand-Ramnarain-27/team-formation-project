@@ -1,9 +1,8 @@
-/* TextArea.module.css */
 .textArea {
-  padding: 0.5rem;
-  border: 1px solid #d1d5db;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--grey-color);
   border-radius: 4px;
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   width: 100%;
   resize: vertical;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -11,6 +10,6 @@
 
 .textArea:focus {
   outline: none;
-  border-color: #2563eb;
+  border-color: var(--primary-color);
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
 }
