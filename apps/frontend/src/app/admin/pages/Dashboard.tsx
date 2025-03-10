@@ -163,6 +163,44 @@ const Dashboard: React.FC = () => {
     }
   }, [userId, userRole]);
 
+  useEffect(() => {
+    const timeouts: NodeJS.Timeout[] = [];
+  
+    activeThemes.forEach((theme) => {
+      const votingDeadline = new Date(theme.voting_deadline);
+      const now = new Date();
+      const timeRemaining = votingDeadline.getTime() - now.getTime();
+  
+      if (timeRemaining > 0) {
+        const timeout = setTimeout(async () => {
+          try {
+            const response = await fetch('http://localhost:7071/api/autoAssign', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ theme_id: theme.theme_id }),
+            });
+  
+            if (response.ok) {
+              console.log(`Auto-assign triggered for theme: ${theme.title}`);
+            } else {
+              console.error(`Failed to trigger auto-assign for theme: ${theme.title}`);
+            }
+  
+            await fetchThemes();
+          } catch (error) {
+            console.error(`Error triggering auto-assign for theme: ${theme.title}`, error);
+          }
+        }, timeRemaining);
+  
+        timeouts.push(timeout);
+      }
+    });
+  
+    return () => timeouts.forEach((timeout) => clearTimeout(timeout));
+  }, [activeThemes]);
+
   const handleCreateTheme = async (newTheme: BaseThemeWithQuestions) => {
     try {
       const themeWithCreator = {

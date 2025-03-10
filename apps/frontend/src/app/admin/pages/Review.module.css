@@ -108,7 +108,7 @@
 .emptyState {
   text-align: center;
   padding: var(--spacing-lg);
-  color: var(--grey-color);
+  color: var(--dark-grey-color);
   font-size: var(--font-size-sm);
 }
 

@@ -1,5 +1,7 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
+import { AutoAssignRequestBody } from '../utils/types';
 import { PrismaClient } from '@prisma/client';
+import { corsMiddleware } from '../utils/cors';
 
 const prisma = new PrismaClient();
 
@@ -10,6 +12,13 @@ export async function autoAssignLocalHandler(
   context.log('Auto-assign function triggered manually.');
 
   try {
+    const body = await request.json() as AutoAssignRequestBody;
+    const themeId = body.theme_id;
+
+    if (!themeId) {
+      return { status: 400, body: 'Theme ID is required.' };
+    }
+
     const now = new Date();
     const themes = await prisma.theme.findMany({
       where: {
@@ -110,8 +119,10 @@ export async function autoAssignLocalHandler(
   }
 }
 
+const autoAssign = corsMiddleware(autoAssignLocalHandler);
+
 app.http('autoAssign', {
-  methods: ['POST'],
+  methods: ['POST', 'OPTIONS'],
   authLevel: 'anonymous',
-  handler: autoAssignLocalHandler,
+  handler: autoAssign,
 });

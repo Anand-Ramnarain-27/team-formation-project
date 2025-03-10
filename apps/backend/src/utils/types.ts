@@ -94,3 +94,7 @@ export interface NotificationRequestBody {
   message: string;
   created_by: number;
 }
+
+export interface AutoAssignRequestBody {
+  theme_id: number;
+}
