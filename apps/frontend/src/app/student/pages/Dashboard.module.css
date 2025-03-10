@@ -18,6 +18,10 @@
   color: var(--grey-color);
 }
 
+.dashboardTabs {
+  margin-bottom: var(--spacing-md);
+}
+
 .topSection {
   display: grid;
   grid-template-columns: 1fr 300px;
@@ -148,6 +152,18 @@
 .themeButtons {
   display: flex;
   gap: 0.5rem;
+}
+
+.themeFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.themeInfo {
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
 }
 
 @media (max-width: 1024px) {

@@ -14,14 +14,18 @@ import {
 import Card from '@/app/shared/components/Card/Card';
 import Button from '@/app/shared/components/Button/Button';
 import NotificationCard from '@/app/shared/components/NotificationCard/NotificationCard';
+import Tabs from '@/app/shared/components/Tabs/Tabs';
 
 const Dashboard: React.FC = () => {
+  const [activeTabId, setActiveTabId] = useState('active-themes');
+  
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<
     ThemeWithQuestions | undefined
   >();
   const [activeThemes, setActiveThemes] = useState<ThemeWithQuestions[]>([]);
+  const [previousThemes, setPreviousThemes] = useState<ThemeWithQuestions[]>([]);
   const [analyticsData, setAnalyticsData] = useState<AnalyticsReport | null>(
     null
   );
@@ -80,8 +84,32 @@ const Dashboard: React.FC = () => {
           };
         })
       );
+
+      const now = new Date();
+      const active: ThemeWithQuestions[] = [];
+      const previous: ThemeWithQuestions[] = [];
       
-      setActiveThemes(themesWithQuestions);
+      themesWithQuestions.forEach(theme => {
+        let isCompleted = true;
+
+        if (theme.review_deadline && theme.review_deadline.length > 0) {
+          const lastReviewDeadline = theme.review_deadline[theme.review_deadline.length - 1];
+          if (now <= new Date(lastReviewDeadline.end)) {
+            isCompleted = false;
+          }
+        } else if (now <= new Date(theme.voting_deadline)) {
+          isCompleted = false;
+        }
+        
+        if (isCompleted) {
+          previous.push(theme);
+        } else {
+          active.push(theme);
+        }
+      });
+      
+      setActiveThemes(active);
+      setPreviousThemes(previous);
     } catch (err) {
       setError('Error fetching themes');
       console.error(err);
@@ -266,6 +294,71 @@ const Dashboard: React.FC = () => {
     setIsEditModalOpen(true);
   };
 
+  const getThemeStatus = (theme: ThemeWithQuestions) => {
+    const now = new Date();
+
+    if (now < new Date(theme.submission_deadline)) {
+      return 'Submission Phase';
+    }
+
+    if (now < new Date(theme.voting_deadline)) {
+      return 'Voting Phase';
+    }
+
+    for (const review of theme.review_deadline) {
+      if (
+        now >= new Date(review.start) &&
+        now <= new Date(review.end)
+      ) {
+        return `Review Phase (Group ${
+          theme.review_deadline.indexOf(review) + 1
+        })`;
+      }
+    }
+
+    const nextReview = theme.review_deadline.find(
+      (review) => now < new Date(review.start)
+    );
+    if (nextReview) {
+      return 'Review Phase is Going to Start';
+    }
+
+    return 'Completed';
+  };
+
+  const renderThemesList = (themes: ThemeWithQuestions[]) => {
+    return (
+      <ul className={styles.themesGrid}>
+        {themes.length > 0 ? (
+          themes.map((theme) => (
+            <li key={theme.theme_id} className={styles.themeCard}>
+              <header className={`${styles.themeHeader} ${styles.blue}`}>
+                <h3>{theme.title}</h3>
+              </header>
+              <article className={styles.themeContent}>
+                <p>{theme.description}</p>
+                <p className={styles.questionCount}>
+                  {theme.questions.length} review question
+                  {theme.questions.length !== 1 ? 's' : ''}
+                </p>
+                <footer className={styles.themeFooter}>
+                  <span className={styles.themeStatus}>
+                    {getThemeStatus(theme)}
+                  </span>
+                  <Button onClick={() => handleManageTheme(theme)}>
+                    Manage →
+                  </Button>
+                </footer>
+              </article>
+            </li>
+          ))
+        ) : (
+          <li className={styles.noData}>No themes available</li>
+        )}
+      </ul>
+    );
+  };
+
   if (isLoading) {
     return <div className={styles.loading}>Loading dashboard data...</div>;
   }
@@ -273,6 +366,11 @@ const Dashboard: React.FC = () => {
   if (error) {
     return <div className={styles.error}>{error}</div>;
   }
+
+  const themeTabs = [
+    { id: 'active-themes', label: 'Active Themes' },
+    { id: 'previous-themes', label: 'Previous Themes' }
+  ];
 
   return (
     <main className={styles.container}>
@@ -314,65 +412,25 @@ const Dashboard: React.FC = () => {
 
       <section className={styles.themesSection}>
         <header className={styles.sectionHeader}>
-          <h2>Active Themes</h2>
+          <h2>Themes</h2>
           <Button onClick={() => setIsCreateModalOpen(true)}>
             + Create New Theme
           </Button>
         </header>
-        <ul className={styles.themesGrid}>
-          {activeThemes.map((theme) => (
-            <li key={theme.theme_id} className={styles.themeCard}>
-              <header className={`${styles.themeHeader} ${styles.blue}`}>
-                <h3>{theme.title}</h3>
-              </header>
-              <article className={styles.themeContent}>
-                <p>{theme.description}</p>
-                <p className={styles.questionCount}>
-                  {theme.questions.length} review question
-                  {theme.questions.length !== 1 ? 's' : ''}
-                </p>
-                <footer className={styles.themeFooter}>
-                  <span className={styles.themeStatus}>
-                    {(() => {
-                      const now = new Date();
-
-                      if (now < new Date(theme.submission_deadline)) {
-                        return 'Submission Phase';
-                      }
-
-                      if (now < new Date(theme.voting_deadline)) {
-                        return 'Voting Phase';
-                      }
-
-                      for (const review of theme.review_deadline) {
-                        if (
-                          now >= new Date(review.start) &&
-                          now <= new Date(review.end)
-                        ) {
-                          return `Review Phase (Group ${
-                            theme.review_deadline.indexOf(review) + 1
-                          })`;
-                        }
-                      }
-
-                      const nextReview = theme.review_deadline.find(
-                        (review) => now < new Date(review.start)
-                      );
-                      if (nextReview) {
-                        return 'Review Phase is Going to Start';
-                      }
-
-                      return 'Completed';
-                    })()}
-                  </span>
-                  <Button onClick={() => handleManageTheme(theme)}>
-                    Manage →
-                  </Button>
-                </footer>
-              </article>
-            </li>
-          ))}
-        </ul>
+        
+        <Tabs 
+          tabs={themeTabs} 
+          activeTab={activeTabId} 
+          onTabChange={setActiveTabId} 
+        />
+        
+        <div role="tabpanel" id={`panel-active-themes`} aria-labelledby={`tab-active-themes`} hidden={activeTabId !== 'active-themes'}>
+          {renderThemesList(activeThemes)}
+        </div>
+        
+        <div role="tabpanel" id={`panel-previous-themes`} aria-labelledby={`tab-previous-themes`} hidden={activeTabId !== 'previous-themes'}>
+          {renderThemesList(previousThemes)}
+        </div>
       </section>
 
       <section className={styles.gridContainer}>
