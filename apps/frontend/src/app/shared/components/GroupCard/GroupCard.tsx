@@ -4,6 +4,7 @@ import { Group, User } from '@/app/shared/utils/types';
 import Button from '@/app/shared/components/Button/Button';
 import style from '@/app/shared/components/Button/Button.module.css';
 import Card from '@/app/shared/components/Card/Card';
+import useApi from '../../hooks/useApi';
 
 type GroupCardProps = {
   group: Group;
@@ -31,20 +32,13 @@ const GroupCard = ({
   const [teamLeadName, setTeamLeadName] = useState<string>('Loading...');
   const [teamLeadDetails, setTeamLeadDetails] = useState<string>('Loading...');
   const [members, setMembers] = useState<User[]>([]);
+  const { get, loading, error } = useApi('');
 
   const fetchThemeName = async () => {
     try {
       if (group.theme_id) {
-        const response = await fetch(
-          `http://localhost:7071/api/theme?id=${group.theme_id}`
-        );
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch theme');
-        }
-
-        const theme = await response.json();
-
+        const theme = await get(`/theme?id=${group.theme_id}`);
+        
         if (theme) {
           setThemeName(theme.title); 
         } else {
@@ -60,15 +54,7 @@ const GroupCard = ({
   const fetchGroupData = async () => {
     try {
       if (isExpanded && group.group_id) {
-        const response = await fetch(
-          `http://localhost:7071/api/groupMember?id=${group.group_id}`
-        );
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch group members');
-        }
-
-        const groupMembersData = await response.json();
+        const groupMembersData = await get(`/groupMember?id=${group.group_id}`);
         
         if (Array.isArray(groupMembersData) && groupMembersData.length > 0) {
           const membersList = groupMembersData.map(item => item.member);
@@ -100,13 +86,7 @@ const GroupCard = ({
   const fetchTeamLeadSeparately = async () => {
     try {
       if (group.team_lead) {
-        const response = await fetch(`http://localhost:7071/api/user?id=${group.team_lead}`);
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch user');
-        }
-
-        const lead = await response.json();
+        const lead = await get(`/user?id=${group.team_lead}`);
 
         if (lead) {
           setTeamLeadName(lead.name);
@@ -211,7 +191,7 @@ const GroupCard = ({
               Members ({isLoading ? "Loading..." : memberCount})
             </h4>
             
-            {isLoading ? (
+            {isLoading || loading ? (
               <p>Loading group members...</p>
             ) : memberCount > 0 ? (
               <ul className={styles.membersGrid}>
@@ -227,6 +207,10 @@ const GroupCard = ({
               </ul>
             ) : (
               <p>No members in this group.</p>
+            )}
+            
+            {error && (
+              <p className={styles.error}>Error: {error}</p>
             )}
           </section>
         </section>

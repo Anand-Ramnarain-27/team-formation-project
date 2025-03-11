@@ -16,8 +16,7 @@ import FormGroup from '@/app/shared/components/Form/FormGroup';
 import TextInput from '@/app/shared/components/Form/TextInput';
 import SelectInput from '@/app/shared/components/SelectInput/SelectInput';
 import GroupCard from '@/app/shared/components/GroupCard/GroupCard';
-
-const API_BASE_URL = 'http://localhost:7071/api';
+import useApi from '@/app/shared/hooks/useApi'; 
 
 const GroupDialog: React.FC<GroupDialogProp> = ({
   group,
@@ -195,6 +194,7 @@ const MemberManagementDialog: React.FC<MemberManagementDialogProps> = ({
 };
 
 const GroupManagement: React.FC = () => {
+  const { get, post, patch, remove, loading, error } = useApi('');
   const [groups, setGroups] = useState<Group[]>([]);
   const [filteredGroups, setFilteredGroups] = useState<Group[]>([]);
   const [themes, setThemes] = useState<Theme[]>([]);
@@ -208,70 +208,40 @@ const GroupManagement: React.FC = () => {
   const [expandedGroups, setExpandedGroups] = useState<Record<number, boolean>>(
     {}
   );
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const fetchGroups = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/group`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch groups: ${response.statusText}`);
-      }
-      const data = await response.json();
-
+      const data = await get('/group');
       const sortedGroups = [...data].sort((a, b) => b.group_id - a.group_id);
       
       setGroups(sortedGroups);
       setFilteredGroups(sortedGroups);
     } catch (error) {
       console.error('Error fetching groups:', error);
-      setError(
-        error instanceof Error ? error.message : 'Failed to fetch groups'
-      );
     }
   };
 
   const fetchThemes = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/theme`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch themes: ${response.statusText}`);
-      }
-      const data = await response.json();
+      const data = await get('/theme');
       setThemes(data);
     } catch (error) {
       console.error('Error fetching themes:', error);
-      setError(
-        error instanceof Error ? error.message : 'Failed to fetch themes'
-      );
     }
   };
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/user`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch users: ${response.statusText}`);
-      }
-      const data = await response.json();
+      const data = await get('/user');
       setUsers(data);
     } catch (error) {
       console.error('Error fetching users:', error);
-      setError(
-        error instanceof Error ? error.message : 'Failed to fetch users'
-      );
     }
   };
 
   const fetchGroupMembers = async (groupId: number) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/groupMember?id=${groupId}`);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch group members: ${response.statusText}`);
-      }
-      
-      const membersData = await response.json();
+      const membersData = await get(`/groupMember?id=${groupId}`);
       
       if (Array.isArray(membersData)) {
         const members = membersData.map((item: any) => item.member);
@@ -287,13 +257,10 @@ const GroupManagement: React.FC = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      setIsLoading(true);
       try {
         await Promise.all([fetchThemes(), fetchUsers(), fetchGroups()]);
       } catch (error) {
         console.error('Error loading data:', error);
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -342,12 +309,7 @@ const GroupManagement: React.FC = () => {
       );
 
       if (teamLeadIsMember) {
-        await fetch(
-          `${API_BASE_URL}/groupMember?groupId=${groupId}&userId=${newTeamLeadId}`,
-          {
-            method: 'DELETE',
-          }
-        );
+        await remove(`/groupMember?groupId=${groupId}&userId=${newTeamLeadId}`);
         console.log(`Removed user ${newTeamLeadId} from group members as they are now the team lead`);
       }
     } catch (error) {
@@ -363,26 +325,11 @@ const GroupManagement: React.FC = () => {
         team_lead: parseInt(formData.team_lead),
       };
 
-      let response;
-
       if (selectedGroup) {
         const oldTeamLeadId = selectedGroup.team_lead;
         const newTeamLeadId = parseInt(formData.team_lead);
 
-        response = await fetch(
-          `${API_BASE_URL}/group?id=${selectedGroup.group_id}`,
-          {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`Failed to save group: ${response.statusText}`);
-        }
+        await patch(`/group?id=${selectedGroup.group_id}`, payload);
 
         if (oldTeamLeadId !== newTeamLeadId) {
           await checkAndRemoveTeamLeadFromMembers(
@@ -391,20 +338,7 @@ const GroupManagement: React.FC = () => {
           );
         }
       } else {
-        response = await fetch(`${API_BASE_URL}/group`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Failed to save group: ${response.statusText}`);
-        }
-
-        const newGroup = await response.json();
-
+        const newGroup = await post('/group', payload);
         await checkAndRemoveTeamLeadFromMembers(
           newGroup.group_id,
           parseInt(formData.team_lead)
@@ -449,20 +383,10 @@ const GroupManagement: React.FC = () => {
         return;
       }
       
-      const response = await fetch(
-        `${API_BASE_URL}/groupMember?groupId=${selectedGroup.group_id}&userId=${user.user_id}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({}),
-        }
+      await post(
+        `/groupMember?groupId=${selectedGroup.group_id}&userId=${user.user_id}`,
+        {}
       );
-
-      if (!response.ok) {
-        throw new Error(`Failed to add member: ${response.statusText}`);
-      }
 
       const members = await fetchGroupMembers(selectedGroup.group_id);
       
@@ -480,16 +404,9 @@ const GroupManagement: React.FC = () => {
     if (!selectedGroup) return;
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/groupMember?groupId=${selectedGroup.group_id}&userId=${userId}`,
-        {
-          method: 'DELETE',
-        }
+      await remove(
+        `/groupMember?groupId=${selectedGroup.group_id}&userId=${userId}`
       );
-
-      if (!response.ok) {
-        throw new Error(`Failed to remove member: ${response.statusText}`);
-      }
 
       const members = await fetchGroupMembers(selectedGroup.group_id);
 
@@ -543,7 +460,7 @@ const GroupManagement: React.FC = () => {
             />
           </div>
 
-          {isLoading ? (
+          {loading ? (
             <div className={styles.loading}>Loading groups...</div>
           ) : error ? (
             <div className={styles.error}>{error}</div>
@@ -563,7 +480,7 @@ const GroupManagement: React.FC = () => {
                   />
                 </li>
               ))}
-              {!filteredGroups.length && !isLoading && (
+              {!filteredGroups.length && !loading && (
                 <li className={styles.noResults}>
                   {searchQuery || selectedThemeId
                     ? 'No groups found matching your search criteria'

@@ -6,6 +6,7 @@ import Button from '@/app/shared/components/Button/Button';
 import FormGroup from '@/app/shared/components/Form/FormGroup';
 import TextInput from '@/app/shared/components/Form/TextInput';
 import SelectInput from '@/app/shared/components/SelectInput/SelectInput';
+import useApi from '@/app/shared/hooks/useApi';
 
 interface StudentFormProps {
   student?: StudentWithDetails;
@@ -64,8 +65,6 @@ const StudentForm: React.FC<StudentFormProps> = ({
   );
 };
 
-const API_BASE_URL = 'http://localhost:7071/api';
-
 const StudentManagement: React.FC = () => {
   const [students, setStudents] = useState<StudentWithDetails[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -73,29 +72,16 @@ const StudentManagement: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<StudentWithDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const { get, post, patch, remove, loading, error } = useApi('');
+
   const fetchStudents = async () => {
-    setIsLoading(true);
-    setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/user`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch users: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      const data = await get('/user');
       setStudents(data);
     } catch (error) {
       console.error('Error fetching users:', error);
-      setError(error instanceof Error ? error.message : 'An unknown error occurred');
     } finally {
       setIsLoading(false);
     }
@@ -108,28 +94,17 @@ const StudentManagement: React.FC = () => {
   const handleAddStudent = async (userData: Partial<User>) => {
     setIsSubmitting(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/user`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: userData.name,
-          email: userData.email,
-          role: userData.role,
-          auth_provider: 'local' 
-        }),
+      await post('/user', {
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        auth_provider: 'local' 
       });
-
-      if (!response.ok) {
-        throw new Error(`Failed to add user: ${response.status} ${response.statusText}`);
-      }
-
+      
       await fetchStudents();
       setIsAddModalOpen(false);
     } catch (error) {
       console.error('Error adding user:', error);
-      setError(error instanceof Error ? error.message : 'Failed to add user');
     } finally {
       setIsSubmitting(false);
     }
@@ -140,28 +115,17 @@ const StudentManagement: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/user?id=${editingStudent.user_id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: userData.name,
-          email: userData.email,
-          role: userData.role,
-          auth_provider: null
-        }),
+      await patch(`/user?id=${editingStudent.user_id}`, {
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        auth_provider: null
       });
-
-      if (!response.ok) {
-        throw new Error(`Failed to update user: ${response.status} ${response.statusText}`);
-      }
-
+      
       await fetchStudents();
       setEditingStudent(null);
     } catch (error) {
       console.error('Error updating user:', error);
-      setError(error instanceof Error ? error.message : 'Failed to update user');
     } finally {
       setIsSubmitting(false);
     }

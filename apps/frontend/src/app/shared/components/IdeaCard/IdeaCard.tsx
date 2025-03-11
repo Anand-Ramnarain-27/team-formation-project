@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styles from './IdeaCard.module.css';
 import { Idea } from '@/app/shared/utils/types';
 import Button from '../Button/Button';
+import useApi from '../../hooks/useApi';
 
 interface IdeaCardProps extends Idea {
   onVote: () => void;
@@ -25,19 +26,12 @@ const IdeaCard: React.FC<IdeaCardProps> = ({
   const [submitterName, setSubmitterName] = useState<string>('Loading...');
   const [currentVoteCount, setCurrentVoteCount] = useState<number>(vote_count);
   const [isLoading, setIsLoading] = useState(true);
+  const { get } = useApi('');
 
   const fetchSubmitterName = async () => {
     try {
       if (submitted_by) {
-        const response = await fetch(
-          `http://localhost:7071/api/user?id=${submitted_by}`
-        );
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch user');
-        }
-
-        const user = await response.json();
+        const user = await get(`/user?id=${submitted_by}`);
 
         if (user) {
           setSubmitterName(user.name);
@@ -53,13 +47,7 @@ const IdeaCard: React.FC<IdeaCardProps> = ({
 
   const fetchVoteCount = async () => {
     try {
-      const response = await fetch(`http://localhost:7071/api/vote?ideaId=${idea_id}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch vote count');
-      }
-
-      const votes = await response.json();
+      const votes = await get(`http://localhost:7071/api/vote?ideaId=${idea_id}`)
       setCurrentVoteCount(votes.length);
     } catch (error) {
       console.error('Error fetching vote count:', error);

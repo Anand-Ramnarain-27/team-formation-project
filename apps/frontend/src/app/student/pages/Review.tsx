@@ -14,10 +14,9 @@ import FormGroup from '@/app/shared/components/Form/FormGroup';
 import TextArea from '@/app/shared/components/Form/TextArea';
 import Tabs from '@/app/shared/components/Tabs/Tabs';
 import ReviewCard from '@/app/shared/components/ReviewCard/ReviewCard';
+import useApi from '@/app/shared/hooks/useApi';
 
 type TabType = 'ratings' | 'feedback';
-
-const API_BASE_URL = 'http://localhost:7071/api';
 
 interface QuestionRating {
   question_id: number;
@@ -30,16 +29,16 @@ interface ExtendedReview extends Review {
 }
 
 const Reviews: React.FC = () => {
+  const { get, post, patch, remove, loading} = useApi('');
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
   const [currentGroup, setCurrentGroup] = useState<Group | null>(null);
   const [reviews, setReviews] = useState<{ [key: number]: ExtendedReview }>({});
   const [submitted, setSubmitted] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('ratings');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [hasSubmittedReviews, setHasSubmittedReviews] = useState(false);
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [error, setError] = useState('');
   const [reviewDeadlines, setReviewDeadlines] = useState<ReviewDeadline[]>([]);
 
   const tabs: Array<{ id: TabType; label: string }> = [
@@ -61,7 +60,6 @@ const Reviews: React.FC = () => {
     const userJson = localStorage.getItem('currentUser');
 
     if (!userJson) {
-      setError("You're not logged in. Please log in to view notifications.");
       return;
     }
 
@@ -69,9 +67,7 @@ const Reviews: React.FC = () => {
       const user = JSON.parse(userJson) as User;
       const userId = user.user_id;
       setCurrentUserId(userId);
-      setLoading(false);
     } catch (err) {
-      setError('Invalid user data. Please log in again.');
       localStorage.removeItem('currentUser');
     }
   }, []);
@@ -80,32 +76,18 @@ const Reviews: React.FC = () => {
     const fetchGroupData = async () => {
       if (!currentUserId) return;
 
-      setLoading(true);
       try {
         let userGroup = null;
         let teamLeadGroup: Group | null = null;
 
-        const groupResponse = await fetch(
-          `${API_BASE_URL}/groupMember?userId=${currentUserId}`
-        );
-        if (!groupResponse.ok) {
-          throw new Error('Failed to fetch group data');
-        }
-
-        const userMembershipData = await groupResponse.json();
+        const userMembershipData = await get(`/groupMember?userId=${currentUserId}`);
 
         userGroup =
           userMembershipData.length > 0 ? userMembershipData[0] : null;
 
         if (!userGroup) {
-          const teamLeadGroupResponse = await fetch(
-            `${API_BASE_URL}/group?teamLead=${currentUserId}`
-          );
-          if (!teamLeadGroupResponse.ok) {
-            throw new Error('Failed to fetch team lead group data');
-          }
+          const teamLeadGroupData = await get(`/group?teamLead=${currentUserId}`);
 
-          const teamLeadGroupData = await teamLeadGroupResponse.json();
           teamLeadGroup =
             teamLeadGroupData.length > 0 ? teamLeadGroupData[0] : null;
 
@@ -115,13 +97,7 @@ const Reviews: React.FC = () => {
 
           setCurrentGroup(teamLeadGroup);
 
-          const membersResponse = await fetch(
-            `${API_BASE_URL}/groupMember?id=${teamLeadGroup.group_id}`
-          );
-          if (!membersResponse.ok) {
-            throw new Error('Failed to fetch group members');
-          }
-          const membersData = await membersResponse.json();
+          const membersData = await get(`/groupMember?id=${teamLeadGroup.group_id}`);
 
           const transformedMembers = membersData.map((member: any) => ({
             group_member_id: member.group_member_id,
@@ -158,13 +134,7 @@ const Reviews: React.FC = () => {
 
           console.log('Regular Member Theme ID:', userGroup.group.theme_id);
 
-          const membersResponse = await fetch(
-            `${API_BASE_URL}/groupMember?id=${userGroup.group_id}`
-          );
-          if (!membersResponse.ok) {
-            throw new Error('Failed to fetch group members');
-          }
-          const membersData = await membersResponse.json();
+          const membersData = await get(`/groupMember?id=${userGroup.group_id}`)
 
           const transformedMembers = membersData.map((member: any) => ({
             group_member_id: member.group_member_id,
@@ -197,12 +167,8 @@ const Reviews: React.FC = () => {
             await fetchReviewDeadlines(userGroup.group.theme_id);
           }
         }
-
-        const reviewsResponse = await fetch(
-          `${API_BASE_URL}/review?reviewer_id=${currentUserId}`
-        );
-        if (reviewsResponse.ok) {
-          const reviewsData = await reviewsResponse.json();
+ {
+          const reviewsData = await get(`/review?reviewer_id=${currentUserId}`)
 
           const groupReviews = reviewsData.filter(
             (review: any) =>
@@ -233,10 +199,8 @@ const Reviews: React.FC = () => {
           setReviews(reviewsObject);
         }
       } catch (err) {
-        setError('Error loading group data. Please try again later.');
         console.error('Error fetching group data:', err);
       } finally {
-        setLoading(false);
       }
     };
 
@@ -245,11 +209,7 @@ const Reviews: React.FC = () => {
 
   const fetchReviewDeadlines = async (themeId: number) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/theme?id=${themeId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch theme data');
-      }
-      const theme = await response.json();
+      const theme = await get(`/theme?id=${themeId}`);
       return theme.review_deadline;
     } catch (err) {
       console.error('Error fetching review deadlines:', err);
@@ -259,11 +219,7 @@ const Reviews: React.FC = () => {
 
   const fetchQuestions = async (themeId: number) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/question?id=${themeId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch questions');
-      }
-      const data = await response.json();
+      const data = await get(`/question?id=${themeId}`);
       setQuestions(data);
 
       setReviews((prev) => {
@@ -309,7 +265,6 @@ const Reviews: React.FC = () => {
       });
     } catch (err) {
       console.error('Error fetching questions:', err);
-      setError('Failed to load review questions. Please try again later.');
     }
   };
 
@@ -389,7 +344,6 @@ const Reviews: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!currentGroup || !currentUserId) return;
-    setError(null);
 
     try {
       const reviewDeadlines = await fetchReviewDeadlines(currentGroup.theme_id);
@@ -417,25 +371,12 @@ const Reviews: React.FC = () => {
           feedback: review.feedback,
         };
 
-        const response = await fetch(`${API_BASE_URL}/review`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(reviewData),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Error submitting review: ${response.statusText}`);
-        }
-
-        return response.json();
+        return await post(`/review`, reviewData);
       });
 
       await Promise.all(reviewPromises);
       setSubmitted(true);
     } catch (err) {
-      setError('Error submitting reviews. Please try again.');
       console.error('Error submitting reviews:', err);
     }
   };

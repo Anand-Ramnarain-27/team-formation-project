@@ -6,6 +6,7 @@ import FormGroup from '@/app/shared/components/Form/FormGroup';
 import TextArea from '@/app/shared/components/Form/TextArea';
 import SelectInput from '@/app/shared/components/SelectInput/SelectInput';
 import NotificationCard from '@/app/shared/components/NotificationCard/NotificationCard';
+import useApi from '../hooks/useApi';
 
 const recipientOptions = [
   { value: 'Student', label: 'Students' },
@@ -58,9 +59,9 @@ const CreateNotificationForm = ({
 
 const NotificationsPage = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { get, post, patch, remove, loading } = useApi('');
 
   useEffect(() => {
     const userJson = localStorage.getItem('currentUser');
@@ -86,31 +87,13 @@ const NotificationsPage = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       if (!userId || !userRole) {
-        setLoading(false);
         return;
       }
       try {
-        const response = await fetch(
-          `http://localhost:7071/api/notification?user_id=${userId}&user_role=${userRole}`,
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              // 'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch notifications');
-        }
-
-        const data = await response.json();
+        const data = await get(`/notification?user_id=${userId}&user_role=${userRole}`);
         setNotifications(data);
-        setLoading(false);
       } catch (error) {
         console.error('Error fetching notifications:', error);
-        setLoading(false);
       }
     };
 
@@ -123,24 +106,11 @@ const NotificationsPage = () => {
   ) => {
     if (!currentUser) return;
     try {
-      const response = await fetch(`http://localhost:7071/api/notification`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // 'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({
-          recipient_role: recipientRole,
-          message,
-          created_by: currentUser?.user_id,
-        }),
+      const newNotification = await post('/notification', {
+        recipient_role: recipientRole,
+        message,
+        created_by: currentUser?.user_id,
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to send notification');
-      }
-
-      const newNotification = await response.json();
       if (
         newNotification.recipient_role === currentUser.role
       ) {

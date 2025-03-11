@@ -8,21 +8,19 @@ import {
   EmptyState,
 } from '@/app/shared/components/States/States';
 import IdeaCard from '@/app/shared/components/IdeaCard/IdeaCard';
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7071/api';
+import useApi from '@/app/shared/hooks/useApi';
 
 const Voting: React.FC = () => {
+  const { get, post, patch, remove, loading} = useApi('');
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [theme, setTheme] = useState<Theme | null>(null);
   const [themes, setThemes] = useState<Theme[]>([]);
   const [selectedThemeId, setSelectedThemeId] = useState('');
   const [remainingVotes, setRemainingVotes] = useState(3);
   const [votedIdeas, setVotedIdeas] = useState<Set<number>>(new Set());
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isVotingActive, setIsVotingActive] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const getCurrentUser = async () => {
@@ -40,19 +38,13 @@ const Voting: React.FC = () => {
         }
       } catch (err) {
         console.error('Error getting current user:', err);
-        setError('Please log in to view and vote for ideas.');
         return null;
       }
     };
 
     const fetchThemes = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/theme`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch themes');
-        }
-
-        const themesData = await response.json();
+        const themesData = await get('/theme');
         setThemes(themesData);
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -67,16 +59,13 @@ const Voting: React.FC = () => {
         return themesData;
       } catch (err) {
         console.error('Error fetching themes:', err);
-        setError('Failed to load available themes.');
         return [];
       }
     };
 
     const initialize = async () => {
-      setLoading(true);
       await getCurrentUser();
       await fetchThemes();
-      setLoading(false);
     };
 
     initialize();
@@ -87,15 +76,7 @@ const Voting: React.FC = () => {
   
     const fetchThemeAndIdeas = async () => {
       try {
-        setLoading(true);
-  
-        const themeResponse = await fetch(
-          `${API_BASE_URL}/theme?id=${selectedThemeId}`
-        );
-        if (!themeResponse.ok) {
-          throw new Error('Failed to fetch theme details');
-        }
-        const themeData = await themeResponse.json();
+        const themeData = await get(`/theme?id=${selectedThemeId}`);
         setTheme(themeData);
 
         const now = new Date();
@@ -104,19 +85,9 @@ const Voting: React.FC = () => {
         const votingActive = now > submissionDeadline && now < votingDeadline;
         setIsVotingActive(votingActive);
   
-        const ideasResponse = await fetch(
-          `${API_BASE_URL}/idea?theme_id=${selectedThemeId}`
-        );
-        if (!ideasResponse.ok) {
-          throw new Error('Failed to fetch ideas');
-        }
-        const ideasData = await ideasResponse.json();
+        const ideasData = await get(`/idea?theme_id=${selectedThemeId}`);
 
-        const votesResponse = await fetch(`${API_BASE_URL}/vote`);
-        if (!votesResponse.ok) {
-          throw new Error('Failed to fetch votes');
-        }
-        const votesData = await votesResponse.json();
+        const votesData = await get('/vote');
   
         const userVotes = votesData.filter(
           (vote: Vote) =>
@@ -135,11 +106,8 @@ const Voting: React.FC = () => {
         }));
   
         setIdeas(ideasWithVotes);
-        setLoading(false);
       } catch (err) {
         console.error('Error fetching data:', err);
-        setError('Failed to load ideas. Please try again.');
-        setLoading(false);
       }
     };
   
@@ -155,7 +123,6 @@ const Voting: React.FC = () => {
 
   const handleVote = async (ideaId: number) => {
     if (!currentUser) {
-      setError('You must be logged in to vote');
       return;
     }
   
@@ -181,20 +148,10 @@ const Voting: React.FC = () => {
         return;
       }
   
-      const response = await fetch(`${API_BASE_URL}/vote`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          idea_id: ideaId,
-          voted_by: currentUser.user_id,
-        }),
+      await post('/vote', {
+        idea_id: ideaId,
+        voted_by: currentUser.user_id,
       });
-  
-      if (!response.ok) {
-        throw new Error('Failed to submit vote');
-      }
   
       setIdeas((prevIdeas) =>
         prevIdeas.map((idea) =>
@@ -209,17 +166,14 @@ const Voting: React.FC = () => {
       setVotedIdeas(newVotedIdeas);
   
       setRemainingVotes((prev) => prev - 1);
-      setError('');
     } catch (err) {
       console.error('Error submitting vote:', err);
-      setError('Failed to submit vote. Please try again.');
     }
   };
 
   const handleVoteWrapper = (ideaId: number): void => {
     handleVote(ideaId).catch((error) => {
       console.error('Error in vote handler:', error);
-      setError('An unexpected error occurred while voting.');
     });
   };
 

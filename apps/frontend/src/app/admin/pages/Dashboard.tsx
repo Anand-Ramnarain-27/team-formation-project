@@ -19,7 +19,6 @@ import useApi from '@/app/shared/hooks/useApi';
 
 const Dashboard: React.FC = () => {
   const [activeTabId, setActiveTabId] = useState('active-themes');
-
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<

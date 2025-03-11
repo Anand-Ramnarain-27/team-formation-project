@@ -1,11 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styles from './Analytics.module.css';
-import { AnalyticsReport, Student, Theme, ParticipationStats } from '@/app/shared/utils/types';
+import {
+  AnalyticsReport,
+  Student,
+  Theme,
+  ParticipationStats,
+} from '@/app/shared/utils/types';
 import Card from '@/app/shared/components/Card/Card';
 import TextInput from '@/app/shared/components/Form/TextInput';
 import SelectInput from '@/app/shared/components/SelectInput/SelectInput';
 import Tabs from '@/app/shared/components/Tabs/Tabs';
 import Button from '@/app/shared/components/Button/Button';
+import useFetch from '@/app/shared/hooks/useFetch';
 import {
   LoadingState,
   EmptyState,
@@ -78,183 +84,120 @@ const API_BASE_URL = `http://localhost:7071`;
 const Analytics: React.FC = () => {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsReport | null>(null);
-  const [globalAnalyticsData, setGlobalAnalyticsData] = useState<AnalyticsReport | null>(null);
-  const [students, setStudents] = useState<Student[]>([]);
-  const [themes, setThemes] = useState<Theme[]>([]);
   const [selectedTheme, setSelectedTheme] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isStudentsLoading, setIsStudentsLoading] = useState(true);
-  const [isThemeAnalyticsLoading, setIsThemeAnalyticsLoading] = useState(false);
   const [studentDetails, setStudentDetails] = useState<any>(null);
-  //const [activeTab, setActiveTab] = useState<'students' | 'themes'>('themes');
   const [activeTab, setActiveTab] = useState<TabType>('themes');
 
-  const fetchThemes = useCallback(async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/theme`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch themes');
-      }
-      
-      const data = await response.json();
-      setThemes(data);
+  const { data: themes = [], loading: isThemesLoading } = useFetch<Theme[]>(
+    `${API_BASE_URL}/api/theme`,
+    []
+  );
 
-      if (data.length > 0 && !selectedTheme) {
-        setSelectedTheme(data[0].theme_id);
-      }
-    } catch (error) {
-      console.error('Error fetching themes:', error);
-    }
-  }, [selectedTheme]);
+  const { data: allUsers = [], loading: isUsersLoading } = useFetch<any[]>(
+    `${API_BASE_URL}/api/user`,
+    []
+  );
 
-  const fetchStudents = useCallback(async () => {
-    try {
-      setIsStudentsLoading(true);
-      const response = await fetch(`${API_BASE_URL}/api/user`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch students');
-      }
-      
-      const data = await response.json();
+  const {
+    data: globalAnalyticsData = getEmptyAnalyticsReport(),
+    loading: isGlobalAnalyticsLoading,
+  } = useFetch<AnalyticsReport>(
+    `${API_BASE_URL}/api/generateAllThemesAnalytics`,
+    getEmptyAnalyticsReport()
+  );
 
-      const studentsOnly = data.filter((user: any) => 
-        user.role && user.role.toLowerCase() === "student"
-      );
-      
-      const formattedStudents: Student[] = studentsOnly.map((user: any) => ({
-        user_id: user.user_id,
-        name: user.name,
-        email: user.email,
-        group_name: '', 
-        metrics: {
-          ideas_submitted: 0,
-          votes_given: 0,
-          reviews_given: 0,
-          average_rating_received: 0,
-          participation_rate: '0%',
-        },
-      }));
-      
-      setStudents(formattedStudents);
-    } catch (error) {
-      console.error('Error fetching students:', error);
-    } finally {
-      setIsStudentsLoading(false);
-    }
-  }, []);
+  const themeAnalyticsUrl = selectedTheme
+    ? `${API_BASE_URL}/api/generateAnalytics?themeId=${selectedTheme}`
+    : '';
+  const {
+    data: analyticsData = getEmptyAnalyticsReport(selectedTheme),
+    loading: isThemeAnalyticsLoading,
+  } = useFetch<AnalyticsReport>(
+    themeAnalyticsUrl,
+    getEmptyAnalyticsReport(selectedTheme)
+  );
 
-  const fetchGlobalAnalyticsData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch(`${API_BASE_URL}/api/generateAllThemesAnalytics`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch global analytics data');
-      }
-      
-      const data = await response.json();
-      setGlobalAnalyticsData(data);
-    } catch (error) {
-      console.error('Error fetching global analytics data:', error);
-      const placeholderData: AnalyticsReport = {
-        report_id: 0,
-        theme_id: 0,
-        total_students: 0,
-        total_reports: 0,
-        average_rating: 0,
-        participation_stats: {
-          ideas_submitted: 0,
-          votes_cast: 0,
-          reviews_completed: 0,
-          totalIdeas: 0,
-          totalVotes: 0,
-          totalReviews: 0,
-          averageRating: 0,
-        },
-      };
-      setGlobalAnalyticsData(placeholderData);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const students: Student[] = React.useMemo(() => {
+    const studentsOnly = allUsers.filter(
+      (user) => user.role && user.role.toLowerCase() === 'student'
+    );
 
-  const fetchThemeAnalytics = useCallback(async (themeId: number) => {
-    try {
-      setIsThemeAnalyticsLoading(true);
-      const response = await fetch(`${API_BASE_URL}/api/generateAnalytics?themeId=${themeId}`);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch analytics for theme ${themeId}`);
-      }
-      
-      const data = await response.json();
-      setAnalyticsData(data);
-    } catch (error) {
-      console.error(`Error fetching analytics for theme ${themeId}:`, error);
-      const placeholderData: AnalyticsReport = {
-        report_id: 0,
-        theme_id: themeId,
-        total_students: 0,
-        total_reports: 0,
-        average_rating: 0,
-        participation_stats: {
-          ideas_submitted: 0,
-          votes_cast: 0,
-          reviews_completed: 0,
-          totalIdeas: 0,
-          totalVotes: 0,
-          totalReviews: 0,
-          averageRating: 0,
-        },
-      };
-      setAnalyticsData(placeholderData);
-    } finally {
-      setIsThemeAnalyticsLoading(false);
-    }
-  }, []);
+    return studentsOnly.map((user) => ({
+      user_id: user.user_id,
+      name: user.name,
+      email: user.email,
+      group_name: '',
+      metrics: {
+        ideas_submitted: 0,
+        votes_given: 0,
+        reviews_given: 0,
+        average_rating_received: 0,
+        participation_rate: '0%',
+      },
+    }));
+  }, [allUsers]);
+
+  const isStudentsLoading = isUsersLoading;
+  const isLoading = isGlobalAnalyticsLoading || isThemesLoading;
+
+  function getEmptyAnalyticsReport(
+    themeId: number | null = null
+  ): AnalyticsReport {
+    return {
+      report_id: 0,
+      theme_id: themeId || 0,
+      total_students: 0,
+      total_reports: 0,
+      average_rating: 0,
+      participation_stats: {
+        ideas_submitted: 0,
+        votes_cast: 0,
+        reviews_completed: 0,
+        totalIdeas: 0,
+        totalVotes: 0,
+        totalReviews: 0,
+        averageRating: 0,
+      },
+    };
+  }
 
   useEffect(() => {
-    fetchThemes();
-    fetchStudents();
-    fetchGlobalAnalyticsData();
-  }, [fetchThemes, fetchStudents, fetchGlobalAnalyticsData]);
-
-  useEffect(() => {
-    if (selectedTheme) {
-      fetchThemeAnalytics(selectedTheme);
+    if (themes.length > 0 && !selectedTheme) {
+      setSelectedTheme(themes[0].theme_id);
     }
-  }, [selectedTheme, fetchThemeAnalytics]);
+  }, [themes, selectedTheme]);
 
   useEffect(() => {
     const fetchStudentDetails = async () => {
       if (!selectedStudent) return;
-      
+
       try {
         const response = await fetch(
           `${API_BASE_URL}/api/studentProfile?userId=${selectedStudent.user_id}`
         );
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch student profile');
         }
-        
+
         const profileData = await response.json();
-        
+
         const updatedStudent = {
           ...selectedStudent,
-          group_name: profileData.groups.length > 0 ? profileData.groups[0].group_name : 'No Group',
+          group_name:
+            profileData.groups.length > 0
+              ? profileData.groups[0].group_name
+              : 'No Group',
           metrics: {
             ideas_submitted: profileData.participationStats.totalIdeas,
             votes_given: profileData.participationStats.totalVotes,
             reviews_given: profileData.participationStats.totalReviews,
-            average_rating_received: profileData.participationStats.averageRating.toFixed(1),
+            average_rating_received:
+              profileData.participationStats.averageRating.toFixed(1),
             participation_rate: calculateParticipationRate(profileData),
           },
         };
-        
+
         setSelectedStudent(updatedStudent);
         setStudentDetails(profileData);
       } catch (error) {
@@ -266,13 +209,17 @@ const Analytics: React.FC = () => {
   }, [selectedStudent?.user_id]);
 
   const calculateParticipationRate = (profileData: any): string => {
-    const totalActivities = profileData.participationStats.totalIdeas + 
-                          profileData.participationStats.totalVotes + 
-                          profileData.participationStats.totalReviews;
+    const totalActivities =
+      profileData.participationStats.totalIdeas +
+      profileData.participationStats.totalVotes +
+      profileData.participationStats.totalReviews;
 
     const maxActivities = 10;
-    const rate = Math.min(100, Math.round((totalActivities / maxActivities) * 100));
-    
+    const rate = Math.min(
+      100,
+      Math.round((totalActivities / maxActivities) * 100)
+    );
+
     return `${rate}%`;
   };
 
@@ -292,13 +239,17 @@ const Analytics: React.FC = () => {
 
   const getParticipationRate = (stats: ParticipationStats): string => {
     if (!stats) return '0%';
-    
-    const totalActivities = stats.totalIdeas + stats.totalVotes + stats.totalReviews;
+
+    const totalActivities =
+      stats.totalIdeas + stats.totalVotes + stats.totalReviews;
     const maxActivitiesPerStudent = 10;
     const totalStudents = globalAnalyticsData?.total_students || 1;
     const maxPossibleActivities = totalStudents * maxActivitiesPerStudent;
-    
-    const rate = Math.min(100, Math.round((totalActivities / maxPossibleActivities) * 100));
+
+    const rate = Math.min(
+      100,
+      Math.round((totalActivities / maxPossibleActivities) * 100)
+    );
     return `${rate}%`;
   };
 
@@ -331,9 +282,13 @@ const Analytics: React.FC = () => {
     <main className={styles.dashboard}>
       <section className={styles.analyticsHeader}>
         <nav>
-          <Tabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} />
+          <Tabs
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+          />
         </nav>
-        
+
         {activeTab === 'themes' && renderThemeSelector()}
       </section>
 
@@ -359,37 +314,57 @@ const Analytics: React.FC = () => {
               colorClass="metricYellow"
             />
           </section>
-          
+
           <section className={styles.themeAnalytics}>
-            <Card title={`Theme Analytics: ${themes.find(t => t.theme_id === selectedTheme)?.title || 'Loading...'}`}>
+            <Card
+              title={`Theme Analytics: ${
+                themes.find((t) => t.theme_id === selectedTheme)?.title ||
+                'Loading...'
+              }`}
+            >
               {isThemeAnalyticsLoading ? (
                 <LoadingState message="Loading theme analytics..." />
               ) : (
                 <div className={styles.themeMetricsGrid}>
                   <div className={styles.themeMetric}>
                     <h3>Students</h3>
-                    <p className={styles.metricValue}>{analyticsData?.total_students || 0}</p>
+                    <p className={styles.metricValue}>
+                      {analyticsData?.total_students || 0}
+                    </p>
                   </div>
                   <div className={styles.themeMetric}>
                     <h3>Ideas Submitted</h3>
-                    <p className={styles.metricValue}>{analyticsData?.participation_stats.ideas_submitted || 0}</p>
+                    <p className={styles.metricValue}>
+                      {analyticsData?.participation_stats.ideas_submitted || 0}
+                    </p>
                   </div>
                   <div className={styles.themeMetric}>
                     <h3>Votes Cast</h3>
-                    <p className={styles.metricValue}>{analyticsData?.participation_stats.votes_cast || 0}</p>
+                    <p className={styles.metricValue}>
+                      {analyticsData?.participation_stats.votes_cast || 0}
+                    </p>
                   </div>
                   <div className={styles.themeMetric}>
                     <h3>Reviews Completed</h3>
-                    <p className={styles.metricValue}>{analyticsData?.participation_stats.reviews_completed || 0}</p>
+                    <p className={styles.metricValue}>
+                      {analyticsData?.participation_stats.reviews_completed ||
+                        0}
+                    </p>
                   </div>
                   <div className={styles.themeMetric}>
                     <h3>Average Rating</h3>
-                    <p className={styles.metricValue}>{(analyticsData?.average_rating || 0).toFixed(1)}</p>
+                    <p className={styles.metricValue}>
+                      {(analyticsData?.average_rating || 0).toFixed(1)}
+                    </p>
                   </div>
                   <div className={styles.themeMetric}>
                     <h3>Participation Rate</h3>
                     <p className={styles.metricValue}>
-                      {analyticsData ? getParticipationRate(analyticsData.participation_stats) : '0%'}
+                      {analyticsData
+                        ? getParticipationRate(
+                            analyticsData.participation_stats
+                          )
+                        : '0%'}
                     </p>
                   </div>
                 </div>
@@ -403,20 +378,33 @@ const Analytics: React.FC = () => {
                 <div className={styles.chartPlaceholder}>
                   <h3>Ideas by Status</h3>
                   <div className={styles.distributionBar}>
-                    <div 
+                    <div
                       className={`${styles.distributionSegment} ${styles.approvedSegment}`}
-                      style={{ 
-                        width: `${analyticsData?.participation_stats.ideas_submitted ? 
-                          (analyticsData.total_reports / analyticsData.participation_stats.ideas_submitted) * 100 : 0}%` 
+                      style={{
+                        width: `${
+                          analyticsData?.participation_stats.ideas_submitted
+                            ? (analyticsData.total_reports /
+                                analyticsData.participation_stats
+                                  .ideas_submitted) *
+                              100
+                            : 0
+                        }%`,
                       }}
                     >
                       Approved
                     </div>
-                    <div 
+                    <div
                       className={`${styles.distributionSegment} ${styles.pendingSegment}`}
-                      style={{ 
-                        width: `${analyticsData?.participation_stats.ideas_submitted ? 
-                          100 - ((analyticsData.total_reports / analyticsData.participation_stats.ideas_submitted) * 100) : 0}%` 
+                      style={{
+                        width: `${
+                          analyticsData?.participation_stats.ideas_submitted
+                            ? 100 -
+                              (analyticsData.total_reports /
+                                analyticsData.participation_stats
+                                  .ideas_submitted) *
+                                100
+                            : 0
+                        }%`,
                       }}
                     >
                       Pending
@@ -433,12 +421,20 @@ const Analytics: React.FC = () => {
                   <div className={styles.ratingDistribution}>
                     <div className={styles.starRating}>
                       <span className={styles.stars}>{'★'.repeat(5)}</span>
-                      <div 
-                        className={styles.ratingBar} 
-                        style={{ width: `${analyticsData?.average_rating ? (analyticsData.average_rating / 5) * 100 : 0}%` }}
+                      <div
+                        className={styles.ratingBar}
+                        style={{
+                          width: `${
+                            analyticsData?.average_rating
+                              ? (analyticsData.average_rating / 5) * 100
+                              : 0
+                          }%`,
+                        }}
                       ></div>
                     </div>
-                    <span className={styles.ratingValue}>{(analyticsData?.average_rating || 0).toFixed(1)}</span>
+                    <span className={styles.ratingValue}>
+                      {(analyticsData?.average_rating || 0).toFixed(1)}
+                    </span>
                   </div>
                 </div>
               </figure>
@@ -451,15 +447,23 @@ const Analytics: React.FC = () => {
                   <div className={styles.activitySummary}>
                     <div className={styles.activityMetric}>
                       <div className={styles.activityLabel}>Ideas</div>
-                      <div className={styles.activityValue}>{analyticsData?.participation_stats.ideas_submitted || 0}</div>
+                      <div className={styles.activityValue}>
+                        {analyticsData?.participation_stats.ideas_submitted ||
+                          0}
+                      </div>
                     </div>
                     <div className={styles.activityMetric}>
                       <div className={styles.activityLabel}>Votes</div>
-                      <div className={styles.activityValue}>{analyticsData?.participation_stats.votes_cast || 0}</div>
+                      <div className={styles.activityValue}>
+                        {analyticsData?.participation_stats.votes_cast || 0}
+                      </div>
                     </div>
                     <div className={styles.activityMetric}>
                       <div className={styles.activityLabel}>Reviews</div>
-                      <div className={styles.activityValue}>{analyticsData?.participation_stats.reviews_completed || 0}</div>
+                      <div className={styles.activityValue}>
+                        {analyticsData?.participation_stats.reviews_completed ||
+                          0}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -479,7 +483,9 @@ const Analytics: React.FC = () => {
             <MetricCard
               icon="💡"
               label="Ideas Submitted"
-              value={globalAnalyticsData?.participation_stats.ideas_submitted || 0}
+              value={
+                globalAnalyticsData?.participation_stats.ideas_submitted || 0
+              }
               colorClass="metricYellow"
             />
             <MetricCard

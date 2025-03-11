@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import styles from './LoginPage.module.css';
 import logo from '@/assets/logo/Team_formation-removebg.png';
 import GithubIcon from '@/assets/icons/Github-icon.svg';
+import useApi from '../hooks/useApi';
 
 interface User {
   user_id: number;
@@ -16,6 +17,7 @@ const LoginPage: React.FC = () => {
   const [selectedUserId, setSelectedUserId] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const { get, post, patch, remove, loading } = useApi('');
 
   const availableUsers = [
     { user_id: 1, name: 'Admin', email: 'Admin@gmail.com', role: 'Admin' },
@@ -42,14 +44,7 @@ const LoginPage: React.FC = () => {
       let userData: User | null = null;
       
       try {
-        const response = await fetch(`http://localhost:7071/api/user/${selectedUserId}`);
-        
-        if (!response.ok) {
-          console.warn(`API returned status ${response.status}: ${response.statusText}`);
-          throw new Error('API request failed');
-        }
-
-        userData = await response.json();
+        userData = await get(`/user/${selectedUserId}`);
         console.log('User data from API:', userData);
         
       } catch (apiError) {

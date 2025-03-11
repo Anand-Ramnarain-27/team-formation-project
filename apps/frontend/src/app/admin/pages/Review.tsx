@@ -7,6 +7,7 @@ import TextInput from '@/app/shared/components/Form/TextInput';
 import StatusBadge from '@/app/shared/components/StatusBadge/StatusBadge';
 import SelectInput from '@/app/shared/components/SelectInput/SelectInput';
 import IdeaCard from '@/app/shared/components/IdeaCard/IdeaCard';
+import useApi from '@/app/shared/hooks/useApi';
 
 const Review: React.FC = () => {
   const [themes, setThemes] = useState<Theme[]>([]);
@@ -14,79 +15,59 @@ const Review: React.FC = () => {
   const [selectedTheme, setSelectedTheme] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
   const [submitterName, setSubmitterName] = useState<string>('Loading...');
   const [submitterBy, setSubmitterBy] = useState<string>('Loading...');
   const [isLoading, setIsLoading] = useState(true);
+  const { get, post, patch, remove, loading, error } = useApi('');
 
-  useEffect(() => {
     const fetchThemes = async () => {
-      setLoading(true);
-      setError(null);
       try {
-        const response = await fetch(`http://localhost:7071/api/theme`);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch themes: ${response.statusText}`);
-        }
-        const data = await response.json();
+        const data = await get('/theme');
         setThemes(data);
       } catch (error) {
         console.error('Error fetching themes:', error);
-        setError('Failed to load themes. Please try again later.');
-      } finally {
-        setLoading(false);
       }
     };
-    fetchThemes();
-  }, []);
 
-  const fetchIdeas = async () => {
-    if (!selectedTheme && selectedTheme !== 'all') return;
-  
-    setLoading(true);
-    setError(null);
-    try {
-      const url =
-        selectedTheme === 'all'
-          ? `http://localhost:7071/api/idea`
-          : `http://localhost:7071/api/idea?theme_id=${selectedTheme}`;
-  
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch ideas: ${response.statusText}`);
+    const fetchIdeas = async () => {
+      if (!selectedTheme && selectedTheme !== 'all') return;
+    
+      try {
+        const endpoint = selectedTheme === 'all'
+          ? '/idea'
+          : `/idea?theme_id=${selectedTheme}`;
+    
+        const data = await get(endpoint);
+    
+        const ideasWithSubmitters = await Promise.all(
+          data.map(async (idea: Idea) => {
+            try {
+              const user = await get(`/user?id=${idea.submitted_by}`);
+              return {
+                ...idea,
+                submitter_name: user.name,
+              };
+            } catch (error) {
+              console.error('Error fetching user:', error);
+              return {
+                ...idea,
+                submitter_name: 'Unknown',
+              };
+            }
+          })
+        );
+    
+        setIdeas(ideasWithSubmitters);
+      } catch (error) {
+        console.error('Error fetching ideas:', error);
       }
-      const data = await response.json();
-  
-      const ideasWithSubmitters = await Promise.all(
-        data.map(async (idea: Idea) => {
-          const userResponse = await fetch(
-            `http://localhost:7071/api/user?id=${idea.submitted_by}`
-          );
-          if (!userResponse.ok) {
-            throw new Error('Failed to fetch user');
-          }
-          const user = await userResponse.json();
-          return {
-            ...idea,
-            submitter_name: user.name,
-          };
-        })
-      );
-  
-      setIdeas(ideasWithSubmitters);
-    } catch (error) {
-      console.error('Error fetching ideas:', error);
-      setError('Failed to load ideas. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
       await Promise.all([
+        fetchThemes(),
         fetchIdeas(),
       ]);
       setIsLoading(false);
@@ -99,20 +80,7 @@ const Review: React.FC = () => {
 
   const updateIdeaStatus = async (ideaId: number, status: string) => {
     try {
-      const response = await fetch(
-        `http://localhost:7071/api/idea?idea_id=${ideaId}`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to update idea status: ${response.statusText}`);
-      }
-
-      const updatedIdea = await response.json();
+      const updatedIdea = await patch(`/idea?idea_id=${ideaId}`, { status });
       setIdeas((prevIdeas) =>
         prevIdeas.map((idea) =>
           idea.idea_id === ideaId
@@ -122,7 +90,6 @@ const Review: React.FC = () => {
       );
     } catch (error) {
       console.error('Error updating idea status:', error);
-      setError('Failed to update idea status. Please try again.');
     }
   };
 

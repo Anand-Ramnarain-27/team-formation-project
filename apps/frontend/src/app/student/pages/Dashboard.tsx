@@ -9,8 +9,10 @@ import NotificationCard from '@/app/shared/components/NotificationCard/Notificat
 import GroupCard from '@/app/shared/components/GroupCard/GroupCard';
 import IdeaCard from '@/app/shared/components/IdeaCard/IdeaCard';
 import Tabs from '@/app/shared/components/Tabs/Tabs';
+import useApi from '@/app/shared/hooks/useApi';
 
 const Dashboard: React.FC = () => {
+  const { get, post, patch, remove, loading, error } = useApi('');
   const [activeTabId, setActiveTabId] = useState<string>('active-themes');
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [themes, setThemes] = useState<Theme[]>([]);
@@ -18,7 +20,6 @@ const Dashboard: React.FC = () => {
   const [myIdeas, setMyIdeas] = useState<Idea[]>([]);
   const [myGroup, setMyGroup] = useState<Group | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const navigate = useNavigate();
 
@@ -31,7 +32,6 @@ const Dashboard: React.FC = () => {
     const userJson = localStorage.getItem('currentUser');
 
     if (!userJson) {
-      setError("You're not logged in. Please log in to view notifications.");
       return;
     }
 
@@ -39,7 +39,6 @@ const Dashboard: React.FC = () => {
       const user = JSON.parse(userJson) as User;
       setCurrentUser(user);
     } catch (err) {
-      setError('Invalid user data. Please log in again.');
       localStorage.removeItem('currentUser');
     }
   }, []);
@@ -61,11 +60,7 @@ const Dashboard: React.FC = () => {
 
   const fetchThemes = async () => {
     try {
-      const response = await fetch('http://localhost:7071/api/theme');
-      if (!response.ok) {
-        throw new Error('Failed to fetch themes');
-      }
-      const data = await response.json();
+      const data = await get('/theme');
       
       const active: Theme[] = [];
       const previous: Theme[] = [];
@@ -82,55 +77,33 @@ const Dashboard: React.FC = () => {
       setThemes(active);
       setPreviousThemes(previous);
     } catch (err) {
-      setError('Error fetching themes');
       console.error(err);
     }
   };
 
   const fetchNotifications = async () => {
     try {
-      const response = await fetch(
-        `http://localhost:7071/api/notification?user_id=${userId}&user_role=${userRole}`
-      );
-      if (!response.ok) {
-        throw new Error('Failed to fetch notifications');
-      }
-      const data = await response.json();
+      const data = await get(`/notification?user_id=${userId}&user_role=${userRole}`);
       setNotifications(data);
-    } catch (err) {
-      setError('Error fetching notifications');
+    } catch (err) {;
       console.error(err);
     }
   };
 
   const fetchMyIdeas = async () => {
     try {
-      const response = await fetch(
-        `http://localhost:7071/api/idea?submitted_by=${userId}`
-      );
-      if (!response.ok) {
-        throw new Error('Failed to fetch my ideas');
-      }
-      const data = await response.json();
+      const data = await get(`/idea?submitted_by=${userId}`);
       setMyIdeas(data);
     } catch (err) {
-      setError('Error fetching my ideas');
       console.error(err);
     }
   };
 
   const fetchMyGroup = async () => {
     try {
-      const response = await fetch(
-        `http://localhost:7071/api/group?user_id=${userId}`
-      );
-      if (!response.ok) {
-        throw new Error('Failed to fetch my group');
-      }
-      const data = await response.json();
+      const data = await get(`/group?user_id=${userId}`);
       setMyGroup(data[0] || null);
     } catch (err) {
-      setError('Error fetching my group');
       console.error(err);
     }
   };
@@ -202,7 +175,6 @@ const Dashboard: React.FC = () => {
     );
   
     if (existingIdea) {
-      setError('You have already submitted an idea for this theme.');
       return;
     }
   
@@ -231,7 +203,6 @@ const Dashboard: React.FC = () => {
 
   const submitIdea = async (ideaSubmission: IdeaSubmission) => {
     if (!selectedTheme || !userId) {
-      setError('Theme or user not found');
       return;
     }
 
@@ -240,7 +211,6 @@ const Dashboard: React.FC = () => {
     );
   
     if (existingIdea) {
-      setError('You have already submitted an idea for this theme.');
       return;
     }
   
@@ -252,25 +222,12 @@ const Dashboard: React.FC = () => {
     };
   
     try {
-      const response = await fetch('http://localhost:7071/api/idea', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newIdea),
-      });
-  
-      if (!response.ok) {
-        throw new Error('Failed to submit idea');
-      }
-  
-      const data = await response.json();
+      const data = await post('/idea', newIdea);
       console.log('Idea submitted successfully:', data);
       setMyIdeas([...myIdeas, data]);
       setSelectedTheme(null);
       setModalType(null);
     } catch (err) {
-      setError('Error submitting idea');
       console.error(err);
     }
   };

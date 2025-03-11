@@ -13,13 +13,14 @@ import Tabs from '@/app/shared/components/Tabs/Tabs';
 import GroupCard from '@/app/shared/components/GroupCard/GroupCard';
 import ReviewCard from '@/app/shared/components/ReviewCard/ReviewCard';
 import IdeaCard from '@/app/shared/components/IdeaCard/IdeaCard';
+import useApi from '@/app/shared/hooks/useApi';
 
 type TabType = 'participation' | 'ideas' | 'groups' | 'reviews';
 
 const Profile: React.FC = () => {
+  const { get, post, patch, remove, loading, error } = useApi('');
   const [activeTab, setActiveTab] = useState<TabType>('participation');
   const [expandedGroups, setExpandedGroups] = useState<Record<number, boolean>>({});
-  const [error, setError] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<User>();
   const [myIdeas, setMyIdeas] = useState<Idea[]>([]);
   const [myGroups, setMyGroups] = useState<Group[]>([]);
@@ -31,7 +32,6 @@ const Profile: React.FC = () => {
     const userJson = localStorage.getItem('currentUser');
 
     if (!userJson) {
-      setError("You're not logged in. Please log in to view notifications.");
       return;
     }
 
@@ -39,7 +39,6 @@ const Profile: React.FC = () => {
       const user = JSON.parse(userJson) as User;
       setCurrentUser(user);
     } catch (err) {
-      setError('Invalid user data. Please log in again.');
       localStorage.removeItem('currentUser');
     }
   }, []);
@@ -51,13 +50,7 @@ const Profile: React.FC = () => {
     
     try {
       setIsLoading(true);
-      const response = await fetch(`http://localhost:7071/api/studentProfile?userId=${userId}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch profile data');
-      }
-      
-      const data = await response.json() as StudentProfileData;
+      const data = await get(`/studentProfile?userId=${userId}`);
       
       setMyIdeas(data.ideas);
       setMyGroups(data.groups);
@@ -65,7 +58,6 @@ const Profile: React.FC = () => {
       setParticipationStats(data.participationStats);
       setIsLoading(false);
     } catch (err) {
-      setError('Error fetching profile data');
       console.error(err);
       setIsLoading(false);
     }

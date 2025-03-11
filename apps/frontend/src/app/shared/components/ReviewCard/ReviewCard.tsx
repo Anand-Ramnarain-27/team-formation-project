@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './ReviewCard.module.css';
 import Card from '../Card/Card';
+import useApi from '../../hooks/useApi';
 
 type ReviewCardProps = {
   group_name?: string;
@@ -23,6 +24,7 @@ const ReviewCard = ({
   const [graupNames, setGroupNames] = useState<string>('Loading...');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { get } = useApi('');
   
   let numericRating = '1';
   if (rating && typeof rating === 'string' && rating.match(/RATING_\d+/)) {
@@ -60,15 +62,7 @@ const ReviewCard = ({
   const fetchGroupNames = async () => {
     try {
       if (group_id) {
-        const response = await fetch(
-          `http://localhost:7071/api/group?id=${group_id}`
-        );
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch user');
-        }
-
-        const group = await response.json();
+        const group = await get(`http://localhost:7071/api/group?id=${group_id}`)
 
         if (group) {
           setGroupNames(group.group_name);
