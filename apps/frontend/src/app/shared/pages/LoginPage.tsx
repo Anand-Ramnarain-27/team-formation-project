@@ -8,23 +8,21 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if we have a code in the URL (callback from GitHub)
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
 
     if (code) {
-      // Exchange the code for an access token
       fetch(`http://localhost:7071/api/auth?code=${code}`)
-        .then(response => response.json())
-        .then(data => {
+        .then((response) => response.json())
+        .then((data) => {
           if (data.accessToken) {
-            // Store the access token in localStorage
-            //localStorage.setItem('accessToken', data.accessToken);
-            // Redirect to the student dashboard (or admin if applicable)
-            navigate('/student');
+            sessionStorage.setItem('accessToken', data.accessToken); // Store in sessionStorage
+            sessionStorage.setItem('currentUser', JSON.stringify(data.user));
+
+            navigate('/admin');
           }
         })
-        .catch(error => {
+        .catch((error) => {
           console.error('Error during GitHub login:', error);
         });
     }
@@ -34,7 +32,7 @@ const LoginPage: React.FC = () => {
     // Redirect the user to GitHub for authentication
     const clientId = 'Ov23ctYJiAt4UinW7HXi';
     const redirectUri = encodeURIComponent(`http://localhost:4200` + '/login');
-    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user`;
+    const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user:email`;
     window.location.href = githubAuthUrl;
   };
 

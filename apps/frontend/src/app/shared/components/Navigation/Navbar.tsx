@@ -28,7 +28,7 @@ const Navbar: React.FC<NavbarProps> = ({ userType, userName }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const menuItems = userType === 'Admin' ? adminMenuItems : studentMenuItems;
   const navigate = useNavigate();
-  
+
   // Close mobile menu when screen size changes to desktop
   useEffect(() => {
     const handleResize = () => {
@@ -46,6 +46,8 @@ const Navbar: React.FC<NavbarProps> = ({ userType, userName }) => {
   };
 
   const handleSignOut = () => {
+    sessionStorage.removeItem('accessToken');
+    sessionStorage.removeItem('currentUser');
     navigate('/login');
     window.location.reload();
   };
@@ -63,10 +65,10 @@ const Navbar: React.FC<NavbarProps> = ({ userType, userName }) => {
   return (
     <>
       {/* Only render hamburger button on mobile screens */}
-      <button 
-        className={styles.hamburgerButton} 
+      <button
+        className={styles.hamburgerButton}
         onClick={toggleMobileMenu}
-        aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+        aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
       >
         {isMobileMenuOpen ? '✕' : '☰'}
       </button>
@@ -92,10 +94,7 @@ const Navbar: React.FC<NavbarProps> = ({ userType, userName }) => {
           ))}
         </div>
         <div className={styles.userSection}>
-          <button 
-            className={styles.signOutButton} 
-            onClick={handleSignOut}
-          >
+          <button className={styles.signOutButton} onClick={handleSignOut}>
             Sign Out
           </button>
         </div>
@@ -104,8 +103,10 @@ const Navbar: React.FC<NavbarProps> = ({ userType, userName }) => {
       {/* Mobile Navigation - only rendered when mobile menu is open and on mobile screens */}
       {isMobileMenuOpen && (
         <>
-          <div 
-            className={`${styles.overlay} ${isMobileMenuOpen ? styles.active : ''}`}
+          <div
+            className={`${styles.overlay} ${
+              isMobileMenuOpen ? styles.active : ''
+            }`}
             onClick={handleOverlayClick}
           ></div>
           <nav className={`${styles.navbar} ${styles.mobileNavbar}`}>
@@ -129,10 +130,7 @@ const Navbar: React.FC<NavbarProps> = ({ userType, userName }) => {
               ))}
             </div>
             <div className={styles.userSection}>
-              <button 
-                className={styles.signOutButton} 
-                onClick={handleSignOut}
-              >
+              <button className={styles.signOutButton} onClick={handleSignOut}>
                 Sign Out
               </button>
             </div>

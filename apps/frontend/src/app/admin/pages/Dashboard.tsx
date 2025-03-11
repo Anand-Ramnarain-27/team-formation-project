@@ -39,7 +39,7 @@ const Dashboard: React.FC = () => {
   const { loading, error } = api;
 
   useEffect(() => {
-    const userJson = localStorage.getItem('currentUser');
+    const userJson = sessionStorage.getItem('currentUser');
 
     if (!userJson) {
       return;
@@ -49,7 +49,7 @@ const Dashboard: React.FC = () => {
       const user = JSON.parse(userJson) as User;
       setCurrentUser(user);
     } catch (err) {
-      localStorage.removeItem('currentUser');
+      sessionStorage.removeItem('currentUser');
     }
   }, []);
 
@@ -338,10 +338,6 @@ const Dashboard: React.FC = () => {
       </ul>
     );
   };
-
-  if (isLoading) {
-    return <div className={styles.loading}>Loading dashboard data...</div>;
-  }
 
   if (error) {
     return <div className={styles.error}>{error}</div>;

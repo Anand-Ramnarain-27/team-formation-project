@@ -26,7 +26,6 @@ const Voting: React.FC = () => {
     const getCurrentUser = async () => {
       try {
         const userJson =
-          localStorage.getItem('currentUser') ||
           sessionStorage.getItem('currentUser');
 
         if (userJson) {
@@ -38,6 +37,7 @@ const Voting: React.FC = () => {
         }
       } catch (err) {
         console.error('Error getting current user:', err);
+        sessionStorage.removeItem('curentUser');
         return null;
       }
     };

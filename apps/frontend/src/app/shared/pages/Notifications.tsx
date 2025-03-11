@@ -64,7 +64,7 @@ const NotificationsPage = () => {
   const { get, post, patch, remove, loading } = useApi('');
 
   useEffect(() => {
-    const userJson = localStorage.getItem('currentUser');
+    const userJson = sessionStorage.getItem('currentUser');
 
     if (!userJson) {
       setError("You're not logged in. Please log in to view notifications.");
@@ -76,7 +76,7 @@ const NotificationsPage = () => {
       setCurrentUser(user);
     } catch (err) {
       setError('Invalid user data. Please log in again.');
-      localStorage.removeItem('currentUser');
+      sessionStorage.removeItem('currentUser');
     }
   }, []);
 

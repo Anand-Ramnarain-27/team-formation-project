@@ -14,7 +14,7 @@ import Layout from '@/app/shared/components/Navigation/Layout';
 import Notifications from '@/app/shared/pages/Notifications';
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
-  const accessToken = localStorage.getItem('accessToken');
+  const accessToken = sessionStorage.getItem('accessToken');
 
   if (!accessToken) {
     return <Navigate to="/login" replace />;

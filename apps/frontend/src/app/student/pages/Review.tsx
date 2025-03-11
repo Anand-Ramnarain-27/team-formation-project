@@ -57,7 +57,7 @@ const Reviews: React.FC = () => {
   };
 
   useEffect(() => {
-    const userJson = localStorage.getItem('currentUser');
+    const userJson = sessionStorage.getItem('currentUser');
 
     if (!userJson) {
       return;
@@ -68,7 +68,7 @@ const Reviews: React.FC = () => {
       const userId = user.user_id;
       setCurrentUserId(userId);
     } catch (err) {
-      localStorage.removeItem('currentUser');
+      sessionStorage.removeItem('currentUser');
     }
   }, []);
 

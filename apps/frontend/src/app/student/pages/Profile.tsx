@@ -29,7 +29,7 @@ const Profile: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const userJson = localStorage.getItem('currentUser');
+   const userJson = sessionStorage.getItem('currentUser');
 
     if (!userJson) {
       return;
@@ -38,8 +38,9 @@ const Profile: React.FC = () => {
     try {
       const user = JSON.parse(userJson) as User;
       setCurrentUser(user);
+      console.log(user);
     } catch (err) {
-      localStorage.removeItem('currentUser');
+      sessionStorage.removeItem('currentUser');
     }
   }, []);
 

@@ -29,7 +29,7 @@ const Dashboard: React.FC = () => {
   ];
 
   useEffect(() => {
-    const userJson = localStorage.getItem('currentUser');
+    const userJson = sessionStorage.getItem('currentUser');
 
     if (!userJson) {
       return;
@@ -39,7 +39,7 @@ const Dashboard: React.FC = () => {
       const user = JSON.parse(userJson) as User;
       setCurrentUser(user);
     } catch (err) {
-      localStorage.removeItem('currentUser');
+      sessionStorage.removeItem('currentUser');
     }
   }, []);
 
