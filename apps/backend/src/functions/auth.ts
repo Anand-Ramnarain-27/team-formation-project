@@ -122,7 +122,7 @@ async function fetchGitHubUserDetails(accessToken: string): Promise<any> {
 const authWithCors = corsMiddleware(auth);
 
 app.http('auth', {
-    methods: ['GET', 'POST'],
+    methods: ['GET', 'POST', 'OPTIONS'],
     authLevel: 'anonymous',
     handler: authWithCors, // Use the wrapped function here
 });

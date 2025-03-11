@@ -56,7 +56,7 @@ export function App() {
         <Route path="/student/notifications" element={<Notifications />} />
         <Route path="/student/profile" element={<StudentProfilePage />} />
       </Route>
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      {/* <Route path="*" element={<Navigate to="/login" replace />} /> */}
     </Routes>
   );
 }
