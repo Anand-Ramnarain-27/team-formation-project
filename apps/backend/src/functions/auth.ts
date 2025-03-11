@@ -2,10 +2,11 @@ import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/fu
 import * as https from 'https';
 import { IncomingMessage } from 'http'; // Import IncomingMessage from 'http'
 import { PrismaClient } from '@prisma/client';
+import { corsMiddleware } from '../utils/cors'; // Import the corsMiddleware function
 
 const prisma = new PrismaClient();
 
-export async function auth(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+async function auth(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`Http function processed request for url "${request.url}"`);
 
     const code = request.query.get('code');
@@ -117,8 +118,11 @@ async function fetchGitHubUserDetails(accessToken: string): Promise<any> {
     });
 }
 
+// Wrap the auth function with the corsMiddleware
+const authWithCors = corsMiddleware(auth);
+
 app.http('auth', {
     methods: ['GET', 'POST'],
     authLevel: 'anonymous',
-    handler: auth,
+    handler: authWithCors, // Use the wrapped function here
 });
