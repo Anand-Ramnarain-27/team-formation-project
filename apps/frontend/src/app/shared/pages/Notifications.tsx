@@ -109,7 +109,7 @@ const NotificationsPage = () => {
       const newNotification = await post('/notification', {
         recipient_role: recipientRole,
         message,
-        created_by: currentUser?.user_id,
+        created_by: currentUser.user_id,
       });
       if (
         newNotification.recipient_role === currentUser.role
