@@ -1,10 +1,7 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import * as https from 'https';
-import { IncomingMessage } from 'http'; // Import IncomingMessage from 'http'
-import { PrismaClient } from '@prisma/client';
-import { corsMiddleware } from '../utils/cors'; // Import the corsMiddleware function
-
-const prisma = new PrismaClient();
+import { IncomingMessage } from 'http';
+import { corsMiddleware } from '../utils/cors';
 
 async function auth(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`Http function processed request for url "${request.url}"`);
@@ -19,28 +16,11 @@ async function auth(request: HttpRequest, context: InvocationContext): Promise<H
         // Step 1: Exchange the code for an access token
         const accessToken = await exchangeCodeForAccessToken(code);
 
-        // Step 2: Fetch user details from GitHub using the access token
-        const userDetails = await fetchGitHubUserDetails(accessToken);
-
-        // Step 3: Store or retrieve user in the database using Prisma
-        const user = await prisma.users.upsert({
-            where: { email: userDetails.email },
-            update: {},
-            create: {
-                name: userDetails.name || userDetails.login,
-                email: userDetails.email,
-                role: 'Student', // Default role, can be updated later
-                auth_provider: 'github',
-            },
-        });
-
-        // Step 4: Return a success response with user details
+        // Step 2: Return the access token to the frontend
         return {
             status: 200,
             jsonBody: {
-                message: 'Login successful',
-                user,
-                accessToken, // Optionally return the GitHub access token
+                accessToken,
             },
         };
     } catch (error) {
@@ -91,38 +71,11 @@ async function exchangeCodeForAccessToken(code: string): Promise<string> {
     });
 }
 
-// Helper function to fetch user details from GitHub
-async function fetchGitHubUserDetails(accessToken: string): Promise<any> {
-    const options = {
-        hostname: 'api.github.com',
-        path: '/user',
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'User-Agent': 'Team Formation App',
-        },
-    };
-
-    return new Promise((resolve, reject) => {
-        const req = https.request(options, (res: IncomingMessage) => {
-            let data = '';
-            res.on('data', (chunk: Buffer) => data += chunk.toString());
-            res.on('end', () => {
-                const userDetails = JSON.parse(data);
-                resolve(userDetails);
-            });
-        });
-
-        req.on('error', (error: Error) => reject(error));
-        req.end();
-    });
-}
-
 // Wrap the auth function with the corsMiddleware
 const authWithCors = corsMiddleware(auth);
 
 app.http('auth', {
     methods: ['GET', 'POST', 'OPTIONS'],
     authLevel: 'anonymous',
-    handler: authWithCors, // Use the wrapped function here
+    handler: authWithCors,
 });
