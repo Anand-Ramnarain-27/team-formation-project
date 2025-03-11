@@ -13,20 +13,44 @@ import StudentProfilePage from '@/app/student/pages/Profile';
 import Layout from '@/app/shared/components/Navigation/Layout';
 import Notifications from '@/app/shared/pages/Notifications';
 
+const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+  const accessToken = localStorage.getItem('accessToken');
+
+  if (!accessToken) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+};
+
 export function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route element={<Layout userType="Admin" />}>
-        <Route path="/admin" element={<AdminDashboard />} />
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            <Layout userType="Admin" />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<AdminDashboard />} />
         <Route path="/admin/students" element={<AdminStudentsPage />} />
         <Route path="/admin/review" element={<AdminReviewPage />} />
         <Route path="/admin/groups" element={<AdminGroupsPage />} />
         <Route path="/admin/notifications" element={<Notifications />} />
         <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
       </Route>
-      <Route element={<Layout userType="Student" />}>
-        <Route path="/student" element={<StudentDashboard />} />
+      <Route
+        path="/student"
+        element={
+          <ProtectedRoute>
+            <Layout userType="Student" />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<StudentDashboard />} />
         <Route path="/student/vote" element={<StudentVotePage />} />
         <Route path="/student/review" element={<StudentReviewPage />} />
         <Route path="/student/notifications" element={<Notifications />} />
