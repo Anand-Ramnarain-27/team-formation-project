@@ -37,8 +37,8 @@ const LoginPage: React.FC = () => {
   }, [navigate]);
 
   const handleLogin = () => {
-    const clientId = 'Ov23ctYJiAt4UinW7HXi';
-    const redirectUri = encodeURIComponent(`http://localhost:4200` + '/login');
+    const clientId = process.env.CLIENT_ID;
+    const redirectUri = encodeURIComponent(`http://localhost:4200/login`);
     const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user:email`;
     window.location.href = githubAuthUrl;
   };
