@@ -96,3 +96,7 @@ from 'local location of repository' directory
 ---
 
 ## How It Works
+
+### LogIn
+
+If you log in using a Gmail email, you will be assigned the "Admin" role. If you log in with any other email, you will be assigned the "Student" role.
