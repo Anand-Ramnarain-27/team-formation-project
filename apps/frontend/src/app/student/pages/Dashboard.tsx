@@ -18,7 +18,7 @@ const Dashboard: React.FC = () => {
   const [themes, setThemes] = useState<Theme[]>([]);
   const [previousThemes, setPreviousThemes] = useState<Theme[]>([]);
   const [myIdeas, setMyIdeas] = useState<Idea[]>([]);
-  const [myGroup, setMyGroup] = useState<Group | null>(null);
+  const [myGroups, setMyGroups] = useState<Group[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const navigate = useNavigate();
@@ -90,23 +90,21 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const fetchMyIdeas = async () => {
-    try {
-      const data = await get(`/idea?submitted_by=${userId}`);
-      setMyIdeas(data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const fetchMyGroup = async () => {
-    try {
-      const data = await get(`/group?user_id=${userId}`);
-      setMyGroup(data[0] || null);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  const fetchProfileData = async () => {
+      if (!userId) return;
+      
+      try {
+        setIsLoading(true);
+        const data = await get(`/studentProfile?userId=${userId}`);
+        
+        setMyIdeas(data.ideas);
+        setMyGroups(data.groups);
+        setIsLoading(false);
+      } catch (err) {
+        console.error(err);
+        setIsLoading(false);
+      }
+    };
 
   useEffect(() => {
     const loadData = async () => {
@@ -114,8 +112,7 @@ const Dashboard: React.FC = () => {
       await Promise.all([
         fetchThemes(),
         fetchNotifications(),
-        fetchMyIdeas(),
-        fetchMyGroup(),
+        fetchProfileData(),
       ]);
       setIsLoading(false);
     };
@@ -345,15 +342,21 @@ const Dashboard: React.FC = () => {
         <article>
           <Card title="My Group">
             <header className={styles.cardHeader} />
-            {myGroup ? (
-              <GroupCard
-                group={myGroup}
+            <ul className={styles.scrollArea}>
+            {myGroups.length > 0 ? (
+               myGroups.map((group) => (
+                <li key={group.group_id}> 
+                <GroupCard
+                group={group}
                 showActions={false}
-                className={styles.dashboardGroupCard}
-              />
-            ) : (
+                className={styles.groupItem}
+                />   
+                </li>
+            ))
+           ) : (
               <p>You haven't been assigned to a group yet.</p>
             )}
+            </ul>
           </Card>
         </article>
       </section>

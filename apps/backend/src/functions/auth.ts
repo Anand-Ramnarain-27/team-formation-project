@@ -36,7 +36,7 @@ import {
         where: { email: primaryEmail },
         update: {
           name: userDetails.name || userDetails.login,
-          role: userDetails.role || 'Admin',
+          role: userDetails.role || 'Student',
         },
         create: {
           name: userDetails.name || userDetails.login,
