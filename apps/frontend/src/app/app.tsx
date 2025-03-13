@@ -13,10 +13,15 @@ import StudentProfilePage from '@/app/student/pages/Profile';
 import Layout from '@/app/shared/components/Navigation/Layout';
 import Notifications from '@/app/shared/pages/Notifications';
 
-const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+const ProtectedRoute = ({ children, requiredRole }: { children: JSX.Element, requiredRole: string }) => {
   const accessToken = sessionStorage.getItem('accessToken');
+  const userRole = sessionStorage.getItem('userRole');
 
   if (!accessToken) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (userRole !== requiredRole) {
     return <Navigate to="/login" replace />;
   }
 
@@ -30,7 +35,7 @@ export function App() {
       <Route
         path="/admin"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole="Admin">
             <Layout userType="Admin" />
           </ProtectedRoute>
         }
@@ -45,7 +50,7 @@ export function App() {
       <Route
         path="/student"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole="Student">
             <Layout userType="Student" />
           </ProtectedRoute>
         }

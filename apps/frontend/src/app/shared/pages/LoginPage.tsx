@@ -16,10 +16,18 @@ const LoginPage: React.FC = () => {
         .then((response) => response.json())
         .then((data) => {
           if (data.accessToken) {
-            sessionStorage.setItem('accessToken', data.accessToken); // Store in sessionStorage
+            sessionStorage.setItem('accessToken', data.accessToken); 
             sessionStorage.setItem('currentUser', JSON.stringify(data.user));
+            sessionStorage.setItem('userRole', data.user.role);
 
-            navigate('/admin');
+            if (data.user.role === 'Admin') {
+              navigate('/admin'); 
+            }else if (data.user.role === 'Student') {
+              navigate('/student'); 
+            }else {
+              console.error('Unknown user role:', data.user.role);
+              navigate('/login'); 
+            }
           }
         })
         .catch((error) => {
@@ -29,7 +37,6 @@ const LoginPage: React.FC = () => {
   }, [navigate]);
 
   const handleLogin = () => {
-    // Redirect the user to GitHub for authentication
     const clientId = 'Ov23ctYJiAt4UinW7HXi';
     const redirectUri = encodeURIComponent(`http://localhost:4200` + '/login');
     const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user:email`;

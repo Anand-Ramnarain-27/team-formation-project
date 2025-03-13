@@ -24,39 +24,34 @@ import {
     }
   
     try {
-      // Step 1: Exchange the code for an access token
       const accessToken = await exchangeCodeForAccessToken(code);
   
-      // Step 2: Fetch user details from GitHub
       const userDetails = await fetchGitHubUserDetails(accessToken);
   
-      // Step 3: Fetch user emails from GitHub
       const emails = await fetchGitHubUserEmails(accessToken);
   
-      // Step 4: Find the primary email or the first available email
       const primaryEmail = emails.find((email: any) => email.primary)?.email || emails[0]?.email;
   
-      // Step 5: Store or update user in the database
       const user = await prisma.users.upsert({
         where: { email: primaryEmail },
         update: {
           name: userDetails.name || userDetails.login,
+          role: userDetails.role || 'Admin',
         },
         create: {
           name: userDetails.name || userDetails.login,
           email: primaryEmail,
-          role: 'Student', // Default role
+          role: determineUserRole(primaryEmail),
           auth_provider: 'github',
         },
       });
-  
-      // Step 6: Return the access token and user details to the frontend
+
       return {
         status: 200,
         jsonBody: {
           accessToken,
           user: {
-            id: user.user_id,
+            user_id: user.user_id,
             name: user.name,
             email: user.email,
             role: user.role,
@@ -73,7 +68,6 @@ import {
     }
   }
   
-  // Helper function to exchange the code for an access token
   async function exchangeCodeForAccessToken(code: string): Promise<string> {
     const data = JSON.stringify({
       client_id: process.env.GITHUB_CLIENT_ID,
@@ -110,8 +104,7 @@ import {
       req.end();
     });
   }
-  
-  // Helper function to fetch user details from GitHub
+
   async function fetchGitHubUserDetails(accessToken: string): Promise<any> {
     const options = {
       hostname: 'api.github.com',
@@ -138,7 +131,6 @@ import {
     });
   }
   
-  // Helper function to fetch user emails from GitHub
   async function fetchGitHubUserEmails(accessToken: string): Promise<any> {
     const options = {
       hostname: 'api.github.com',
@@ -164,8 +156,14 @@ import {
       req.end();
     });
   }
-  
-  // Wrap the auth function with the corsMiddleware
+
+  function determineUserRole(email: string): string {
+    if (email.endsWith('@gmail.com')) {
+      return 'Admin';
+    }
+    return 'Student'; 
+  }
+
   const authWithCors = corsMiddleware(auth);
   
   app.http('auth', {
