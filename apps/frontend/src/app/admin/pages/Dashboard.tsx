@@ -500,7 +500,7 @@ const Dashboard: React.FC = () => {
         <aside className={styles.notificationsCard}>
           <h3>Recent Notifications</h3>
           {notifications.length > 0 ? (
-            <ul className={styles.notificationsList}>
+            <ul className={styles.scrollArea}>
               {notifications.map((notification) => (
                 <li key={notification.notification_id}>
                   <NotificationCard

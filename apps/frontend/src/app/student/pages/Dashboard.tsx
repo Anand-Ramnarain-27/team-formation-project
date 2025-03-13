@@ -299,7 +299,8 @@ const Dashboard: React.FC = () => {
 
         <aside>
           <Card title="Notifications">
-            <ul className={styles.notificationsContent}>
+            <header className={styles.notificationsContent} />
+            <ul className={styles.scrollArea}>
               {notifications.length === 0 ? (
                 <p>No notifications.</p>
               ) : (
