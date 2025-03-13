@@ -90,7 +90,7 @@ from 'local location of repository' directory
 <i> [webpack-dev-server] 404s will fallback to '/index.html'<i> [webpack-dev-middleware] wait until bundle finished: /
 ```
 2. ctrl + left-click on the http://localhost:code/ and this will open the application in your browser
-3. Make sure the link is correct, you can copy and paste this one:
+3. Make sure the link is correct, you can copy and paste this one or click on it:
 
-   `http://localhost:4200/login`
+   http://localhost:4200/login
 ---
