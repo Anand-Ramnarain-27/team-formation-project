@@ -4,7 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "docker": "docker compose up -d",
+    "flyway": "flyway -configFiles=database/flyway.conf migrate",
+    "prisma-client": "cd ./apps/backend && npm install && npx prisma generate",
+    "azure": "cd apps/backend && npm i && npm start",
+    "frontend": "cd apps && npm i && nx serve frontend",
+    "backend": "npm run docker && npm run flyway && npm run prisma-client && npm run azure"
   },
   "keywords": [],
   "author": "",
