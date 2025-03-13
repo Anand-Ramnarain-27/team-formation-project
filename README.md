@@ -94,3 +94,5 @@ from 'local location of repository' directory
 
    http://localhost:4200/login
 ---
+
+## How It Works
