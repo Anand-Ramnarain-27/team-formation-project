@@ -1,4 +1,43 @@
 # Team Formation Project
+
+## Overview
+
+The Team Formation Project is a web-based platform designed to facilitate the process of idea submission, voting, and group formation among students. It provides an intuitive interface for both administrators and students to streamline the collaboration process. The project is built using modern technologies and structured as an Nx monorepo, ensuring modularity and scalability.
+
+---
+
+## Features
+
+### Admin:
+
+- Create and manage topics
+- Add/remove students from groups
+- Review groups, student data, reviews, and ratings
+- Oversee the voting and team formation process
+
+### Student:
+
+- Submit ideas under a specific topic
+- Vote on ideas submitted by peers
+- Become a team lead if their idea receives the highest votes
+- Get assigned to a group
+- Provide peer reviews and ratings
+
+---
+
+## Tech Stack
+
+- Nx Monorepo - Modular and scalable project setup
+- Docker - Containerized environment for consistency
+- Flyway - Database migration management
+- Swagger - API documentation
+- TypeScript - Strongly typed JavaScript for backend and frontend
+- Azure Functions - Serverless execution
+- Prisma - ORM for database management
+- Webpack - Bundling and optimizing frontend assets
+
+---
+
 ## How To Run The App
 
 ### Prerequisites
