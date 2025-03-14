@@ -6,7 +6,7 @@
   "scripts": {
     "docker": "docker compose up -d",
     "flyway": "flyway -configFiles=database/flyway.conf migrate",
-    "prisma-client": "cd apps/backend && npm install && npx prisma generate",
+    "prisma-client": "cd apps/backend && npx prisma generate",
     "azure": "cd apps/backend && npm i",
     "frontend": "cd apps && npm i && nx serve frontend",
     "backend": "npm run docker && npm run flyway && npm run prisma-client && nx start backend"
